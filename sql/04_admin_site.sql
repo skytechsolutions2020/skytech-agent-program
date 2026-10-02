@@ -1,4 +1,4 @@
--- Version: V1.1 (2026-10-02) — sql/04_admin_site.sql — V1.1 (duplicate review: dismissals, review view, merge procedure)
+-- Version: V1.2 (2026-10-02) — sql/04_admin_site.sql — V1.2 (live duplicate check across Companies, Leads, WebPresence, Activities)
 -- Objects used by the SkyTech Admin site. SQL Server 2014 Developer (SSMS).
 -- Run AFTER sql/01_create_skytechcrm.sql (V2.0+). SAFE TO RE-RUN; never deletes data.
 USE SkyTechCRM;
@@ -149,6 +149,151 @@ BEGIN
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
     THROW;
   END CATCH
+END
+GO
+---------------------------------------------------------------- live duplicate check across tables (V1.2)
+IF COL_LENGTH(N'dbo.DuplicateDismissals', N'Category') IS NULL
+BEGIN
+  ALTER TABLE dbo.DuplicateDismissals ADD Category VARCHAR(20) NOT NULL CONSTRAINT DF_DuplicateDismissals_Category DEFAULT 'Companies';
+END
+GO
+IF EXISTS (SELECT 1 FROM sys.key_constraints WHERE name = N'PK_DuplicateDismissals'
+           AND NOT EXISTS (SELECT 1 FROM sys.index_columns ic JOIN sys.columns c ON c.object_id = ic.object_id AND c.column_id = ic.column_id
+                           WHERE ic.object_id = OBJECT_ID(N'dbo.DuplicateDismissals') AND c.name = N'Category'))
+BEGIN
+  ALTER TABLE dbo.DuplicateDismissals DROP CONSTRAINT PK_DuplicateDismissals;
+  ALTER TABLE dbo.DuplicateDismissals ADD CONSTRAINT PK_DuplicateDismissals PRIMARY KEY (Category, CompanyID_A, CompanyID_B);
+END
+GO
+IF OBJECT_ID(N'dbo.vw_DuplicateCheck', N'V') IS NOT NULL DROP VIEW dbo.vw_DuplicateCheck;
+GO
+CREATE VIEW dbo.vw_DuplicateCheck AS
+-- Live duplicate check across Companies, Leads, WebPresence and Activities. One row per suspected pair
+-- (strongest reason only). Severity: Exact = breaks a no-duplicates rule; Likely = same phone/email/website
+-- or a repeated activity; Possible = same name in another ZIP. Pairs marked "not a duplicate" are hidden.
+WITH web AS (
+  SELECT CompanyID,
+         LOWER(REPLACE(REPLACE(REPLACE(REPLACE(LTRIM(RTRIM(WebsiteURL)), N'https://', N''), N'http://', N''), N'www.', N''), N'/', N'')) AS Site
+    FROM dbo.WebPresence WHERE NULLIF(LTRIM(RTRIM(WebsiteURL)), N'') IS NOT NULL
+), comp AS (
+  SELECT 'Companies' AS Category, 1 AS Pri, 'Exact' AS Severity, 'Same source ID' AS Reason, a.CompanyID AS IdA, a.CompanyName AS LabelA, b.CompanyID AS IdB, b.CompanyName AS LabelB, CAST(a.SourceRecordID AS NVARCHAR(200)) AS MatchValue
+    FROM dbo.Companies a JOIN dbo.Companies b ON a.SourceRecordID = b.SourceRecordID AND a.CompanyID < b.CompanyID
+  UNION ALL
+  SELECT 'Companies', 2, 'Exact', 'Same name + ZIP', a.CompanyID, a.CompanyName, b.CompanyID, b.CompanyName, a.NormName + N' / ' + LEFT(a.Zip, 5)
+    FROM dbo.Companies a JOIN dbo.Companies b ON a.NormName = b.NormName AND LEFT(a.Zip, 5) = LEFT(b.Zip, 5) AND a.CompanyID < b.CompanyID
+  UNION ALL
+  SELECT 'Companies', 3, 'Likely', 'Same phone', a.CompanyID, a.CompanyName, b.CompanyID, b.CompanyName, a.PhoneDigits
+    FROM dbo.Companies a JOIN dbo.Companies b ON a.PhoneDigits = b.PhoneDigits AND a.CompanyID < b.CompanyID
+  UNION ALL
+  SELECT 'Companies', 4, 'Likely', 'Same email', a.CompanyID, a.CompanyName, b.CompanyID, b.CompanyName, LOWER(a.Email)
+    FROM dbo.Companies a JOIN dbo.Companies b ON LOWER(LTRIM(RTRIM(a.Email))) = LOWER(LTRIM(RTRIM(b.Email))) AND a.CompanyID < b.CompanyID
+   WHERE NULLIF(LTRIM(RTRIM(a.Email)), N'') IS NOT NULL
+  UNION ALL
+  SELECT 'Companies', 5, 'Likely', 'Same website', a.CompanyID, a.CompanyName, b.CompanyID, b.CompanyName, wa.Site
+    FROM web wa JOIN web wb ON wa.Site = wb.Site AND wa.CompanyID < wb.CompanyID
+    JOIN dbo.Companies a ON a.CompanyID = wa.CompanyID JOIN dbo.Companies b ON b.CompanyID = wb.CompanyID
+  UNION ALL
+  SELECT 'Companies', 6, 'Possible', 'Same name, other ZIP', a.CompanyID, a.CompanyName, b.CompanyID, b.CompanyName, a.NormName
+    FROM dbo.Companies a JOIN dbo.Companies b ON a.NormName = b.NormName AND ISNULL(LEFT(a.Zip, 5), '') <> ISNULL(LEFT(b.Zip, 5), '') AND a.CompanyID < b.CompanyID
+), ranked AS (
+  SELECT *, ROW_NUMBER() OVER (PARTITION BY IdA, IdB ORDER BY Pri) AS rn FROM comp
+), allpairs AS (
+  SELECT Category, Severity, Reason, IdA, LabelA, IdB, LabelB, MatchValue FROM ranked WHERE rn = 1
+  UNION ALL
+  SELECT 'Leads', 'Exact', 'Company has more than one lead', a.LeadID, c.CompanyName + N' (lead ' + CAST(a.LeadID AS NVARCHAR(10)) + N', ' + ISNULL(a.Status, N'') + N')',
+         b.LeadID, c.CompanyName + N' (lead ' + CAST(b.LeadID AS NVARCHAR(10)) + N', ' + ISNULL(b.Status, N'') + N')', CAST(a.CompanyID AS NVARCHAR(20))
+    FROM dbo.Leads a JOIN dbo.Leads b ON a.CompanyID = b.CompanyID AND a.LeadID < b.LeadID
+    JOIN dbo.Companies c ON c.CompanyID = a.CompanyID
+  UNION ALL
+  SELECT 'WebPresence', 'Exact', 'Company has ' + CAST(COUNT(*) AS VARCHAR(10)) + ' web-presence rows', w.CompanyID, MAX(c.CompanyName), w.CompanyID, MAX(c.CompanyName), CAST(w.CompanyID AS NVARCHAR(20))
+    FROM dbo.WebPresence w JOIN dbo.Companies c ON c.CompanyID = w.CompanyID
+   GROUP BY w.CompanyID HAVING COUNT(*) > 1
+  UNION ALL
+  SELECT 'Activities', 'Likely', 'Same activity logged twice (same lead, type, text, day)', a.ActivityID, ISNULL(c.CompanyName, N'') + N' - ' + ISNULL(a.ActivityType, N''),
+         b.ActivityID, ISNULL(c.CompanyName, N'') + N' - ' + ISNULL(b.ActivityType, N''), LEFT(ISNULL(a.Outcome, N''), 120)
+    FROM dbo.Activities a JOIN dbo.Activities b
+      ON a.LeadID = b.LeadID AND ISNULL(a.ActivityType, '') = ISNULL(b.ActivityType, '') AND ISNULL(a.Outcome, N'') = ISNULL(b.Outcome, N'')
+     AND CAST(a.ActivityDate AS DATE) = CAST(b.ActivityDate AS DATE) AND a.ActivityID < b.ActivityID
+    LEFT JOIN dbo.Leads l ON l.LeadID = a.LeadID LEFT JOIN dbo.Companies c ON c.CompanyID = l.CompanyID
+)
+SELECT p.Category, p.Severity, p.Reason, p.IdA, p.LabelA, p.IdB, p.LabelB, p.MatchValue,
+       p.Category + ':' + CAST(p.IdA AS VARCHAR(12)) + '-' + CAST(p.IdB AS VARCHAR(12)) AS PairKey
+  FROM allpairs p
+ WHERE NOT EXISTS (SELECT 1 FROM dbo.DuplicateDismissals d
+                    WHERE d.Category = p.Category AND d.CompanyID_A = p.IdA AND d.CompanyID_B = p.IdB);
+GO
+IF OBJECT_ID(N'dbo.usp_MergeLeads', N'P') IS NOT NULL DROP PROCEDURE dbo.usp_MergeLeads;
+GO
+CREATE PROCEDURE dbo.usp_MergeLeads @KeepLeadID INT, @RemoveLeadID INT
+AS
+BEGIN
+  -- Two leads for the same company: keep one, take the further-along status and any missing details, move activities, delete the other.
+  SET NOCOUNT ON;
+  IF @KeepLeadID = @RemoveLeadID THROW 50011, 'Choose two different leads.', 1;
+  IF NOT EXISTS (SELECT 1 FROM dbo.Leads k JOIN dbo.Leads r ON r.CompanyID = k.CompanyID WHERE k.LeadID = @KeepLeadID AND r.LeadID = @RemoveLeadID)
+     THROW 50012, 'These leads do not belong to the same company (or no longer exist).', 1;
+  BEGIN TRY
+    BEGIN TRANSACTION;
+    UPDATE k SET
+      Status = CASE WHEN CHARINDEX('|' + r.Status + '|', '|New|Checked|NoSite|DemoBuilt|Contacted|Interested|Proposal|Won|')
+                       > CHARINDEX('|' + k.Status + '|', '|New|Checked|NoSite|DemoBuilt|Contacted|Interested|Proposal|Won|')
+                     AND k.Status NOT IN ('Lost', 'DoNotContact') THEN r.Status ELSE k.Status END,
+      DemoURL = ISNULL(k.DemoURL, r.DemoURL), AssignedAgent = ISNULL(k.AssignedAgent, r.AssignedAgent),
+      NextFollowUp = ISNULL(k.NextFollowUp, r.NextFollowUp), DealValue = ISNULL(k.DealValue, r.DealValue),
+      MonthlyPlan = ISNULL(k.MonthlyPlan, r.MonthlyPlan), UpdatedOn = GETDATE()
+      FROM dbo.Leads k JOIN dbo.Leads r ON r.LeadID = @RemoveLeadID
+     WHERE k.LeadID = @KeepLeadID;
+    UPDATE dbo.Activities SET LeadID = @KeepLeadID WHERE LeadID = @RemoveLeadID;
+    DELETE FROM dbo.Leads WHERE LeadID = @RemoveLeadID;
+    COMMIT TRANSACTION;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+  END CATCH
+  -- with duplicates gone, add the one-lead-per-company rule if it is still missing
+  IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Leads_CompanyID')
+     AND NOT EXISTS (SELECT CompanyID FROM dbo.Leads WHERE CompanyID IS NOT NULL GROUP BY CompanyID HAVING COUNT(*) > 1)
+    CREATE UNIQUE INDEX UX_Leads_CompanyID ON dbo.Leads(CompanyID) WHERE CompanyID IS NOT NULL;
+END
+GO
+IF OBJECT_ID(N'dbo.usp_FixDuplicateWebPresence', N'P') IS NOT NULL DROP PROCEDURE dbo.usp_FixDuplicateWebPresence;
+GO
+CREATE PROCEDURE dbo.usp_FixDuplicateWebPresence @CompanyID INT
+AS
+BEGIN
+  -- Keeps one web-presence row for the company: the most recently checked one, with blanks filled and notes carried over from the others.
+  SET NOCOUNT ON;
+  IF (SELECT COUNT(*) FROM dbo.WebPresence WHERE CompanyID = @CompanyID) < 2 THROW 50021, 'This company has only one web-presence row now.', 1;
+  DECLARE @keep TABLE (CompanyID INT, CheckedOn DATETIME, HasWebsite BIT, WebsiteURL NVARCHAR(250), HasGoogleProfile BIT, HasFacebook BIT, Notes NVARCHAR(500));
+  INSERT INTO @keep
+  SELECT TOP 1 w.CompanyID, w.CheckedOn,
+         ISNULL(w.HasWebsite, x.HasWebsite), ISNULL(w.WebsiteURL, x.WebsiteURL), ISNULL(w.HasGoogleProfile, x.HasGoogleProfile),
+         ISNULL(w.HasFacebook, x.HasFacebook),
+         LEFT(ISNULL(w.Notes, N'') + ISNULL((SELECT N' | merged: ' + o.Notes FROM dbo.WebPresence o
+                                           WHERE o.CompanyID = @CompanyID AND o.Notes IS NOT NULL AND o.Notes <> ISNULL(w.Notes, N'')
+                                           FOR XML PATH(''), TYPE).value('.', 'NVARCHAR(MAX)'), N''), 500)
+    FROM dbo.WebPresence w
+   CROSS JOIN (SELECT CAST(MAX(CAST(HasWebsite AS INT)) AS BIT) AS HasWebsite, MAX(WebsiteURL) AS WebsiteURL,
+                      CAST(MAX(CAST(HasGoogleProfile AS INT)) AS BIT) AS HasGoogleProfile, CAST(MAX(CAST(HasFacebook AS INT)) AS BIT) AS HasFacebook
+                 FROM dbo.WebPresence WHERE CompanyID = @CompanyID) x
+   WHERE w.CompanyID = @CompanyID
+   ORDER BY w.CheckedOn DESC;
+  BEGIN TRY
+    BEGIN TRANSACTION;
+    DELETE FROM dbo.WebPresence WHERE CompanyID = @CompanyID;
+    INSERT INTO dbo.WebPresence (CompanyID, CheckedOn, HasWebsite, WebsiteURL, HasGoogleProfile, HasFacebook, Notes)
+    SELECT CompanyID, CheckedOn, HasWebsite, WebsiteURL, HasGoogleProfile, HasFacebook, Notes FROM @keep;
+    COMMIT TRANSACTION;
+  END TRY
+  BEGIN CATCH
+    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    THROW;
+  END CATCH
+  -- with duplicates gone, add the one-row-per-company rule if it is still missing
+  IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_WebPresence_CompanyID')
+     AND NOT EXISTS (SELECT CompanyID FROM dbo.WebPresence WHERE CompanyID IS NOT NULL GROUP BY CompanyID HAVING COUNT(*) > 1)
+    CREATE UNIQUE INDEX UX_WebPresence_CompanyID ON dbo.WebPresence(CompanyID) WHERE CompanyID IS NOT NULL;
 END
 GO
 SELECT N'Admin site objects ready' AS Result,

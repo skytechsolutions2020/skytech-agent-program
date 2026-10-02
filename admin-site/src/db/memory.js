@@ -1,4 +1,4 @@
-// Version: V1.1 (2026-10-02) — admin-site/src/db/memory.js — V1.1
+// Version: V1.2 (2026-10-02) — admin-site/src/db/memory.js — V1.2
 // DEMO adapter: no database needed. Loads the 100-lead sample CSV into memory so
 // the site can be tried and tested. Changes are lost when the server stops.
 const fs = require('fs');
@@ -29,16 +29,70 @@ const normName = s => (' ' + String(s || '').toLowerCase().replace(/&/g, ' and '
 const digits = s => { let d = String(s || '').replace(/\D/g, ''); if (d.length === 11 && d[0] === '1') d = d.slice(1); return d || null; };
 const niche = ind => /^Real Estate/i.test(ind || '') ? 'Real Estate' : /^Utility/i.test(ind || '') ? 'Utility Trades' : (ind || 'Other');
 
+// Same rules as dbo.vw_DuplicateCheck (sql/04 V1.2): one row per suspected pair, strongest reason only.
+const site = u => String(u || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\//g, '') || null;
+function dupCheck(co) {
+  const out = [], seen = new Set();
+  const add = (Category, Severity, Reason, IdA, LabelA, IdB, LabelB, MatchValue) => {
+    const PairKey = `${Category}:${IdA}-${IdB}`;
+    if (Category === 'Companies' && seen.has(PairKey)) return;
+    seen.add(PairKey);
+    if (T.dismissed.has(PairKey)) return;
+    out.push({ Category, Severity, Reason, IdA, LabelA, IdB, LabelB, MatchValue, PairKey });
+  };
+  const C = T.companies.slice().sort((x, y) => x.CompanyID - y.CompanyID);
+  const web = {}; T.webpresence.forEach(w => { const s = site(w.WebsiteURL); if (s && !web[w.CompanyID]) web[w.CompanyID] = s; });
+  const zip5 = z => z ? String(z).slice(0, 5) : null;
+  for (let i = 0; i < C.length; i++) for (let j = i + 1; j < C.length; j++) {
+    const a = C[i], b = C[j], A = a.CompanyID, B = b.CompanyID, na = a.CompanyName, nb = b.CompanyName;
+    const email = x => (x.Email || '').trim().toLowerCase() || null;
+    if (a.SourceRecordID && a.SourceRecordID === b.SourceRecordID) add('Companies', 'Exact', 'Same source ID', A, na, B, nb, a.SourceRecordID);
+    else if (a.NormName && a.NormName === b.NormName && zip5(a.Zip) && zip5(a.Zip) === zip5(b.Zip)) add('Companies', 'Exact', 'Same name + ZIP', A, na, B, nb, a.NormName + ' / ' + zip5(a.Zip));
+    else if (a.PhoneDigits && a.PhoneDigits === b.PhoneDigits) add('Companies', 'Likely', 'Same phone', A, na, B, nb, a.PhoneDigits);
+    else if (email(a) && email(a) === email(b)) add('Companies', 'Likely', 'Same email', A, na, B, nb, email(a));
+    else if (web[A] && web[A] === web[B]) add('Companies', 'Likely', 'Same website', A, na, B, nb, web[A]);
+    else if (a.NormName && a.NormName === b.NormName && (zip5(a.Zip) || '') !== (zip5(b.Zip) || '')) add('Companies', 'Possible', 'Same name, other ZIP', A, na, B, nb, a.NormName);
+  }
+  const L = T.leads.slice().sort((x, y) => x.LeadID - y.LeadID);
+  const lab = l => `${(co[l.CompanyID] || {}).CompanyName || ''} (lead ${l.LeadID}, ${l.Status || ''})`;
+  for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++)
+    if (L[i].CompanyID === L[j].CompanyID) add('Leads', 'Exact', 'Company has more than one lead', L[i].LeadID, lab(L[i]), L[j].LeadID, lab(L[j]), String(L[i].CompanyID));
+  const wc = {}; T.webpresence.forEach(w => { wc[w.CompanyID] = (wc[w.CompanyID] || 0) + 1; });
+  Object.entries(wc).filter(([, n]) => n > 1).forEach(([id, n]) => { const nm = (co[id] || {}).CompanyName; add('WebPresence', 'Exact', `Company has ${n} web-presence rows`, Number(id), nm, Number(id), nm, id); });
+  const A = T.activities.slice().sort((x, y) => x.ActivityID - y.ActivityID);
+  const ld = Object.fromEntries(T.leads.map(l => [l.LeadID, l]));
+  const alab = a => `${(co[(ld[a.LeadID] || {}).CompanyID] || {}).CompanyName || ''} - ${a.ActivityType || ''}`;
+  for (let i = 0; i < A.length; i++) for (let j = i + 1; j < A.length; j++) {
+    const a = A[i], b = A[j];
+    if (a.LeadID === b.LeadID && (a.ActivityType || '') === (b.ActivityType || '') && (a.Outcome || '') === (b.Outcome || '') && String(a.ActivityDate).slice(0, 10) === String(b.ActivityDate).slice(0, 10))
+      add('Activities', 'Likely', 'Same activity logged twice (same lead, type, text, day)', a.ActivityID, alab(a), b.ActivityID, alab(b), (a.Outcome || '').slice(0, 120));
+  }
+  return out;
+}
+
+// "npm run demo:duplicates": adds one example of each duplicate kind so the Possible duplicates tab can be tried.
+function plantDuplicates(now) {
+  const c1 = T.companies[0], c2 = T.companies[1], c3 = T.companies[2], c4 = T.companies[3];
+  if (!c4) return;
+  const copy = (c, extra) => { const n = { ...c, CompanyID: ++seq.companies, ImportedOn: now, UpdatedOn: now, ...extra }; T.companies.push(n); return n; };
+  copy(c1, {});                                                                // Exact: same source ID (and name + ZIP)
+  copy(c2, { SourceRecordID: null, Address: null });                            // Exact: same name + ZIP
+  copy(c3, { SourceRecordID: null, CompanyName: c3.CompanyName + ' Services', NormName: normName(c3.CompanyName + ' Services'), Zip: '21000' }); // Likely: same phone
+  copy(c4, { SourceRecordID: null, Zip: '20999', PhoneDigits: null, Phone: null, Email: null }); // Possible: same name, other ZIP
+  T.leads.push({ LeadID: ++seq.leads, CompanyID: c1.CompanyID, BatchName: 'Manual re-entry', Status: 'Contacted', DemoURL: null, AssignedAgent: 'SkyTech_PhoneMarketing',
+    NextFollowUp: null, DealValue: null, MonthlyPlan: null, LastSeenBatch: null, UpdatedOn: now });     // Exact: second lead for a company
+  T.webpresence.push({ CompanyID: c2.CompanyID, CheckedOn: new Date(Date.now() + 1000).toISOString(), HasWebsite: 0, WebsiteURL: null,
+    HasGoogleProfile: 1, HasFacebook: null, Notes: 'Re-checked by BackOffice' });                       // Exact: second web-presence row
+  const lead = T.leads.find(l => l.CompanyID === c1.CompanyID);
+  [1, 2].forEach(() => T.activities.push({ ActivityID: ++seq.activities, LeadID: lead.LeadID, Agent: 'Owner', ActivityType: 'Call',
+    Outcome: 'Left voicemail about free demo site', ActivityDate: now }));                              // Likely: activity logged twice
+}
+
 function views() {
   const co = Object.fromEntries(T.companies.map(c => [c.CompanyID, c]));
   const wp = Object.fromEntries(T.webpresence.map(w => [w.CompanyID, w]));
   const ld = Object.fromEntries(T.leads.map(l => [l.LeadID, l]));
-  const dups = [];
-  for (let i = 0; i < T.companies.length; i++) for (let j = i + 1; j < T.companies.length; j++) {
-    const a = T.companies[i], b = T.companies[j];
-    if (a.PhoneDigits && a.PhoneDigits === b.PhoneDigits) dups.push({ Reason: 'Same phone', CompanyID_A: a.CompanyID, Name_A: a.CompanyName, Zip_A: a.Zip, CompanyID_B: b.CompanyID, Name_B: b.CompanyName, Zip_B: b.Zip, MatchValue: a.PhoneDigits });
-    if (a.NormName && a.NormName === b.NormName && a.Zip !== b.Zip) dups.push({ Reason: 'Same name, other ZIP', CompanyID_A: a.CompanyID, Name_A: a.CompanyName, Zip_A: a.Zip, CompanyID_B: b.CompanyID, Name_B: b.CompanyName, Zip_B: b.Zip, MatchValue: a.NormName });
-  }
+  const dups = dupCheck(co);
   return {
     'dbo.vw_LeadDetail': T.leads.map(l => { const c = co[l.CompanyID] || {}, w = wp[l.CompanyID] || {};
       return { LeadID: l.LeadID, CompanyID: l.CompanyID, CompanyName: c.CompanyName, Niche: niche(c.Industry), County: c.County, City: c.City, Phone: c.Phone, Email: c.Email,
@@ -48,8 +102,7 @@ function views() {
     'dbo.vw_WebPresenceDetail': T.webpresence.map(w => ({ ...w, CompanyName: (co[w.CompanyID] || {}).CompanyName })),
     'dbo.vw_ActivityDetail': T.activities.map(a => ({ ...a, CompanyName: (co[(ld[a.LeadID] || {}).CompanyID] || {}).CompanyName })),
     'dbo.ImportBatches': T.imports,
-    'dbo.vw_PossibleDuplicates': dups,
-    'dbo.vw_DuplicateReview': dups.filter(d => !T.dismissed.has(d.CompanyID_A + '-' + d.CompanyID_B)),
+    'dbo.vw_DuplicateCheck': dups,
     'dbo.AuditLog': T.audit
   };
 }
@@ -84,6 +137,7 @@ module.exports = {
         NextFollowUp: null, DealValue: null, MonthlyPlan: null, LastSeenBatch: 'Sample100 Oct-2026', UpdatedOn: now });
     });
     T.imports.push({ BatchID: 1, BatchName: 'Sample100 Oct-2026', SourceFile: 'Overture Maps Places 2026-09-23.1', FirstRunOn: now, LastRunOn: now, Runs: 1, RowsIn: rows.length, Inserted: rows.length, Updated: 0, SkippedInFile: 0 });
+    if (process.argv.includes('--with-duplicates')) plantDuplicates(now);
     T.users.push({ UserID: 1, Username: 'admin', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'admin', IsActive: 1 });
     T.users.push({ UserID: 2, Username: 'viewer', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'viewer', IsActive: 1 });
   },
@@ -106,7 +160,7 @@ module.exports = {
         Contacted: count(l => ['Contacted', 'Interested', 'Proposal', 'Won', 'Lost'].includes(l.Status)), Pipeline: count(l => ['Interested', 'Proposal'].includes(l.Status)),
         Won: count(l => l.Status === 'Won'), MRR: T.leads.filter(l => l.Status === 'Won').reduce((s, l) => s + (l.MonthlyPlan || 0), 0),
         SetupRevenue: T.leads.filter(l => l.Status === 'Won').reduce((s, l) => s + (l.DealValue || 0), 0),
-        FollowUpsDue: count(l => l.NextFollowUp && l.NextFollowUp <= today && open(l)), PossibleDuplicates: views()['dbo.vw_DuplicateReview'].length },
+        FollowUpsDue: count(l => l.NextFollowUp && l.NextFollowUp <= today && open(l)), PossibleDuplicates: views()['dbo.vw_DuplicateCheck'].length },
       byStatus: Object.entries(byStatus).map(([Status, N]) => ({ Status, N })),
       byArea: Object.values(area),
       followUps: v.filter(l => l.NextFollowUp && l.NextFollowUp <= in7 && open(l)).sort((a, b) => cmp(a.NextFollowUp, b.NextFollowUp)).slice(0, 10),
@@ -147,11 +201,30 @@ module.exports = {
     if ('UpdatedOn' in rec) rec.UpdatedOn = new Date().toISOString();
     return 1;
   },
+  async duplicateSummary() {
+    const d = views()['dbo.vw_DuplicateCheck'], by = {};
+    d.forEach(r => { const k = r.Category + '|' + r.Severity; by[k] = by[k] || { Category: r.Category, Severity: r.Severity, N: 0 }; by[k].N++; });
+    return { total: d.length, byCategory: Object.values(by), checkedOn: new Date().toISOString() };
+  },
   async compareCompanies(a, b) {
     const one = id => { const c = T.companies.find(x => x.CompanyID === parseInt(id, 10)); if (!c) return null;
       const lead = T.leads.find(l => l.CompanyID === c.CompanyID);
       return { company: c, web: T.webpresence.find(w => w.CompanyID === c.CompanyID) || null,
         lead: lead ? { ...lead, Activities: T.activities.filter(x => x.LeadID === lead.LeadID).length } : null }; };
+    return { a: one(a), b: one(b) };
+  },
+  async compareLeads(a, b) {
+    const one = id => { const l = T.leads.find(x => x.LeadID === parseInt(id, 10)); if (!l) return null;
+      return { ...l, CompanyName: (T.companies.find(c => c.CompanyID === l.CompanyID) || {}).CompanyName, Activities: T.activities.filter(x => x.LeadID === l.LeadID).length }; };
+    return { a: one(a), b: one(b) };
+  },
+  async webRows(companyId) {
+    const id = parseInt(companyId, 10), c = T.companies.find(x => x.CompanyID === id) || {};
+    return T.webpresence.filter(w => w.CompanyID === id).map(w => ({ ...w, CompanyName: c.CompanyName }))
+      .sort((x, y) => cmp(y.CheckedOn, x.CheckedOn));
+  },
+  async compareActivities(a, b) {
+    const one = id => { const x = T.activities.find(r => r.ActivityID === parseInt(id, 10)); return x ? { ...x } : null; };
     return { a: one(a), b: one(b) };
   },
   async mergeCompanies(keepId, removeId) {
@@ -161,20 +234,45 @@ module.exports = {
     if (!k || !r) throw new Error('One of the companies no longer exists.');
     ['Industry', 'Address', 'City', 'County', 'State', 'Phone', 'PhoneDigits', 'Email', 'ContactName', 'ContactTitle', 'EmployeeCount', 'SourceRecordID']
       .forEach(f => { if (k[f] == null || k[f] === '') k[f] = r[f]; });
+    if (k.SourceRecordID === r.SourceRecordID) r.SourceRecordID = null;
     k.UpdatedOn = new Date().toISOString();
     const kw = T.webpresence.find(w => w.CompanyID === K), rw = T.webpresence.find(w => w.CompanyID === R);
     if (rw && !kw) rw.CompanyID = K;
     else if (rw) { ['HasWebsite', 'WebsiteURL', 'HasGoogleProfile', 'HasFacebook'].forEach(f => { if (kw[f] == null) kw[f] = rw[f]; });
       if (rw.Notes) kw.Notes = ((kw.Notes || '') + ' | merged: ' + rw.Notes).slice(0, 500); T.webpresence.splice(T.webpresence.indexOf(rw), 1); }
-    const order = ['New', 'Checked', 'NoSite', 'DemoBuilt', 'Contacted', 'Interested', 'Proposal', 'Won'];
+    T.webpresence.filter(w => w.CompanyID === R).forEach(w => { w.CompanyID = K; });
     const kl = T.leads.find(l => l.CompanyID === K), rl = T.leads.find(l => l.CompanyID === R);
     if (rl && !kl) rl.CompanyID = K;
-    else if (rl) { if (order.indexOf(rl.Status) > order.indexOf(kl.Status) && !['Lost', 'DoNotContact'].includes(kl.Status)) kl.Status = rl.Status;
-      ['DemoURL', 'AssignedAgent', 'NextFollowUp', 'DealValue', 'MonthlyPlan'].forEach(f => { if (kl[f] == null) kl[f] = rl[f]; });
-      T.activities.forEach(a => { if (a.LeadID === rl.LeadID) a.LeadID = kl.LeadID; }); T.leads.splice(T.leads.indexOf(rl), 1); }
+    else if (rl) await this.mergeLeads(kl.LeadID, rl.LeadID, true);
+    T.leads.filter(l => l.CompanyID === R).forEach(l => { l.CompanyID = K; });
     T.companies.splice(T.companies.indexOf(r), 1);
   },
-  async dismissDuplicate(a, b) { const [x, y] = [parseInt(a, 10), parseInt(b, 10)].sort((m, n) => m - n); T.dismissed.add(x + '-' + y); },
+  async mergeLeads(keepId, removeId, anyCompany) {
+    const K = parseInt(keepId, 10), R = parseInt(removeId, 10);
+    if (K === R) throw new Error('Choose two different leads.');
+    const kl = T.leads.find(l => l.LeadID === K), rl = T.leads.find(l => l.LeadID === R);
+    if (!kl || !rl || (!anyCompany && kl.CompanyID !== rl.CompanyID)) throw new Error('These leads do not belong to the same company (or no longer exist).');
+    const order = ['New', 'Checked', 'NoSite', 'DemoBuilt', 'Contacted', 'Interested', 'Proposal', 'Won'];
+    if (order.indexOf(rl.Status) > order.indexOf(kl.Status) && !['Lost', 'DoNotContact'].includes(kl.Status)) kl.Status = rl.Status;
+    ['DemoURL', 'AssignedAgent', 'NextFollowUp', 'DealValue', 'MonthlyPlan'].forEach(f => { if (kl[f] == null) kl[f] = rl[f]; });
+    kl.UpdatedOn = new Date().toISOString();
+    T.activities.forEach(a => { if (a.LeadID === R) a.LeadID = K; });
+    T.leads.splice(T.leads.indexOf(rl), 1);
+  },
+  async fixWebPresence(companyId) {
+    const id = parseInt(companyId, 10), rows = await this.webRows(id);
+    if (rows.length < 2) throw new Error('This company has only one web-presence row now.');
+    const keep = T.webpresence.find(w => w.CompanyID === id && w.CheckedOn === rows[0].CheckedOn);
+    rows.slice(1).forEach(r => ['HasWebsite', 'WebsiteURL', 'HasGoogleProfile', 'HasFacebook'].forEach(f => { if (keep[f] == null) keep[f] = r[f]; }));
+    rows.slice(1).forEach(r => { if (r.Notes && r.Notes !== keep.Notes) keep.Notes = ((keep.Notes || '') + ' | merged: ' + r.Notes).slice(0, 500); });
+    T.webpresence = T.webpresence.filter(w => w.CompanyID !== id || w === keep);
+  },
+  async removeActivity(id) {
+    const i = T.activities.findIndex(a => a.ActivityID === parseInt(id, 10));
+    if (i < 0) throw new Error('This activity no longer exists.');
+    T.activities.splice(i, 1);
+  },
+  async dismissDuplicate(category, a, b) { const [x, y] = [parseInt(a, 10), parseInt(b, 10)].sort((m, n) => m - n); T.dismissed.add(`${category}:${x}-${y}`); },
 
   async remove(entity, key) {
     const e = ENTITIES[entity], t = T[tableOf[entity]];

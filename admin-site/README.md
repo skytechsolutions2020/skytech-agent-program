@@ -17,17 +17,30 @@ A private admin website for SkyTech Solutions LLC. Sign in, see dashboards that 
 | Web presence | Website / Facebook / Google profile per company |
 | Activities | Calls, emails, posts and notes per lead |
 | Imports | Every import run with rows in, new, updated, skipped |
-| Possible duplicates | Pairs flagged by the database (same phone, or same name in another ZIP). Click a pair to compare side by side, then **Keep A / remove B**, **Keep B / remove A** (merge: blanks filled, lead/activities/web info moved, extra company removed) or **Not a duplicate** (hidden from the list). Every decision is in the Audit log |
+| Possible duplicates | **Live check of every table**, refreshed every 30 seconds (plus a **Check now** button). The menu shows a red count of duplicates found right now (green 0 when clean), and the Dashboard shows an alert bar. What it finds is listed in the table below. Click a row to compare side by side and fix it. Every decision is in the Audit log |
 | Audit log | Who changed what, when (before → after) |
 
 Two roles: **admin** (read and write) and **viewer** (read only).
+
+### What the duplicate check finds
+
+| Table | Severity | Found when | Fix offered |
+| --- | --- | --- | --- |
+| Companies | Exact | Same source ID, or same name + same ZIP | Keep A / remove B (merge), or Not a duplicate |
+| Companies | Likely | Same phone, same email or same website | same as above |
+| Companies | Possible | Same name in another ZIP | same as above |
+| Leads | Exact | A company has more than one lead | Keep one lead, merge the other into it (further-along status kept, activities moved) |
+| Web presence | Exact | A company has more than one web-presence row | Keep the newest row (blanks filled, notes carried over), remove the extras |
+| Activities | Likely | Same lead, type, text and day logged twice | Keep A / remove B, or Not a duplicate |
+
+Each pair shows only its strongest reason. After the last extra lead or web row is fixed, the database adds its one-per-company rule back automatically if it was missing.
 
 ## One-time setup (Windows)
 
 1. **Install Node.js** (free): download the **LTS** version from https://nodejs.org and install with default options.
 2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (both are safe to re-run):
    1. `sql\01_create_skytechcrm.sql`
-   2. `sql\04_admin_site.sql` (V1.1+ for duplicate review)
+   2. `sql\04_admin_site.sql` (V1.2+ for the live duplicate check)
 3. **Settings:** in this `admin-site` folder, copy `.env.example` to a new file named `.env` and edit:
    - `DB_SERVER` = the server name you use in SSMS (e.g. `localhost` or `localhost\SQL2014`)
    - `DB_AUTH=windows` (uses your Windows login, no password)
@@ -49,13 +62,15 @@ Double-click **`start-admin.bat`** (or run `npm start`), then open **http://127.
 
 **Try it without the database:** `npm run demo` loads the 100-lead sample into memory (login `admin` / `demo1234`, or `viewer` / `demo1234` for read-only). Demo changes are discarded when it stops.
 
+**Try the duplicate check:** `npm run demo:duplicates` does the same and adds one example of each duplicate kind (7 in total), so you can see the red count and practise each fix.
+
 ## Troubleshooting
 
 | Message | Fix |
 | --- | --- |
 | Could not connect to the database | Check `DB_SERVER` matches SSMS, the SQL Server service is **Running**, and `DB_DRIVER` is an installed driver |
 | Windows login needs the "msnodesqlv8" package | Run `npm install` again on this Windows PC (it installs the Windows driver bridge) |
-| Invalid object name 'dbo.vw_LeadDetail' / 'dbo.AdminUsers' | Run `sql\04_admin_site.sql` in SSMS |
+| Invalid object name 'dbo.vw_LeadDetail' / 'dbo.AdminUsers' / 'dbo.vw_DuplicateCheck' | Run `sql\04_admin_site.sql` (V1.2) in SSMS |
 | Wrong username or password | Run `npm run create-admin` again with the same username to reset the password |
 
 ## Moving to skytechsolutions.us (Hostinger) later
@@ -82,4 +97,4 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | `.env.example` | Settings template (copy to `.env`) |
 
 ---
-Version: V1.1 (2026-10-02) — admin-site/README.md — V1.1
+Version: V1.2 (2026-10-02) — admin-site/README.md — V1.2

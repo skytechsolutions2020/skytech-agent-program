@@ -1,4 +1,4 @@
-/* Version: V1.1 (2026-10-02) — admin-site/public/style.css — V1.1 */
+/* Version: V1.2 (2026-10-02) — admin-site/public/style.css — V1.2 */
 :root {
   --bg: #f4f6f9; --panel: #ffffff; --ink: #1c2430; --muted: #66707e; --line: #e2e6ec;
   --brand: #1f5fbf; --brand-ink: #ffffff; --accent: #e8f0fc; --good: #1d8a4e; --warn: #b7791f; --bad: #c0392b;
@@ -101,3 +101,17 @@ tbody tr:hover { background: var(--accent); }
 .compare tr.diff td { background: #fff7e0; }
 @media (prefers-color-scheme: dark) { .compare tr.diff td { background: #3a3220; } }
 .actions.wrap { flex-wrap: wrap; justify-content: flex-start; }
+
+/* V1.2 live duplicate check */
+.nav-count { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 6px; border-radius: 999px; background: var(--bad); color: #fff; font-size: 11px; font-weight: 700; text-align: center; line-height: 18px; }
+.nav-count.ok { background: var(--good); }
+.dup-summary { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+.dup-tile { border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; background: var(--panel); cursor: pointer; font: inherit; color: inherit; text-align: left; }
+.dup-tile b { font-size: 18px; display: block; }
+.dup-tile.on { border-color: var(--brand); background: var(--accent); }
+.dup-tile.zero b { color: var(--good); }
+.sev { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.sev.Exact { background: #fbe3e0; color: var(--bad); } .sev.Likely { background: #fff3d6; color: #8a5a00; } .sev.Possible { background: var(--accent); color: var(--brand); }
+@media (prefers-color-scheme: dark) { .sev.Exact, .sev.Likely, .sev.Possible { background: var(--accent); color: var(--ink); } }
+.alert-bar { display: flex; gap: 12px; align-items: center; border: 1px solid var(--bad); border-left-width: 5px; border-radius: var(--radius); padding: 10px 14px; margin-bottom: 14px; background: var(--panel); cursor: pointer; }
+.alert-bar.clean { border-color: var(--good); cursor: default; }

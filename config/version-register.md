@@ -25,11 +25,11 @@
 | `data/verification/2026-10-02_backoffice_results.txt` | V1.0 | 2026-10-02 | 100-lead website verification |
 | `data/samples/SkyTech_Leads_Sample100.csv` V1.1 + `_import.sql` V1.2 | 2026-10-02 | First 100-lead sample |
 | `sql/01_create_skytechcrm.sql` | V2.0 | 2026-10-02 | Duplicate-proof setup + import procedure (re-runnable) |
-| `admin-site/` | V1.1 | 2026-10-02 | Admin website (Node.js + HTML/JS) |
-| `sql/04_admin_site.sql` | V1.1 | 2026-10-02 | Admin site tables and views |
-| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.0 | 2026-10-02 | Infrastructure, data flow, agents, roles, versions |
+| `admin-site/` | V1.2 | 2026-10-02 | Admin website (Node.js + HTML/JS); live duplicate check |
+| `sql/04_admin_site.sql` | V1.2 | 2026-10-02 | Admin site tables, views, duplicate check and fix procedures |
+| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.1 | 2026-10-02 | Infrastructure, data flow, agents, roles, versions |
 | `push-to-github.bat` | V1.0 | 2026-10-02 | One-click upload of commits + tags |
-| GitHub repository `skytech-agent-program` | R2.8 | 2026-10-02 | See `INDEX.md` |
+| GitHub repository `skytech-agent-program` | R2.9 | 2026-10-02 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -45,6 +45,7 @@
 - 2026-10-02 R2.6: duplicate review in Admin site V1.1 + sql/04 V1.1. Register → V2.0.
 - 2026-10-02 R2.7: infrastructure diagram V1.0; instructions V1.5. Register → V2.1.
 - 2026-10-02 R2.8: push-to-github.bat; instructions V1.6 (artifacts in local folder, committed/tagged on every change). Register → V2.2.
+- 2026-10-02 R2.9: Admin site V1.2 + sql/04 V1.2 (live duplicate check across all tables); infrastructure diagram V1.1. Register → V2.3.
 
 ---
-Version: V2.2 (2026-10-02) — SkyTech-Version-Register.md — V2.2
+Version: V2.3 (2026-10-02) — SkyTech-Version-Register.md — V2.3

@@ -1,4 +1,4 @@
-// Version: V1.1 (2026-10-02) — admin-site/server.js — V1.1
+// Version: V1.2 (2026-10-02) — admin-site/server.js — V1.2
 // SkyTech Admin site: login, dashboard, drill-down and CRUD for SkyTechCRM.
 // Start: "npm start" (SQL Server)  |  "npm run demo" (no database, sample data)
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
@@ -99,24 +99,38 @@ app.delete('/api/data/:entity/:key', auth, adminOnly, entity, wrap(async (req, r
   res.json({ deleted: n });
 }));
 
-// ---- duplicate review: compare, merge (keep one, remove the other), dismiss
-app.get('/api/duplicates/compare', auth, wrap(async (req, res) => {
-  const r = await db.compareCompanies(req.query.a, req.query.b);
-  if (!r.a || !r.b) return res.status(404).json({ error: 'One of these companies no longer exists.' });
-  res.json(r);
+// ---- duplicate check (live, all tables): summary, compare, resolve, dismiss
+const DUP_CATS = ['Companies', 'Leads', 'WebPresence', 'Activities'];
+function cat(req, res, next) { const c = (req.query.cat || (req.body || {}).cat || 'Companies'); if (!DUP_CATS.includes(c)) return res.status(400).json({ error: 'Unknown duplicate type.' }); req.cat = c; next(); }
+async function dupCompare(c, a, b) {
+  if (c === 'Companies') return db.compareCompanies(a, b);
+  if (c === 'Leads') return db.compareLeads(a, b);
+  if (c === 'Activities') return db.compareActivities(a, b);
+  const rows = await db.webRows(a); return { a: rows[0] || null, b: rows[1] || null, rows };
+}
+app.get('/api/duplicates/summary', auth, wrap(async (req, res) => res.json(await db.duplicateSummary())));
+app.get('/api/duplicates/compare', auth, cat, wrap(async (req, res) => {
+  const r = await dupCompare(req.cat, req.query.a, req.query.b);
+  if (!r.a || !r.b) return res.status(404).json({ error: 'This duplicate is already resolved (one of the records no longer exists).' });
+  res.json({ cat: req.cat, ...r });
 }));
-app.post('/api/duplicates/merge', auth, adminOnly, wrap(async (req, res) => {
+app.post('/api/duplicates/resolve', auth, adminOnly, cat, wrap(async (req, res) => {
   const { keepId, removeId } = req.body || {};
-  const before = await db.compareCompanies(keepId, removeId);
-  if (!before.a || !before.b) return res.status(404).json({ error: 'One of these companies no longer exists.' });
-  await db.mergeCompanies(keepId, removeId);
-  await db.audit(req.session.user.name, 'companies', 'MERGE', `${keepId}<-${removeId}`, { kept: before.a, removed: before.b });
-  res.json({ kept: keepId, removed: removeId });
+  const before = await dupCompare(req.cat, keepId, req.cat === 'WebPresence' ? keepId : removeId);
+  if (!before.a || !before.b) return res.status(404).json({ error: 'This duplicate is already resolved (one of the records no longer exists).' });
+  if (req.cat === 'Companies') await db.mergeCompanies(keepId, removeId);
+  else if (req.cat === 'Leads') await db.mergeLeads(keepId, removeId);
+  else if (req.cat === 'WebPresence') await db.fixWebPresence(keepId);
+  else await db.removeActivity(removeId);
+  const entity = { Companies: 'companies', Leads: 'leads', WebPresence: 'webpresence', Activities: 'activities' }[req.cat];
+  await db.audit(req.session.user.name, entity, 'MERGE', req.cat === 'WebPresence' ? String(keepId) : `${keepId}<-${removeId}`, before.rows ? { rows: before.rows } : { kept: before.a, removed: before.b });
+  res.json({ ok: true });
 }));
-app.post('/api/duplicates/dismiss', auth, adminOnly, wrap(async (req, res) => {
+app.post('/api/duplicates/dismiss', auth, adminOnly, cat, wrap(async (req, res) => {
+  if (!['Companies', 'Activities'].includes(req.cat)) return res.status(400).json({ error: 'Leads and web-presence rows must be one per company, so these can only be fixed, not dismissed.' });
   const { a, b } = req.body || {};
-  await db.dismissDuplicate(a, b, req.session.user.name);
-  await db.audit(req.session.user.name, 'duplicates', 'DISMISS', `${a}-${b}`, null);
+  await db.dismissDuplicate(req.cat, a, b, req.session.user.name);
+  await db.audit(req.session.user.name, 'duplicates', 'DISMISS', `${req.cat}:${a}-${b}`, null);
   res.json({ ok: true });
 }));
 

@@ -1,11 +1,11 @@
-"""Version: V1.0 (2026-10-02) — scripts/docs/build_infrastructure.py — V1.0
+"""Version: V1.1 (2026-10-02) — scripts/docs/build_infrastructure.py — V1.1
 Builds docs/architecture/SkyTech_Infrastructure.html (diagram + roles + versions).
 Edit the DATA section and re-run to publish a new version."""
 import html, sys, os
 OUT = sys.argv[1] if len(sys.argv) > 1 else "docs/architecture/SkyTech_Infrastructure.html"
 
 # ============================ DATA (edit here) ============================
-DOC_VERSION = "V1.0"; DOC_DATE = "2026-10-02"; RELEASE = "R2.7"
+DOC_VERSION = "V1.1"; DOC_DATE = "2026-10-02"; RELEASE = "R2.9"
 AGENTS = [  # name, status, role, inputs, outputs, control
  ("SkyTech_Manager", "Active", "Runs the program: assigns work, collects agent reports, summarizes to the owner, keeps files/versions/GitHub in order", "Owner requests, agent reports", "Daily summary, task assignments, project files", "Claude in this project; asks owner before actions"),
  ("SkyTech_BackOffice", "Active", "Pulls free leads, verifies \"no website\" by alternative search routes, prepares duplicate-safe SQL imports", "Overture & other free sources, web search", "Verified lead CSV, import SQL, verification report", "agents/SkyTech_BackOffice.md + saved skill (owner-editable)"),
@@ -18,11 +18,11 @@ COMPONENTS = [  # component, where, version, purpose
  ("90-Day Plan (living doc)", "claude.ai artifact + docs/90-day-plan.md", "V2.2", "Plan, guardrails, free lead sources, pricing, timeline"),
  ("Project instructions", "claude.ai Project + config/project-instructions.md", "V1.4", "Standing rules for every session"),
  ("Version register / INDEX", "config/version-register.md, INDEX.md", "V2.0 / V1.6", "What each file and release contains"),
- ("SkyTechCRM database", "SQL Server 2014 Developer (owner's laptop)", "setup V2.0, admin objects V1.1", "Companies, WebPresence, Leads, Activities; duplicate-safe imports; audit"),
- ("Admin site", "admin-site/ (Node.js) at http://127.0.0.1:3030", "V1.1", "Login, dashboards, drill-down, CRUD, duplicate review, audit log"),
+ ("SkyTechCRM database", "SQL Server 2014 Developer (owner's laptop)", "setup V2.0, admin objects V1.2", "Companies, WebPresence, Leads, Activities; duplicate-safe imports; audit"),
+ ("Admin site", "admin-site/ (Node.js) at http://127.0.0.1:3030", "V1.2", "Login, dashboards, drill-down, CRUD, live duplicate check of all tables (every 30 s), audit log"),
  ("Lead scripts", "scripts/leads/", "extract V1.0, build V1.2", "Overture extraction, sample + import SQL generation"),
  ("Lead sample", "data/samples/", "CSV V1.1, SQL V1.2", "100 leads, 36 verified potential clients"),
- ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R2.7", "Full history of every artifact, tagged releases"),
+ ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R2.9", "Full history of every artifact, tagged releases"),
  ("Company website", "skytechsolutions.us (Hostinger, Node.js)", "live", "Needs robots.txt, sitemap, pricing page"),
 ]
 FLOWS = [  # number, text
@@ -30,7 +30,7 @@ FLOWS = [  # number, text
  ("2", "Verification — BackOffice searches name, phone, address and likely domains; records a verdict and evidence for each lead."),
  ("3", "Files — lead CSV, verification results and import SQL are saved in the local folder (Git repository)."),
  ("4", "Import — owner runs the SQL in SSMS; usp_ImportStagedLeads inserts new companies and updates existing ones (no duplicates)."),
- ("5", "Admin site — owner signs in, reviews dashboards, drills down, edits records, merges duplicates; every change is audited."),
+ ("5", "Admin site — owner signs in, reviews dashboards, drills down, edits records, fixes any duplicates the live check finds; every change is audited."),
  ("6", "Backup & history — GitHub Desktop pushes the local folder and release tags to the private GitHub repository."),
  ("7", "Reporting — agents report to SkyTech_Manager; the Manager summarizes to the owner and asks approval before actions."),
  ("8", "Demo sites (planned) — WebsiteDeveloper publishes demos to Netlify / Google Drive for the marketing agents."),
@@ -40,12 +40,13 @@ RULES = [
  "Owner approves every action (automatic approval off); owner personally makes all phone calls (TCPA).",
  "$0/month: free tools and free tiers only.",
  "Free lead sources licensed for business use; no library downloads; no bot scraping of Google Maps, Yelp or Facebook.",
- "No duplicate data: all imports through dbo.StgLeads + dbo.usp_ImportStagedLeads; unique indexes; duplicate review in the Admin site.",
+ "No duplicate data: all imports through dbo.StgLeads + dbo.usp_ImportStagedLeads; unique indexes; live duplicate check of all tables in the Admin site.",
  "Every file carries a version footer; files are edited in place; changes logged in the version register, INDEX and CHANGELOG; releases tagged in GitHub.",
  "Downloaded documents carry no AI-related metadata.",
 ]
 STATUSES = ["New", "Checked", "NoSite", "DemoBuilt", "Contacted", "Interested", "Proposal", "Won"]
-CHANGELOG = [("V1.0", "2026-10-02", "First version: infrastructure and data-flow diagram, agents and roles, components and versions, rules, lead lifecycle.")]
+CHANGELOG = [("V1.0", "2026-10-02", "First version: infrastructure and data-flow diagram, agents and roles, components and versions, rules, lead lifecycle."),
+             ("V1.1", "2026-10-02", "Admin site V1.2 and admin objects V1.2: live duplicate check across Companies, Leads, Web presence and Activities.")]
 # ==========================================================================
 
 E = html.escape
@@ -87,7 +88,7 @@ box(330, 272, 354, 54, "SkyTech_WebsiteDeveloper — planned", ["free one-page d
 box(330, 342, 354, 54, "SkyTech_PhoneMarketing — planned", ["call sheets + scripts (owner calls)"], "planned")
 box(330, 412, 354, 54, "SkyTech_SocialMediaMarketing — planned", ["post + message drafts (owner approves)"], "planned")
 box(330, 482, 354, 54, "SkyTech_ProjectManagement — planned", ["plan, checklist, milestones"], "planned")
-box(300, 566, 384, 108, "Claude Project + living docs", ["Project instructions V1.4 · version register", "90-Day Plan doc V2.2 · prompt books", "memory: name, rules, local folder"], "store")
+box(300, 566, 384, 108, "Claude Project + living docs", ["Project instructions V1.6 · version register", "90-Day Plan doc V2.2 · prompt books", "memory: name, rules, local folder"], "store")
 # manager assigns bracket
 svg.append('<path class="ar" d="M316 162 L316 509"/>')
 for y in (221, 299, 369, 439, 509): svg.append(f'<path class="ar" d="M316 {y} L328 {y}" marker-end="url(#m)"/>')
@@ -100,15 +101,16 @@ box(740, 220, 374, 214, "SQL Server 2014 Developer — SkyTechCRM", [
     "unique indexes: source ID; name + ZIP;",
     "  one web row + one lead per company",
     "ImportBatches (import log)",
-    "vw_PossibleDuplicates → vw_DuplicateReview",
-    "usp_MergeCompanies · DuplicateDismissals",
+    "vw_DuplicateCheck (all tables, live)",
+    "usp_MergeCompanies · usp_MergeLeads",
+    "usp_FixDuplicateWebPresence",
     "AdminUsers (bcrypt) · AuditLog",
-    "setup V2.0 · admin objects V1.1"], "accent")
-box(740, 492, 374, 70, "Admin site V1.1 (Node.js) · 127.0.0.1:3030", ["login (admin / viewer) · dashboards · drill-down", "CRUD · duplicate review · audit log"], "normal")
+    "setup V2.0 · admin objects V1.2"], "accent")
+box(740, 492, 374, 70, "Admin site V1.2 (Node.js) · 127.0.0.1:3030", ["login (admin / viewer) · dashboards · drill-down", "CRUD · live duplicate check · audit log"], "normal")
 box(740, 586, 178, 54, "SSMS", ["runs SQL scripts"], "normal")
 box(936, 586, 178, 54, "GitHub Desktop + Git", ["push commits + tags"], "normal")
 # internet
-box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R2.7"], "store")
+box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R2.9"], "store")
 box(1166, 186, 204, 70, "Hostinger", ["skytechsolutions.us (live)", "future: admin site + MySQL"], "normal")
 box(1166, 272, 204, 54, "Netlify / Google Drive", ["demo sites (planned)"], "planned")
 box(1166, 342, 204, 54, "Gmail / Brevo free", ["owner-approved email (planned)"], "planned")

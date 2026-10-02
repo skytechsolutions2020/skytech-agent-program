@@ -1,5 +1,15 @@
 # Changelog
 
+## R2.9 — 2026-10-02
+- Admin site V1.2: the Possible duplicates tab is now a live check of every table, re-checked every 30 seconds (plus **Check now**). Red count in the menu (green 0 when clean) and an alert bar on the Dashboard.
+  - Companies: same source ID or same name + ZIP (Exact); same phone, email or website (Likely); same name in another ZIP (Possible) → merge or "not a duplicate".
+  - Leads: a company with more than one lead → keep one, merge the other into it.
+  - Web presence: a company with more than one row → keep the newest, fill blanks, carry notes, remove extras.
+  - Activities: same lead, type, text and day logged twice → remove the extra or "not a duplicate".
+  - `npm run demo:duplicates` plants one example of each kind for practice.
+- `sql/04_admin_site.sql` V1.2: `vw_DuplicateCheck`, `usp_MergeLeads`, `usp_FixDuplicateWebPresence` (both re-add the one-per-company unique rule once clean), `DuplicateDismissals.Category`.
+- Infrastructure diagram V1.1 (Admin site V1.2, duplicate check).
+
 ## R2.8 — 2026-10-02
 - Added `push-to-github.bat` (V1.0): one double-click uploads all commits and release tags.
 - Project instructions V1.6 / README V2.5: infrastructure and all artifacts kept in the local folder; every change is committed and tagged by SkyTech_Manager and uploaded by the owner.
@@ -47,4 +57,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.8 (2026-10-02) — CHANGELOG.md — V1.8
+Version: V1.9 (2026-10-02) — CHANGELOG.md — V1.9

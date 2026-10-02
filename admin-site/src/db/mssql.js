@@ -1,4 +1,4 @@
-// Version: V1.1 (2026-10-02) — admin-site/src/db/mssql.js — V1.1
+// Version: V1.2 (2026-10-02) — admin-site/src/db/mssql.js — V1.2
 // SQL Server adapter (SkyTechCRM on SQL Server 2014+). All values are sent as
 // parameters; table/column names come only from src/schema.js.
 const { ENTITIES, editableColumns } = require('../schema');
@@ -95,7 +95,7 @@ module.exports = {
         (SELECT ISNULL(SUM(MonthlyPlan),0) FROM dbo.Leads WHERE Status = 'Won') AS MRR,
         (SELECT ISNULL(SUM(DealValue),0) FROM dbo.Leads WHERE Status = 'Won') AS SetupRevenue,
         (SELECT COUNT(*) FROM dbo.Leads WHERE NextFollowUp <= @today AND Status NOT IN ('Won','Lost','DoNotContact')) AS FollowUpsDue,
-        (SELECT COUNT(*) FROM dbo.vw_DuplicateReview) AS PossibleDuplicates;
+        (SELECT COUNT(*) FROM dbo.vw_DuplicateCheck) AS PossibleDuplicates;
       SELECT Status, COUNT(*) AS N FROM dbo.Leads GROUP BY Status;
       SELECT ISNULL(County, N'(none)') AS County, Niche, COUNT(*) AS N, SUM(CASE WHEN Status = 'NoSite' THEN 1 ELSE 0 END) AS Potential
         FROM dbo.vw_LeadDetail GROUP BY County, Niche;
@@ -135,7 +135,7 @@ module.exports = {
 
   async get(entity, key) {
     const e = ENTITIES[entity];
-    const r = await pool.request().input('k', sql.Int, parseInt(key, 10))
+    const r = await pool.request().input('k', e.columns[e.key].type === 'int' ? sql.Int : sql.NVarChar(100), e.columns[e.key].type === 'int' ? parseInt(key, 10) : String(key))
       .query(`SELECT * FROM ${e.source} WHERE ${q(e.key)} = @k`);
     return r.recordset[0];
   },
@@ -181,6 +181,10 @@ module.exports = {
     } catch (err) { throw friendly(err); }
   },
 
+  async duplicateSummary() {
+    const r = await pool.request().query(`SELECT Category, Severity, COUNT(*) AS N FROM dbo.vw_DuplicateCheck GROUP BY Category, Severity;`);
+    return { total: r.recordset.reduce((t, x) => t + x.N, 0), byCategory: r.recordset, checkedOn: new Date().toISOString() };
+  },
   async compareCompanies(a, b) {
     const one = async id => {
       const r = await pool.request().input('id', sql.Int, id).query(`
@@ -191,17 +195,48 @@ module.exports = {
     };
     return { a: await one(parseInt(a, 10)), b: await one(parseInt(b, 10)) };
   },
+  async compareLeads(a, b) {
+    const one = async id => (await pool.request().input('id', sql.Int, parseInt(id, 10)).query(`
+      SELECT l.*, c.CompanyName, (SELECT COUNT(*) FROM dbo.Activities a WHERE a.LeadID = l.LeadID) AS Activities
+        FROM dbo.Leads l LEFT JOIN dbo.Companies c ON c.CompanyID = l.CompanyID WHERE l.LeadID = @id`)).recordset[0] || null;
+    return { a: await one(a), b: await one(b) };
+  },
+  async webRows(companyId) {
+    const r = await pool.request().input('id', sql.Int, parseInt(companyId, 10))
+      .query('SELECT w.*, c.CompanyName FROM dbo.WebPresence w JOIN dbo.Companies c ON c.CompanyID = w.CompanyID WHERE w.CompanyID = @id ORDER BY w.CheckedOn DESC');
+    return r.recordset;
+  },
+  async compareActivities(a, b) {
+    const one = async id => (await pool.request().input('id', sql.Int, parseInt(id, 10))
+      .query('SELECT * FROM dbo.Activities WHERE ActivityID = @id')).recordset[0] || null;
+    return { a: await one(a), b: await one(b) };
+  },
   async mergeCompanies(keepId, removeId) {
     try {
       await pool.request().input('k', sql.Int, parseInt(keepId, 10)).input('r', sql.Int, parseInt(removeId, 10))
         .query('EXEC dbo.usp_MergeCompanies @KeepID = @k, @RemoveID = @r');
     } catch (err) { throw friendly(err); }
   },
-  async dismissDuplicate(a, b, user) {
+  async mergeLeads(keepId, removeId) {
+    try {
+      await pool.request().input('k', sql.Int, parseInt(keepId, 10)).input('r', sql.Int, parseInt(removeId, 10))
+        .query('EXEC dbo.usp_MergeLeads @KeepLeadID = @k, @RemoveLeadID = @r');
+    } catch (err) { throw friendly(err); }
+  },
+  async fixWebPresence(companyId) {
+    try {
+      await pool.request().input('id', sql.Int, parseInt(companyId, 10)).query('EXEC dbo.usp_FixDuplicateWebPresence @CompanyID = @id');
+    } catch (err) { throw friendly(err); }
+  },
+  async removeActivity(id) {
+    const r = await pool.request().input('id', sql.Int, parseInt(id, 10)).query('DELETE FROM dbo.Activities WHERE ActivityID = @id');
+    if (!r.rowsAffected[0]) throw new Error('This activity no longer exists.');
+  },
+  async dismissDuplicate(category, a, b, user) {
     const [x, y] = [parseInt(a, 10), parseInt(b, 10)].sort((m, n) => m - n);
-    await pool.request().input('a', sql.Int, x).input('b', sql.Int, y).input('u', sql.NVarChar(50), user)
-      .query(`IF NOT EXISTS (SELECT 1 FROM dbo.DuplicateDismissals WHERE CompanyID_A = @a AND CompanyID_B = @b)
-              INSERT INTO dbo.DuplicateDismissals (CompanyID_A, CompanyID_B, DismissedBy) VALUES (@a, @b, @u)`);
+    await pool.request().input('c', sql.VarChar(20), category).input('a', sql.Int, x).input('b', sql.Int, y).input('u', sql.NVarChar(50), user)
+      .query(`IF NOT EXISTS (SELECT 1 FROM dbo.DuplicateDismissals WHERE Category = @c AND CompanyID_A = @a AND CompanyID_B = @b)
+              INSERT INTO dbo.DuplicateDismissals (Category, CompanyID_A, CompanyID_B, DismissedBy) VALUES (@c, @a, @b, @u)`);
   },
 
   async remove(entity, key) {

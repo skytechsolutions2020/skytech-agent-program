@@ -1,4 +1,4 @@
-// Version: V1.1 (2026-10-02) — admin-site/public/app.js — V1.1 (duplicate review: compare, merge, dismiss)
+// Version: V1.2 (2026-10-02) — admin-site/public/app.js — V1.2 (live duplicate check across all tables)
 // SkyTech Admin site front end (no framework). Routes: #dashboard, #<entity>?search=&f_Col=val
 (() => {
   const $ = s => document.querySelector(s);
@@ -19,6 +19,7 @@
   function cell(def, v, col) {
     if (v === null || v === undefined || v === '') return '<span class="muted">—</span>';
     if (col === 'Status') return `<span class="pill ${esc(v)}">${esc(v)}</span>`;
+    if (col === 'Severity') return `<span class="sev ${esc(v)}">${esc(v)}</span>`;
     if (def && def.type === 'bit') return v ? 'Yes' : 'No';
     if (def && def.type === 'date') return esc(fmtDate(v));
     if (def && def.type === 'datetime') return esc(fmtDT(v));
@@ -35,7 +36,7 @@
     try { await api('POST', '/api/login', { username: f.get('username'), password: f.get('password') }); e.target.reset(); await start(); }
     catch (err) { $('#loginError').textContent = err.message; }
   });
-  $('#logout').addEventListener('click', async () => { await api('POST', '/api/logout'); showLogin(); });
+  $('#logout').addEventListener('click', async () => { clearInterval(dupTimer); await api('POST', '/api/logout'); showLogin(); });
   $('#menu').addEventListener('click', () => $('.sidebar').classList.toggle('open'));
 
   async function start() {
@@ -43,7 +44,27 @@
     META = await api('GET', '/api/meta');
     $('#who').textContent = `${ME.name} (${ME.role})`; $('#mode').textContent = me.mode;
     $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
-    route();
+    route(); watchDuplicates();
+  }
+
+  // ---------- live duplicate watch: nav badge refreshed every 30 s; open Duplicates tab re-checks itself
+  let DUP = null, dupTimer = null;
+  async function checkDuplicates() {
+    try { DUP = await api('GET', '/api/duplicates/summary'); } catch (e) { return null; }
+    const b = $('#dupBadge'); b.textContent = DUP.total; b.classList.toggle('hidden', false); b.classList.toggle('ok', DUP.total === 0);
+    b.title = DUP.total ? `${DUP.total} duplicate${DUP.total === 1 ? '' : 's'} found right now` : 'No duplicates found';
+    return DUP;
+  }
+  function watchDuplicates() {
+    clearInterval(dupTimer);
+    checkDuplicates();
+    dupTimer = setInterval(async () => {
+      const before = DUP && DUP.total; await checkDuplicates();
+      const { view } = parseHash();
+      const drawerOpen = !$('#drawer').classList.contains('hidden');
+      if (view === 'duplicates' && !drawerOpen) route();
+      else if (view === 'dashboard' && DUP && before !== DUP.total && !drawerOpen) route();
+    }, 30000);
   }
   const canWrite = e => ME && ME.role === 'admin' && META.entities[e].writable;
 
@@ -88,6 +109,7 @@
       ['Possible duplicates', k.PossibleDuplicates, 'duplicates', 'Review', k.PossibleDuplicates > 0]
     ];
     $('#view').innerHTML = `
+      ${k.PossibleDuplicates > 0 ? `<div class="alert-bar" id="dupAlert"><b>${esc(k.PossibleDuplicates)} duplicate${k.PossibleDuplicates === 1 ? '' : 's'} found in the database.</b><span class="muted">Click to review and fix them.</span></div>` : ''}
       <div class="kpis">${kpis.map((x, i) => `<div class="card kpi ${x[4] ? 'alert' : ''}" data-i="${i}"><div class="v">${esc(x[1])}</div><div class="l">${esc(x[0])}${x[3] ? ' · ' + esc(x[3]) : ''}</div></div>`).join('')}</div>
       <div class="grid2">
         <div class="card"><h3>Leads by status</h3><canvas id="cStatus" height="220"></canvas><div class="hint">Click a bar to open those leads.</div></div>
@@ -98,6 +120,7 @@
         <div class="card"><h3>Recent activity</h3>${miniTable(d.activity, ['ActivityDate', 'CompanyName', 'Agent', 'ActivityType', 'Outcome'], null, null, 'No activity logged yet.')}</div>
       </div>
       <div class="card"><h3>Recent imports</h3>${miniTable(d.imports, ['BatchName', 'RowsIn', 'Inserted', 'Updated', 'SkippedInFile', 'LastRunOn'], null, null, 'No imports yet.')}</div>`;
+    if ($('#dupAlert')) $('#dupAlert').addEventListener('click', () => go('duplicates'));
     document.querySelectorAll('.kpi').forEach(el => el.addEventListener('click', () => {
       const t = kpis[el.dataset.i][2];
       if (typeof t === 'string') go(t); else if (t) go('leads', t);
@@ -136,6 +159,7 @@
   // ---------- table view
   async function renderTable(entity, params) {
     const e = META.entities[entity];
+    if (entity === 'duplicates') await checkDuplicates();
     $('#title').textContent = e.label;
     const filters = Object.entries(params).filter(([k]) => k.startsWith('f_'));
     $('#crumbs').textContent = filters.length ? filters.map(([k, v]) => `${k.slice(2)}: ${v}`).join(' · ') : '';
@@ -150,7 +174,7 @@
         <button class="btn" id="csv">Export CSV</button>
         ${canWrite(entity) ? `<button class="btn primary" id="new">+ New</button>` : ''}
       </div>
-      ${entity === 'duplicates' ? `<div class="card note">Pairs the database flags as possible duplicates (same phone, or same name in another ZIP). Click a pair to compare them side by side, then <b>merge</b> (keep one, remove the other; its lead, activities and web info move to the one you keep) or mark them <b>not a duplicate</b>. Exact duplicates are already blocked by the database.</div>` : ''}
+      ${entity === 'duplicates' ? dupPanel(params) : ''}
       <div class="table-wrap"><table><thead><tr>${e.listColumns.map(c => `<th data-sort="${c}">${esc(c)}${params.sort === c ? (params.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="rows"><tr><td colspan="${e.listColumns.length}" class="muted">Loading…</td></tr></tbody></table></div>
       <div class="pager"><span id="count" class="muted"></span><button class="btn small" id="prev">‹ Prev</button><button class="btn small" id="next">Next ›</button></div>`;
     let t; $('#q').addEventListener('input', ev => { clearTimeout(t); t = setTimeout(() => go(entity, { ...params, search: ev.target.value, page: 1 }), 350); });
@@ -160,10 +184,14 @@
     if ($('#new')) $('#new').addEventListener('click', () => openRecord(entity, null, Object.fromEntries(filters.map(([k, v]) => [k.slice(2), v]))));
     const qs = new URLSearchParams({ size: 25, ...params }).toString();
     const data = await api('GET', `/api/data/${entity}?${qs}`);
-    $('#rows').innerHTML = data.rows.length ? data.rows.map(r => `<tr data-key="${esc(r[e.key])}"${entity === 'duplicates' ? ` data-b="${esc(r.CompanyID_B)}"` : ''}>${e.listColumns.map(c => `<td title="${esc(r[c])}">${cell(e.columns[c], r[c], c)}</td>`).join('')}</tr>`).join('')
+    $('#rows').innerHTML = data.rows.length ? data.rows.map(r => `<tr data-key="${esc(r[e.key])}"${entity === 'duplicates' ? ` data-cat="${esc(r.Category)}" data-a="${esc(r.IdA)}" data-b="${esc(r.IdB)}"` : ''}>${e.listColumns.map(c => `<td title="${esc(r[c])}">${cell(e.columns[c], r[c], c)}</td>`).join('')}</tr>`).join('')
       : `<tr><td colspan="${e.listColumns.length}" class="muted">No records.</td></tr>`;
     if (e.writable || entity === 'leads') document.querySelectorAll('#rows tr[data-key]').forEach(tr => tr.addEventListener('click', () => openRecord(entity, tr.dataset.key)));
-    else if (entity === 'duplicates') document.querySelectorAll('#rows tr[data-key]').forEach(tr => tr.addEventListener('click', () => openCompare(tr.dataset.key, tr.dataset.b)));
+    else if (entity === 'duplicates') {
+      document.querySelectorAll('#rows tr[data-key]').forEach(tr => tr.addEventListener('click', () => openCompare(tr.dataset.cat, tr.dataset.a, tr.dataset.b)));
+      if (!data.total && !params.search && !filters.length) $('#rows').innerHTML = `<tr><td colspan="${e.listColumns.length}">No duplicates in Companies, Leads, Web presence or Activities. This page re-checks every 30 seconds.</td></tr>`;
+      wireDupPanel(entity, params);
+    }
     const page = data.page, pages = Math.max(1, Math.ceil(data.total / data.size));
     $('#count').textContent = `${data.total} record${data.total === 1 ? '' : 's'} · page ${page} of ${pages}`;
     $('#prev').disabled = page <= 1; $('#next').disabled = page >= pages;
@@ -260,32 +288,73 @@
       if ($('#mkLead')) $('#mkLead').addEventListener('click', () => openRecord('leads', null, { CompanyID: rec.CompanyID, Status: 'New' }));
     }
   }
-  // ---------- duplicate review
-  async function openCompare(a, b) {
+  // ---------- duplicate check
+  const DUP_HELP = {
+    Companies: 'Two company rows that look like the same business. Merge keeps the one you choose, fills its blanks from the other, moves the lead, activities and web info, then removes the other company.',
+    Leads: 'A company should have one lead. Merge keeps the lead you choose, takes the further-along status and any missing details, moves all activities to it, and removes the other lead.',
+    WebPresence: 'A company should have one web-presence row. Fix keeps the most recently checked row, fills its blanks and carries over the notes from the others, then removes the extra rows.',
+    Activities: 'The same call, email or note was logged twice on the same day for the same lead. Remove the extra one, or mark them as not a duplicate.'
+  };
+  function dupPanel(params) {
+    const cats = ['Companies', 'Leads', 'WebPresence', 'Activities'];
+    const n = c => DUP ? DUP.byCategory.filter(x => x.Category === c).reduce((t, x) => t + x.N, 0) : '…';
+    const sev = s => DUP ? DUP.byCategory.filter(x => x.Severity === s).reduce((t, x) => t + x.N, 0) : '…';
+    return `<div class="card note">
+      <div class="dup-summary">
+        <button class="dup-tile ${!params.f_Category ? 'on' : ''} ${DUP && !DUP.total ? 'zero' : ''}" data-cat=""><b>${DUP ? DUP.total : '…'}</b>All tables</button>
+        ${cats.map(c => `<button class="dup-tile ${params.f_Category === c ? 'on' : ''} ${n(c) === 0 ? 'zero' : ''}" data-cat="${c}"><b>${n(c)}</b>${c === 'WebPresence' ? 'Web presence' : c}</button>`).join('')}
+        <span style="flex:1"></span>
+        <span class="muted">Exact ${sev('Exact')} · Likely ${sev('Likely')} · Possible ${sev('Possible')}<br>Checked ${DUP ? esc(new Date(DUP.checkedOn).toLocaleTimeString()) : '…'} · auto every 30 s</span>
+        <button class="btn" id="dupNow">Check now</button>
+      </div>
+      <div class="muted"><b>Exact</b> = breaks a no-duplicates rule (same source ID, same name + ZIP, two leads or two web rows for one company). <b>Likely</b> = same phone, email or website, or an activity logged twice. <b>Possible</b> = same name in another ZIP. Click a row to compare and fix it.</div>
+    </div>`;
+  }
+  function wireDupPanel(entity, params) {
+    document.querySelectorAll('.dup-tile').forEach(t => t.addEventListener('click', () => go(entity, { ...params, f_Category: t.dataset.cat, page: 1 })));
+    $('#dupNow').addEventListener('click', async () => { await checkDuplicates(); route(); toast(DUP && DUP.total ? `${DUP.total} duplicate${DUP.total === 1 ? '' : 's'} found.` : 'No duplicates found.'); });
+  }
+  async function openCompare(cat, a, b) {
     let d;
-    try { d = await api('GET', `/api/duplicates/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`); }
-    catch (err) { toast(err.message, 5000); route(); return; }
-    const rows = [
-      ['Company ID', x => x.company.CompanyID], ['Name', x => x.company.CompanyName], ['Industry', x => x.company.Industry],
-      ['Address', x => x.company.Address], ['City', x => x.company.City], ['County', x => x.company.County], ['ZIP', x => x.company.Zip],
-      ['Phone', x => x.company.Phone], ['Email', x => x.company.Email], ['Contact', x => x.company.ContactName],
-      ['Source ID', x => x.company.SourceRecordID], ['Imported', x => fmtDT(x.company.ImportedOn)],
-      ['Lead status', x => x.lead && x.lead.Status], ['Activities', x => x.lead ? x.lead.Activities : 0],
-      ['Website', x => x.web && (x.web.WebsiteURL || (x.web.HasWebsite ? 'Yes' : 'No'))], ['Web notes', x => x.web && x.web.Notes]
-    ];
+    try { d = await api('GET', `/api/duplicates/compare?cat=${encodeURIComponent(cat)}&a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`); }
+    catch (err) { toast(err.message, 5000); await checkDuplicates(); route(); return; }
+    let rows, buttons;
+    if (cat === 'Companies') {
+      rows = [
+        ['Company ID', x => x.company.CompanyID], ['Name', x => x.company.CompanyName], ['Industry', x => x.company.Industry],
+        ['Address', x => x.company.Address], ['City', x => x.company.City], ['County', x => x.company.County], ['ZIP', x => x.company.Zip],
+        ['Phone', x => x.company.Phone], ['Email', x => x.company.Email], ['Contact', x => x.company.ContactName],
+        ['Source ID', x => x.company.SourceRecordID], ['Imported', x => fmtDT(x.company.ImportedOn)],
+        ['Lead status', x => x.lead && x.lead.Status], ['Activities', x => x.lead ? x.lead.Activities : 0],
+        ['Website', x => x.web && (x.web.WebsiteURL || (x.web.HasWebsite ? 'Yes' : 'No'))], ['Web notes', x => x.web && x.web.Notes]];
+      buttons = [['keepA', 'Keep A, remove B'], ['keepB', 'Keep B, remove A'], ['dismiss', 'Not a duplicate']];
+    } else if (cat === 'Leads') {
+      rows = [['Lead ID', x => x.LeadID], ['Company', x => x.CompanyName], ['Status', x => x.Status], ['Batch', x => x.BatchName],
+        ['Agent', x => x.AssignedAgent], ['Next follow-up', x => x.NextFollowUp ? fmtDate(x.NextFollowUp) : null], ['Deal value', x => x.DealValue], ['Monthly plan', x => x.MonthlyPlan],
+        ['Demo URL', x => x.DemoURL], ['Activities', x => x.Activities], ['Updated', x => fmtDT(x.UpdatedOn)]];
+      buttons = [['keepA', 'Keep A, merge B into it'], ['keepB', 'Keep B, merge A into it']];
+    } else if (cat === 'WebPresence') {
+      const all = d.rows; d = Object.fromEntries(all.map((r, i) => [i, r]));
+      rows = [['Checked', x => fmtDT(x.CheckedOn)], ['Has website', x => x.HasWebsite == null ? null : (x.HasWebsite ? 'Yes' : 'No')], ['Website', x => x.WebsiteURL],
+        ['Google profile', x => x.HasGoogleProfile == null ? null : (x.HasGoogleProfile ? 'Yes' : 'No')], ['Facebook', x => x.HasFacebook == null ? null : (x.HasFacebook ? 'Yes' : 'No')], ['Notes', x => x.Notes]];
+      d.cols = all.map((r, i) => i); d.title = all[0].CompanyName;
+      buttons = [['fix', 'Keep newest row, remove the extras']];
+    } else {
+      rows = [['Activity ID', x => x.ActivityID], ['Lead', x => x.LeadID], ['When', x => fmtDT(x.ActivityDate)], ['Type', x => x.ActivityType], ['Agent', x => x.Agent], ['Outcome', x => x.Outcome]];
+      buttons = [['keepA', 'Keep A, remove B'], ['keepB', 'Keep B, remove A'], ['dismiss', 'Not a duplicate']];
+    }
+    const cols = d.cols || ['a', 'b'];
+    const head = d.cols ? d.cols.map(i => i === 0 ? 'Newest (kept)' : `Extra ${i}`) : ['A', 'B'];
     const admin = ME.role === 'admin';
-    $('#drawerTitle').textContent = 'Compare possible duplicates';
+    $('#drawerTitle').textContent = cat === 'WebPresence' ? `Web-presence rows: ${d.title || ''}` : `Compare duplicate ${cat === 'Companies' ? 'companies' : cat.toLowerCase()}`;
     $('#drawerBody').innerHTML = `
-      <div class="table-wrap"><table class="compare"><thead><tr><th></th><th>A</th><th>B</th></tr></thead><tbody>
-      ${rows.map(([l, f]) => { const va = f(d.a), vb = f(d.b); const diff = String(va ?? '') !== String(vb ?? '');
-        return `<tr class="${diff ? 'diff' : ''}"><th>${esc(l)}</th><td>${esc(va ?? '—')}</td><td>${esc(vb ?? '—')}</td></tr>`; }).join('')}
+      <div class="table-wrap"><table class="compare"><thead><tr><th></th>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
+      ${rows.map(([l, f]) => { const vals = cols.map(c => f(d[c])); const diff = new Set(vals.map(v => String(v ?? ''))).size > 1;
+        return `<tr class="${diff ? 'diff' : ''}"><th>${esc(l)}</th>${vals.map(v => `<td>${esc(v ?? '—')}</td>`).join('')}</tr>`; }).join('')}
       </tbody></table></div>
-      <p class="hint">Highlighted rows differ. Merging keeps the chosen company, fills its blanks from the other, moves the lead, activities and web info, then removes the other company. Every merge is in the Audit log.</p>
-      ${admin ? `<div class="actions wrap">
-        <button class="btn" data-dup="keepA">Keep A, remove B</button>
-        <button class="btn" data-dup="keepB">Keep B, remove A</button>
-        <button class="btn ghost" data-dup="dismiss">Not a duplicate</button>
-      </div>` : '<p class="muted">Read-only account: ask an admin to merge.</p>'}`;
+      <p class="hint">Highlighted rows differ. ${esc(DUP_HELP[cat])} Every decision is written to the Audit log.</p>
+      ${admin ? `<div class="actions wrap">${buttons.map(([k, l]) => `<button class="btn ${k === 'dismiss' ? 'ghost' : ''}" data-dup="${k}">${esc(l)}</button>`).join('')}</div>`
+        : '<p class="muted">Read-only account: ask an admin to fix this.</p>'}`;
     $('#drawer').classList.remove('hidden');
     document.querySelectorAll('[data-dup]').forEach(btn => btn.addEventListener('click', async () => {
       const act = btn.dataset.dup;
@@ -294,10 +363,11 @@
         setTimeout(() => { delete btn.dataset.armed; btn.textContent = t; btn.classList.remove('danger'); }, 4000); return;
       }
       try {
-        if (act === 'dismiss') { await api('POST', '/api/duplicates/dismiss', { a, b }); toast('Marked as not a duplicate.'); }
+        if (act === 'dismiss') { await api('POST', '/api/duplicates/dismiss', { cat, a, b }); toast('Marked as not a duplicate.'); }
+        else if (act === 'fix') { await api('POST', '/api/duplicates/resolve', { cat, keepId: a }); toast('Extra web-presence rows removed.'); }
         else { const keepId = act === 'keepA' ? a : b, removeId = act === 'keepA' ? b : a;
-          await api('POST', '/api/duplicates/merge', { keepId, removeId }); toast(`Merged: kept #${keepId}, removed #${removeId}.`); }
-        closeDrawer(); route();
+          await api('POST', '/api/duplicates/resolve', { cat, keepId, removeId }); toast(`Fixed: kept #${keepId}, removed #${removeId}.`); }
+        closeDrawer(); await checkDuplicates(); route();
       } catch (err) { toast(err.message, 6000); }
     }));
   }
