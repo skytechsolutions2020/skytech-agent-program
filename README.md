@@ -39,7 +39,10 @@ Real estate and utility trades in Baltimore City, Baltimore County and Howard Co
 3. Run: `python scripts/leads/make_sample.py data/raw/overture/<date>/*.geojson`
 4. Review `SkyTech_Leads_Sample100.csv`; in SSMS (SQL Server 2014 Developer) run `sql/01_create_skytechcrm.sql`, then `data/samples/SkyTech_Leads_Sample100_import.sql`.
 
-## Push to GitHub (first time)
+## Push to GitHub
+After SkyTech_Manager reports a new release, double-click **`push-to-github.bat`** in this folder. It uploads all new commits and release tags.
+
+### First time only
 On your computer, inside this folder:
 ```
 git remote add origin https://github.com/skytechsolutions2020/skytech-agent-program.git
@@ -53,4 +56,4 @@ git push -u origin main --tags
 - Keep this repository private: it holds business contact data.
 
 ---
-Version: V2.4 (2026-10-02) — README.md — V2.4
+Version: V2.5 (2026-10-02) — README.md — V2.5

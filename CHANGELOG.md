@@ -1,5 +1,9 @@
 # Changelog
 
+## R2.8 — 2026-10-02
+- Added `push-to-github.bat` (V1.0): one double-click uploads all commits and release tags.
+- Project instructions V1.6 / README V2.5: infrastructure and all artifacts kept in the local folder; every change is committed and tagged by SkyTech_Manager and uploaded by the owner.
+
 ## R2.7 — 2026-10-02
 - New infrastructure diagram V1.0 (`docs/architecture/SkyTech_Infrastructure.html/.pdf/.png`): data flow (9 steps), zones (free sources, Claude agents, owner's laptop, internet services), agents and roles, components and versions, lead lifecycle, standing rules. Generator: `scripts/docs/build_infrastructure.py` V1.0.
 - Project instructions V1.5: keep the diagram updated and versioned.
@@ -43,4 +47,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.7 (2026-10-02) — CHANGELOG.md — V1.7
+Version: V1.8 (2026-10-02) — CHANGELOG.md — V1.8
