@@ -1,5 +1,11 @@
 # Changelog
 
+## R3.0 — 2026-10-02
+- New agent **SkyTech_WebsiteDeveloper** (`agents/SkyTech_WebsiteDeveloper.md` V1.0) with honesty rules: preview banner, noindex, no made-up facts or reviews, no logos without permission, disclosure placeholders for real estate and mortgage.
+- `scripts/website/build_demo_sites.py` + `content.py` (V1.0): two templates (utility trades, real estate) with colour and icon per trade; one self-contained page per business; `demo-sites/manifest.csv` (no duplicates); `sql/05_demo_sites_built.sql` (re-runnable; leads → DemoBuilt + one Note activity).
+- First 3 demos for owner review: C&A Plumbing (Howard), David P Davis Construction (Baltimore County), Lee Newton Co. (Baltimore City).
+- Infrastructure diagram V1.2; docs/agents.md V1.2.
+
 ## R2.9 — 2026-10-02
 - Admin site V1.2: the Possible duplicates tab is now a live check of every table, re-checked every 30 seconds (plus **Check now**). Red count in the menu (green 0 when clean) and an alert bar on the Dashboard.
   - Companies: same source ID or same name + ZIP (Exact); same phone, email or website (Likely); same name in another ZIP (Possible) → merge or "not a duplicate".
@@ -57,4 +63,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.9 (2026-10-02) — CHANGELOG.md — V1.9
+Version: V2.0 (2026-10-02) — CHANGELOG.md — V2.0

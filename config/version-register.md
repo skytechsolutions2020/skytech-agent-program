@@ -22,14 +22,17 @@
 | `scripts/leads/make_sample.py` | V1.1 | 2026-10-02 | Baltimore City added |
 | Local working folder | — | 2026-10-02 | C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program |
 | `agents/SkyTech_BackOffice.md` | V1.1 | 2026-10-02 | BackOffice role (owner-editable) |
+| `agents/SkyTech_WebsiteDeveloper.md` | V1.0 | 2026-10-02 | WebsiteDeveloper role (owner-editable) |
+| `scripts/website/` (build_demo_sites.py, content.py) | V1.0 | 2026-10-02 | Demo-site generator |
+| `demo-sites/` + `sql/05_demo_sites_built.sql` | V1.0 | 2026-10-02 | Demo websites (3) + DemoBuilt update |
 | `data/verification/2026-10-02_backoffice_results.txt` | V1.0 | 2026-10-02 | 100-lead website verification |
 | `data/samples/SkyTech_Leads_Sample100.csv` V1.1 + `_import.sql` V1.2 | 2026-10-02 | First 100-lead sample |
 | `sql/01_create_skytechcrm.sql` | V2.0 | 2026-10-02 | Duplicate-proof setup + import procedure (re-runnable) |
 | `admin-site/` | V1.2 | 2026-10-02 | Admin website (Node.js + HTML/JS); live duplicate check |
 | `sql/04_admin_site.sql` | V1.2 | 2026-10-02 | Admin site tables, views, duplicate check and fix procedures |
-| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.1 | 2026-10-02 | Infrastructure, data flow, agents, roles, versions |
+| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.2 | 2026-10-02 | Infrastructure, data flow, agents, roles, versions |
 | `push-to-github.bat` | V1.0 | 2026-10-02 | One-click upload of commits + tags |
-| GitHub repository `skytech-agent-program` | R2.9 | 2026-10-02 | See `INDEX.md` |
+| GitHub repository `skytech-agent-program` | R3.0 | 2026-10-02 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -46,6 +49,7 @@
 - 2026-10-02 R2.7: infrastructure diagram V1.0; instructions V1.5. Register → V2.1.
 - 2026-10-02 R2.8: push-to-github.bat; instructions V1.6 (artifacts in local folder, committed/tagged on every change). Register → V2.2.
 - 2026-10-02 R2.9: Admin site V1.2 + sql/04 V1.2 (live duplicate check across all tables); infrastructure diagram V1.1. Register → V2.3.
+- 2026-10-02 R3.0: SkyTech_WebsiteDeveloper created; demo-site generator; first 3 demos; sql/05; diagram V1.2. Register → V2.4.
 
 ---
-Version: V2.3 (2026-10-02) — SkyTech-Version-Register.md — V2.3
+Version: V2.4 (2026-10-02) — SkyTech-Version-Register.md — V2.4
