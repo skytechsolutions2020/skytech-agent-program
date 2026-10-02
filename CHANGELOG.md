@@ -1,5 +1,9 @@
 # Changelog
 
+## R2.7 — 2026-10-02
+- New infrastructure diagram V1.0 (`docs/architecture/SkyTech_Infrastructure.html/.pdf/.png`): data flow (9 steps), zones (free sources, Claude agents, owner's laptop, internet services), agents and roles, components and versions, lead lifecycle, standing rules. Generator: `scripts/docs/build_infrastructure.py` V1.0.
+- Project instructions V1.5: keep the diagram updated and versioned.
+
 ## R2.6 — 2026-10-02
 - Admin site V1.1: duplicate review station — compare pairs side by side, merge (keep one, remove the other; blanks filled, lead/activities/web info moved) or mark "not a duplicate"; all decisions audited.
 - `sql/04_admin_site.sql` V1.1: DuplicateDismissals table, vw_DuplicateReview, usp_MergeCompanies (transactional).
@@ -39,4 +43,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.6 (2026-10-02) — CHANGELOG.md — V1.6
+Version: V1.7 (2026-10-02) — CHANGELOG.md — V1.7

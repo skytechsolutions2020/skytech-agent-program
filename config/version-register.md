@@ -14,8 +14,8 @@
 | File | Version | Date | Notes |
 |---|---|---|---|
 | 90-Day Plan living doc (claude.ai artifact) + `docs/90-day-plan.md` | V2.2 | 2026-10-02 | V2.0 free lead sources; V2.1 niche and area chosen |
-| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.4 | 2026-10-02 | Free lead sources; pasted into Project Instructions by owner |
-| Version register (claude.ai project + `config/version-register.md`) | V2.0 | 2026-10-02 | This register |
+| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.5 | 2026-10-02 | Free lead sources; pasted into Project Instructions by owner |
+| Version register (claude.ai project + `config/version-register.md`) | V2.1 | 2026-10-02 | This register |
 | SkyTech-90-Day-Plan-link.md (claude.ai project) | V1.3 | 2026-10-02 | Plan notes and next steps |
 | SkyTech-Prompts-2026-10-02-V1.0.md | V1.0 | 2026-10-02 | Day-2 prompts 2.01–2.06 |
 | Prompt book PDF (Day 1) | V1.0 | 2026-10-01 | 1.01–1.18 + L-01–L-10 |
@@ -27,7 +27,8 @@
 | `sql/01_create_skytechcrm.sql` | V2.0 | 2026-10-02 | Duplicate-proof setup + import procedure (re-runnable) |
 | `admin-site/` | V1.1 | 2026-10-02 | Admin website (Node.js + HTML/JS) |
 | `sql/04_admin_site.sql` | V1.1 | 2026-10-02 | Admin site tables and views |
-| GitHub repository `skytech-agent-program` | R2.6 | 2026-10-02 | See `INDEX.md` |
+| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.0 | 2026-10-02 | Infrastructure, data flow, agents, roles, versions |
+| GitHub repository `skytech-agent-program` | R2.7 | 2026-10-02 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -41,6 +42,7 @@
 - 2026-10-02 R2.4: no-duplicates rule implemented (SQL setup V2.0, import V1.2, instructions V1.4, BackOffice V1.1). Register → V1.8.
 - 2026-10-02 R2.5: Admin site V1.0 + sql/04_admin_site.sql V1.0. Register → V1.9.
 - 2026-10-02 R2.6: duplicate review in Admin site V1.1 + sql/04 V1.1. Register → V2.0.
+- 2026-10-02 R2.7: infrastructure diagram V1.0; instructions V1.5. Register → V2.1.
 
 ---
-Version: V2.0 (2026-10-02) — SkyTech-Version-Register.md — V2.0
+Version: V2.1 (2026-10-02) — SkyTech-Version-Register.md — V2.1
