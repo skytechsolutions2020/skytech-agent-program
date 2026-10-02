@@ -1,4 +1,4 @@
-// Version: V1.0 (2026-10-02) — admin-site/server.js — V1.0
+// Version: V1.1 (2026-10-02) — admin-site/server.js — V1.1
 // SkyTech Admin site: login, dashboard, drill-down and CRUD for SkyTechCRM.
 // Start: "npm start" (SQL Server)  |  "npm run demo" (no database, sample data)
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
@@ -97,6 +97,27 @@ app.delete('/api/data/:entity/:key', auth, adminOnly, entity, wrap(async (req, r
   const n = await db.remove(req.params.entity, req.params.key);
   await db.audit(req.session.user.name, req.params.entity, 'DELETE', req.params.key, before);
   res.json({ deleted: n });
+}));
+
+// ---- duplicate review: compare, merge (keep one, remove the other), dismiss
+app.get('/api/duplicates/compare', auth, wrap(async (req, res) => {
+  const r = await db.compareCompanies(req.query.a, req.query.b);
+  if (!r.a || !r.b) return res.status(404).json({ error: 'One of these companies no longer exists.' });
+  res.json(r);
+}));
+app.post('/api/duplicates/merge', auth, adminOnly, wrap(async (req, res) => {
+  const { keepId, removeId } = req.body || {};
+  const before = await db.compareCompanies(keepId, removeId);
+  if (!before.a || !before.b) return res.status(404).json({ error: 'One of these companies no longer exists.' });
+  await db.mergeCompanies(keepId, removeId);
+  await db.audit(req.session.user.name, 'companies', 'MERGE', `${keepId}<-${removeId}`, { kept: before.a, removed: before.b });
+  res.json({ kept: keepId, removed: removeId });
+}));
+app.post('/api/duplicates/dismiss', auth, adminOnly, wrap(async (req, res) => {
+  const { a, b } = req.body || {};
+  await db.dismissDuplicate(a, b, req.session.user.name);
+  await db.audit(req.session.user.name, 'duplicates', 'DISMISS', `${a}-${b}`, null);
+  res.json({ ok: true });
 }));
 
 app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));

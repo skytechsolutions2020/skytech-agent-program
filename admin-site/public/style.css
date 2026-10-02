@@ -1,4 +1,4 @@
-/* Version: V1.0 (2026-10-02) — admin-site/public/style.css — V1.0 */
+/* Version: V1.1 (2026-10-02) — admin-site/public/style.css — V1.1 */
 :root {
   --bg: #f4f6f9; --panel: #ffffff; --ink: #1c2430; --muted: #66707e; --line: #e2e6ec;
   --brand: #1f5fbf; --brand-ink: #ffffff; --accent: #e8f0fc; --good: #1d8a4e; --warn: #b7791f; --bad: #c0392b;
@@ -94,3 +94,10 @@ tbody tr:hover { background: var(--accent); }
   main { padding: 0 16px 32px; }
   .grid2, .form { grid-template-columns: 1fr; }
 }
+
+.note { margin-bottom: 12px; font-size: 13px; }
+.compare th { position: static; cursor: default; width: 110px; }
+.compare td { white-space: normal; max-width: 200px; }
+.compare tr.diff td { background: #fff7e0; }
+@media (prefers-color-scheme: dark) { .compare tr.diff td { background: #3a3220; } }
+.actions.wrap { flex-wrap: wrap; justify-content: flex-start; }

@@ -17,7 +17,7 @@ A private admin website for SkyTech Solutions LLC. Sign in, see dashboards that 
 | Web presence | Website / Facebook / Google profile per company |
 | Activities | Calls, emails, posts and notes per lead |
 | Imports | Every import run with rows in, new, updated, skipped |
-| Possible duplicates | Same phone, or same name in another ZIP — for review |
+| Possible duplicates | Pairs flagged by the database (same phone, or same name in another ZIP). Click a pair to compare side by side, then **Keep A / remove B**, **Keep B / remove A** (merge: blanks filled, lead/activities/web info moved, extra company removed) or **Not a duplicate** (hidden from the list). Every decision is in the Audit log |
 | Audit log | Who changed what, when (before → after) |
 
 Two roles: **admin** (read and write) and **viewer** (read only).
@@ -27,7 +27,7 @@ Two roles: **admin** (read and write) and **viewer** (read only).
 1. **Install Node.js** (free): download the **LTS** version from https://nodejs.org and install with default options.
 2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (both are safe to re-run):
    1. `sql\01_create_skytechcrm.sql`
-   2. `sql\04_admin_site.sql`
+   2. `sql\04_admin_site.sql` (V1.1+ for duplicate review)
 3. **Settings:** in this `admin-site` folder, copy `.env.example` to a new file named `.env` and edit:
    - `DB_SERVER` = the server name you use in SSMS (e.g. `localhost` or `localhost\SQL2014`)
    - `DB_AUTH=windows` (uses your Windows login, no password)
@@ -82,4 +82,4 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | `.env.example` | Settings template (copy to `.env`) |
 
 ---
-Version: V1.0 (2026-10-02) — admin-site/README.md — V1.0
+Version: V1.1 (2026-10-02) — admin-site/README.md — V1.1

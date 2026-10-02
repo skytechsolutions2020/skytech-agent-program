@@ -1,4 +1,4 @@
-// Version: V1.0 (2026-10-02) — admin-site/src/db/memory.js — V1.0
+// Version: V1.1 (2026-10-02) — admin-site/src/db/memory.js — V1.1
 // DEMO adapter: no database needed. Loads the 100-lead sample CSV into memory so
 // the site can be tried and tested. Changes are lost when the server stops.
 const fs = require('fs');
@@ -6,7 +6,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { ENTITIES, editableColumns } = require('../schema');
 
-const T = { companies: [], webpresence: [], leads: [], activities: [], imports: [], audit: [], users: [] };
+const T = { companies: [], webpresence: [], leads: [], activities: [], imports: [], audit: [], users: [], dismissed: new Set() };
 let seq = { companies: 0, leads: 0, activities: 0, audit: 0 };
 
 function parseCSV(text) {
@@ -49,6 +49,7 @@ function views() {
     'dbo.vw_ActivityDetail': T.activities.map(a => ({ ...a, CompanyName: (co[(ld[a.LeadID] || {}).CompanyID] || {}).CompanyName })),
     'dbo.ImportBatches': T.imports,
     'dbo.vw_PossibleDuplicates': dups,
+    'dbo.vw_DuplicateReview': dups.filter(d => !T.dismissed.has(d.CompanyID_A + '-' + d.CompanyID_B)),
     'dbo.AuditLog': T.audit
   };
 }
@@ -105,7 +106,7 @@ module.exports = {
         Contacted: count(l => ['Contacted', 'Interested', 'Proposal', 'Won', 'Lost'].includes(l.Status)), Pipeline: count(l => ['Interested', 'Proposal'].includes(l.Status)),
         Won: count(l => l.Status === 'Won'), MRR: T.leads.filter(l => l.Status === 'Won').reduce((s, l) => s + (l.MonthlyPlan || 0), 0),
         SetupRevenue: T.leads.filter(l => l.Status === 'Won').reduce((s, l) => s + (l.DealValue || 0), 0),
-        FollowUpsDue: count(l => l.NextFollowUp && l.NextFollowUp <= today && open(l)), PossibleDuplicates: views()['dbo.vw_PossibleDuplicates'].length },
+        FollowUpsDue: count(l => l.NextFollowUp && l.NextFollowUp <= today && open(l)), PossibleDuplicates: views()['dbo.vw_DuplicateReview'].length },
       byStatus: Object.entries(byStatus).map(([Status, N]) => ({ Status, N })),
       byArea: Object.values(area),
       followUps: v.filter(l => l.NextFollowUp && l.NextFollowUp <= in7 && open(l)).sort((a, b) => cmp(a.NextFollowUp, b.NextFollowUp)).slice(0, 10),
@@ -146,6 +147,35 @@ module.exports = {
     if ('UpdatedOn' in rec) rec.UpdatedOn = new Date().toISOString();
     return 1;
   },
+  async compareCompanies(a, b) {
+    const one = id => { const c = T.companies.find(x => x.CompanyID === parseInt(id, 10)); if (!c) return null;
+      const lead = T.leads.find(l => l.CompanyID === c.CompanyID);
+      return { company: c, web: T.webpresence.find(w => w.CompanyID === c.CompanyID) || null,
+        lead: lead ? { ...lead, Activities: T.activities.filter(x => x.LeadID === lead.LeadID).length } : null }; };
+    return { a: one(a), b: one(b) };
+  },
+  async mergeCompanies(keepId, removeId) {
+    const K = parseInt(keepId, 10), R = parseInt(removeId, 10);
+    if (K === R) throw new Error('Choose two different companies.');
+    const k = T.companies.find(c => c.CompanyID === K), r = T.companies.find(c => c.CompanyID === R);
+    if (!k || !r) throw new Error('One of the companies no longer exists.');
+    ['Industry', 'Address', 'City', 'County', 'State', 'Phone', 'PhoneDigits', 'Email', 'ContactName', 'ContactTitle', 'EmployeeCount', 'SourceRecordID']
+      .forEach(f => { if (k[f] == null || k[f] === '') k[f] = r[f]; });
+    k.UpdatedOn = new Date().toISOString();
+    const kw = T.webpresence.find(w => w.CompanyID === K), rw = T.webpresence.find(w => w.CompanyID === R);
+    if (rw && !kw) rw.CompanyID = K;
+    else if (rw) { ['HasWebsite', 'WebsiteURL', 'HasGoogleProfile', 'HasFacebook'].forEach(f => { if (kw[f] == null) kw[f] = rw[f]; });
+      if (rw.Notes) kw.Notes = ((kw.Notes || '') + ' | merged: ' + rw.Notes).slice(0, 500); T.webpresence.splice(T.webpresence.indexOf(rw), 1); }
+    const order = ['New', 'Checked', 'NoSite', 'DemoBuilt', 'Contacted', 'Interested', 'Proposal', 'Won'];
+    const kl = T.leads.find(l => l.CompanyID === K), rl = T.leads.find(l => l.CompanyID === R);
+    if (rl && !kl) rl.CompanyID = K;
+    else if (rl) { if (order.indexOf(rl.Status) > order.indexOf(kl.Status) && !['Lost', 'DoNotContact'].includes(kl.Status)) kl.Status = rl.Status;
+      ['DemoURL', 'AssignedAgent', 'NextFollowUp', 'DealValue', 'MonthlyPlan'].forEach(f => { if (kl[f] == null) kl[f] = rl[f]; });
+      T.activities.forEach(a => { if (a.LeadID === rl.LeadID) a.LeadID = kl.LeadID; }); T.leads.splice(T.leads.indexOf(rl), 1); }
+    T.companies.splice(T.companies.indexOf(r), 1);
+  },
+  async dismissDuplicate(a, b) { const [x, y] = [parseInt(a, 10), parseInt(b, 10)].sort((m, n) => m - n); T.dismissed.add(x + '-' + y); },
+
   async remove(entity, key) {
     const e = ENTITIES[entity], t = T[tableOf[entity]];
     if (entity === 'companies' && (T.leads.some(l => String(l.CompanyID) === String(key)) || T.webpresence.some(w => String(w.CompanyID) === String(key))))

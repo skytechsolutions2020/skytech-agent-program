@@ -1,4 +1,4 @@
-// Version: V1.0 (2026-10-02) — admin-site/public/app.js — V1.0
+// Version: V1.1 (2026-10-02) — admin-site/public/app.js — V1.1 (duplicate review: compare, merge, dismiss)
 // SkyTech Admin site front end (no framework). Routes: #dashboard, #<entity>?search=&f_Col=val
 (() => {
   const $ = s => document.querySelector(s);
@@ -150,6 +150,7 @@
         <button class="btn" id="csv">Export CSV</button>
         ${canWrite(entity) ? `<button class="btn primary" id="new">+ New</button>` : ''}
       </div>
+      ${entity === 'duplicates' ? `<div class="card note">Pairs the database flags as possible duplicates (same phone, or same name in another ZIP). Click a pair to compare them side by side, then <b>merge</b> (keep one, remove the other; its lead, activities and web info move to the one you keep) or mark them <b>not a duplicate</b>. Exact duplicates are already blocked by the database.</div>` : ''}
       <div class="table-wrap"><table><thead><tr>${e.listColumns.map(c => `<th data-sort="${c}">${esc(c)}${params.sort === c ? (params.dir === 'asc' ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead><tbody id="rows"><tr><td colspan="${e.listColumns.length}" class="muted">Loading…</td></tr></tbody></table></div>
       <div class="pager"><span id="count" class="muted"></span><button class="btn small" id="prev">‹ Prev</button><button class="btn small" id="next">Next ›</button></div>`;
     let t; $('#q').addEventListener('input', ev => { clearTimeout(t); t = setTimeout(() => go(entity, { ...params, search: ev.target.value, page: 1 }), 350); });
@@ -159,10 +160,10 @@
     if ($('#new')) $('#new').addEventListener('click', () => openRecord(entity, null, Object.fromEntries(filters.map(([k, v]) => [k.slice(2), v]))));
     const qs = new URLSearchParams({ size: 25, ...params }).toString();
     const data = await api('GET', `/api/data/${entity}?${qs}`);
-    $('#rows').innerHTML = data.rows.length ? data.rows.map(r => `<tr data-key="${esc(r[e.key])}">${e.listColumns.map(c => `<td title="${esc(r[c])}">${cell(e.columns[c], r[c], c)}</td>`).join('')}</tr>`).join('')
+    $('#rows').innerHTML = data.rows.length ? data.rows.map(r => `<tr data-key="${esc(r[e.key])}"${entity === 'duplicates' ? ` data-b="${esc(r.CompanyID_B)}"` : ''}>${e.listColumns.map(c => `<td title="${esc(r[c])}">${cell(e.columns[c], r[c], c)}</td>`).join('')}</tr>`).join('')
       : `<tr><td colspan="${e.listColumns.length}" class="muted">No records.</td></tr>`;
     if (e.writable || entity === 'leads') document.querySelectorAll('#rows tr[data-key]').forEach(tr => tr.addEventListener('click', () => openRecord(entity, tr.dataset.key)));
-    else if (entity === 'duplicates') document.querySelectorAll('#rows tr[data-key]').forEach(tr => tr.addEventListener('click', () => openRecord('companies', tr.dataset.key)));
+    else if (entity === 'duplicates') document.querySelectorAll('#rows tr[data-key]').forEach(tr => tr.addEventListener('click', () => openCompare(tr.dataset.key, tr.dataset.b)));
     const page = data.page, pages = Math.max(1, Math.ceil(data.total / data.size));
     $('#count').textContent = `${data.total} record${data.total === 1 ? '' : 's'} · page ${page} of ${pages}`;
     $('#prev').disabled = page <= 1; $('#next').disabled = page >= pages;
@@ -259,6 +260,48 @@
       if ($('#mkLead')) $('#mkLead').addEventListener('click', () => openRecord('leads', null, { CompanyID: rec.CompanyID, Status: 'New' }));
     }
   }
+  // ---------- duplicate review
+  async function openCompare(a, b) {
+    let d;
+    try { d = await api('GET', `/api/duplicates/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`); }
+    catch (err) { toast(err.message, 5000); route(); return; }
+    const rows = [
+      ['Company ID', x => x.company.CompanyID], ['Name', x => x.company.CompanyName], ['Industry', x => x.company.Industry],
+      ['Address', x => x.company.Address], ['City', x => x.company.City], ['County', x => x.company.County], ['ZIP', x => x.company.Zip],
+      ['Phone', x => x.company.Phone], ['Email', x => x.company.Email], ['Contact', x => x.company.ContactName],
+      ['Source ID', x => x.company.SourceRecordID], ['Imported', x => fmtDT(x.company.ImportedOn)],
+      ['Lead status', x => x.lead && x.lead.Status], ['Activities', x => x.lead ? x.lead.Activities : 0],
+      ['Website', x => x.web && (x.web.WebsiteURL || (x.web.HasWebsite ? 'Yes' : 'No'))], ['Web notes', x => x.web && x.web.Notes]
+    ];
+    const admin = ME.role === 'admin';
+    $('#drawerTitle').textContent = 'Compare possible duplicates';
+    $('#drawerBody').innerHTML = `
+      <div class="table-wrap"><table class="compare"><thead><tr><th></th><th>A</th><th>B</th></tr></thead><tbody>
+      ${rows.map(([l, f]) => { const va = f(d.a), vb = f(d.b); const diff = String(va ?? '') !== String(vb ?? '');
+        return `<tr class="${diff ? 'diff' : ''}"><th>${esc(l)}</th><td>${esc(va ?? '—')}</td><td>${esc(vb ?? '—')}</td></tr>`; }).join('')}
+      </tbody></table></div>
+      <p class="hint">Highlighted rows differ. Merging keeps the chosen company, fills its blanks from the other, moves the lead, activities and web info, then removes the other company. Every merge is in the Audit log.</p>
+      ${admin ? `<div class="actions wrap">
+        <button class="btn" data-dup="keepA">Keep A, remove B</button>
+        <button class="btn" data-dup="keepB">Keep B, remove A</button>
+        <button class="btn ghost" data-dup="dismiss">Not a duplicate</button>
+      </div>` : '<p class="muted">Read-only account: ask an admin to merge.</p>'}`;
+    $('#drawer').classList.remove('hidden');
+    document.querySelectorAll('[data-dup]').forEach(btn => btn.addEventListener('click', async () => {
+      const act = btn.dataset.dup;
+      if (act !== 'dismiss' && !btn.dataset.armed) {
+        btn.dataset.armed = '1'; const t = btn.textContent; btn.textContent = 'Click again to confirm'; btn.classList.add('danger');
+        setTimeout(() => { delete btn.dataset.armed; btn.textContent = t; btn.classList.remove('danger'); }, 4000); return;
+      }
+      try {
+        if (act === 'dismiss') { await api('POST', '/api/duplicates/dismiss', { a, b }); toast('Marked as not a duplicate.'); }
+        else { const keepId = act === 'keepA' ? a : b, removeId = act === 'keepA' ? b : a;
+          await api('POST', '/api/duplicates/merge', { keepId, removeId }); toast(`Merged: kept #${keepId}, removed #${removeId}.`); }
+        closeDrawer(); route();
+      } catch (err) { toast(err.message, 6000); }
+    }));
+  }
+
   function closeDrawer() { $('#drawer').classList.add('hidden'); }
   $('#drawerClose').addEventListener('click', closeDrawer);
   $('#drawer').addEventListener('click', ev => { if (ev.target.id === 'drawer') closeDrawer(); });

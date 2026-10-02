@@ -1,5 +1,9 @@
 # Changelog
 
+## R2.6 — 2026-10-02
+- Admin site V1.1: duplicate review station — compare pairs side by side, merge (keep one, remove the other; blanks filled, lead/activities/web info moved) or mark "not a duplicate"; all decisions audited.
+- `sql/04_admin_site.sql` V1.1: DuplicateDismissals table, vw_DuplicateReview, usp_MergeCompanies (transactional).
+
 ## R2.5 — 2026-10-02
 - New `admin-site/` (V1.0): Node.js + HTML/JavaScript admin website for SkyTechCRM — login (admin/viewer roles, bcrypt passwords, lockout after 5 failed tries), dashboard with KPIs and clickable charts, drill-down tables with search/filter/sort/paging/CSV export, create/edit/delete with duplicate protection, activity logging, audit log; demo mode with the 100-lead sample; Windows `start-admin.bat`; Hostinger move notes.
 - New `sql/04_admin_site.sql` (V1.0): AdminUsers, AuditLog, vw_LeadDetail, vw_WebPresenceDetail, vw_ActivityDetail.
@@ -35,4 +39,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.5 (2026-10-02) — CHANGELOG.md — V1.5
+Version: V1.6 (2026-10-02) — CHANGELOG.md — V1.6

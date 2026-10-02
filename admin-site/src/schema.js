@@ -1,4 +1,4 @@
-// Version: V1.0 (2026-10-02) — admin-site/src/schema.js — V1.0
+// Version: V1.1 (2026-10-02) — admin-site/src/schema.js — V1.1
 // Whitelist of what the admin site may read and change. Only names listed here
 // ever reach SQL, so the site cannot touch other tables or columns.
 
@@ -84,7 +84,7 @@ const ENTITIES = {
       LastRunOn: { type: 'datetime' }, Runs: { type: 'int' }, RowsIn: { type: 'int' }, Inserted: { type: 'int' }, Updated: { type: 'int' }, SkippedInFile: { type: 'int' } }
   },
   duplicates: {
-    label: 'Possible duplicates', source: 'dbo.vw_PossibleDuplicates', key: 'CompanyID_A', writable: false, defaultSort: 'Reason', defaultDir: 'asc',
+    label: 'Possible duplicates', source: 'dbo.vw_DuplicateReview', key: 'CompanyID_A', writable: false, defaultSort: 'Reason', defaultDir: 'asc',
     listColumns: ['Reason', 'CompanyID_A', 'Name_A', 'Zip_A', 'CompanyID_B', 'Name_B', 'Zip_B', 'MatchValue'],
     searchColumns: ['Name_A', 'Name_B', 'MatchValue'], filterColumns: ['Reason'],
     columns: { Reason: { type: 'text' }, CompanyID_A: { type: 'int' }, Name_A: { type: 'text' }, Zip_A: { type: 'text' },
