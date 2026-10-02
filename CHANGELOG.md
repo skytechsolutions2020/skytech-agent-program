@@ -1,5 +1,10 @@
 # Changelog
 
+## R2.3 — 2026-10-02
+- Added `agents/SkyTech_BackOffice.md` (V1.0); SkyTech_Manager role named in project instructions (V1.3).
+- BackOffice verified all 100 leads: 36 potential clients. Added `data/verification/2026-10-02_backoffice_results.txt`; lead CSV and SQL import → V1.1; build script → V1.1.
+- Database switched to the installed SQL Server 2014 Developer edition (plan V2.2, SQL script V1.1, README V2.2).
+
 ## R2.2 — 2026-10-02
 - First 100-lead sample collected from Overture Explorer (2,896 matching businesses found; 99 of 100 with no website listed and a phone number). Priority A = 63, B = 5, C = 32.
 - Added `scripts/leads/overture_browser_extract.js`, `scripts/leads/build_sample_from_extract.py`, the raw extract and the review CSV + SQL import.
@@ -21,4 +26,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.2 (2026-10-02) — CHANGELOG.md — V1.2
+Version: V1.3 (2026-10-02) — CHANGELOG.md — V1.3

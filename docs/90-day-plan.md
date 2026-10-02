@@ -27,7 +27,7 @@ General information, not legal advice.
 | "No web presence" is often wrong | Embarrassing pitch | Check Google, Maps, Facebook, Yelp before building; record result in SQL |
 | No CRM | Leads lost, double calls | Status column in SQL plus HubSpot Free CRM |
 | No contract or payments | Unpaid work | One-page service agreement; Stripe/Square/PayPal invoice before go-live |
-| SQL Server 2014 | Out of support since July 2024; Developer edition not licensed for business use | Install SQL Server 2022 Express (free, licensed for production) |
+| SQL Server 2014 | Out of support since July 2024; Developer edition licensed for development/testing | Owner decision (Oct 2): use the installed SQL Server 2014 Developer edition; move to SQL Server Express (free) if it becomes the live business system |
 
 ## Free lead data sources
 
@@ -53,7 +53,7 @@ See [agents.md](agents.md). Work flows down from SkyTech_Manager: BackOffice fin
 
 | Need | Tool | Free limit to watch |
 | --- | --- | --- |
-| Database | SQL Server 2022 Express + SQL Server Management Studio | 10 GB per database |
+| Database | SQL Server 2014 Developer (already installed) + SQL Server Management Studio | — |
 | Agents | Claude project (one saved skill per agent) + Python scripts | Existing Claude plan |
 | Web presence check | Claude web search; manual Google/Maps spot-check | ~20 businesses a day |
 | Demo sites | Static HTML one-pagers on Netlify or Cloudflare Pages | Unlisted preview links |
@@ -135,7 +135,7 @@ ProjectManagement checks progress against these gates every Friday.
 ## Getting started checklist
 
 - [ ] Download the first free lead files from Overture Maps Explorer (Baltimore City, Baltimore County, Howard County)
-- [ ] Install SQL Server 2022 Express and SQL Server Management Studio
+- [ ] Open SSMS on the installed SQL Server 2014 Developer edition
 - [ ] Run `sql/01_create_skytechcrm.sql`
 - [ ] Create Google Drive folders: /SkyTech/Demos, /SkyTech/Reports, /SkyTech/Templates, /SkyTech/Contracts
 - [ ] Create free accounts: Netlify, HubSpot CRM, Brevo, Stripe or Square, Canva
@@ -147,4 +147,4 @@ ProjectManagement checks progress against these gates every Friday.
 - [ ] Send the lead files for the 100-lead sample
 
 ---
-Version: V2.1 (2026-10-02) — docs/90-day-plan.md — V2.1
+Version: V2.2 (2026-10-02) — docs/90-day-plan.md — V2.2

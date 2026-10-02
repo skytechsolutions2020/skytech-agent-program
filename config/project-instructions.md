@@ -1,4 +1,4 @@
-# SkyTech Project Instructions — V1.2
+# SkyTech Project Instructions — V1.3
 
 Text to keep in the claude.ai Project Instructions field. Approved by owner on 2026-10-02.
 
@@ -29,8 +29,10 @@ ClientBase/Revenue Generation in 3 months for SkyTechSolutions:
 - $0/month budget, free tools only; owner approves every action and personally makes phone calls (TCPA).
 - Program runs Oct 5, 2026 – Jan 3, 2027.
 - Library data step removed (Oct 2, 2026); free lead sources replace it.
+- Database: SkyTechCRM on the SQL Server 2014 Developer edition already installed on the owner's laptop (no new install). Claude writes SQL scripts; the owner runs them in SSMS.
+- Agent roles: Claude acts as **SkyTech_Manager** and refers to itself by that name. SkyTech_Manager assigns work to the other agents (role files in `agents/`) and reports summaries to the owner, who has full control over every agent.
 - Local working folder: `C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program` (linked to the desktop app; GitHub Desktop pushes from here). All project files are saved here going forward.
 - First niche and area: real estate and utility trades in Baltimore City, Baltimore County and Howard County; 100-lead test sample first.
 
 ---
-Version: V1.2 (2026-10-02) — config/project-instructions.md — V1.2
+Version: V1.3 (2026-10-02) — config/project-instructions.md — V1.3

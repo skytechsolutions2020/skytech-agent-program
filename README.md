@@ -20,6 +20,7 @@ Real estate and utility trades in Baltimore City, Baltimore County and Howard Co
 
 | Folder | Holds |
 | --- | --- |
+| `agents/` | Agent role files (SkyTech_BackOffice …) — edit to control each agent |
 | `config/` | Project instructions, version register |
 | `docs/` | 90-day plan, agent roles |
 | `sql/` | SkyTechCRM schema and queries |
@@ -34,7 +35,7 @@ Real estate and utility trades in Baltimore City, Baltimore County and Howard Co
 1. Download Places files from https://explorer.overturemaps.org for Baltimore City, Baltimore County and Howard County ("Download Visible").
 2. Put them in `data/raw/overture/<date>/`.
 3. Run: `python scripts/leads/make_sample.py data/raw/overture/<date>/*.geojson`
-4. Review `SkyTech_Leads_Sample100.csv`; run `SkyTech_Leads_Sample100_import.sql` in SSMS.
+4. Review `SkyTech_Leads_Sample100.csv`; in SSMS (SQL Server 2014 Developer) run `sql/01_create_skytechcrm.sql`, then `data/samples/SkyTech_Leads_Sample100_import.sql`.
 
 ## Push to GitHub (first time)
 On your computer, inside this folder:
@@ -50,4 +51,4 @@ git push -u origin main --tags
 - Keep this repository private: it holds business contact data.
 
 ---
-Version: V2.1 (2026-10-02) — README.md — V2.1
+Version: V2.2 (2026-10-02) — README.md — V2.2

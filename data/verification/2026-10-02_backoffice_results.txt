@@ -1,0 +1,100 @@
+c3420521|NO_WEBSITE_CONFIRMED||BBB,Yelp,Facebook,Yahoo Local,BuzzFile|Name+city; phone 410-728-5585 -> only directories/BBB/Facebook; no own domain|Yes
+c371d28d|INACTIVE_OR_UNCLEAR||Directory listing only|Name -> single directory entry; phone is Swiss (+41), gmail; insufficient evidence|No
+a34d0ca4|HAS_WEBSITE|https://century21downtown.com|Century21.com profile,Yelp|Name+address -> own office site century21downtown.com|No
+b6b8fb37|NO_WEBSITE_CONFIRMED||Yelp,Nextdoor,Yahoo Local,ElectriciansList|Name+phone -> only directories/Nextdoor; no own domain|Yes
+f62e585b|INACTIVE_OR_UNCLEAR||none|Name+address; phone -> no matching business found; multi-tenant building|No
+8ba7d1b0|NO_WEBSITE_CONFIRMED||Nextdoor,Facebook (possible)|Name+phone; ramosconstructionmd.com does not resolve; similar names are other states|Yes
+3d67a2df|INACTIVE_OR_UNCLEAR||D&B,Crunchbase|Large Harbor East developer (Four Seasons Residences) - not a small-business prospect|No
+c3ea1900|HAS_WEBSITE|http://www.caincontracting.com|LinkedIn,Yelp|Name -> caincontracting.com own site|No
+3347dd5f|HAS_WEBSITE|https://abrcapital.com|LinkedIn,PitchBook|abrcapital.com contact page matches address and phone|No
+8523d4e6|NO_WEBSITE_CONFIRMED||Yahoo Local,Manta,MerchantCircle,SAM.gov|Name+phone -> only directories|Yes
+186307f0|HAS_WEBSITE|https://www.grandercapital.com|LinkedIn,LoopNet|grandercapital.com; offices now Lutherville MD and Wellesley MA|No
+440b4c67|HAS_WEBSITE|https://www.marchwestin.com|LinkedIn,Yelp|Parent company site (Morgantown WV)|No
+87d2e238|HAS_WEBSITE|https://www.baltimoresoundstage.com|Facebook,Yelp,The Knot|Event arm of Baltimore Soundstage venue; link not fully confirmed|No
+f99064aa|NO_WEBSITE_CONFIRMED||Facebook,Instagram,HomeAdvisor|Name+phone; candidate domain 404; similar names in NJ/IN|Yes
+759bf8e6|NO_WEBSITE_CONFIRMED||Yelp,BBB,Birdeye,D&B|Name+address; phone 410-669-3131 -> only directories|Yes
+bbf5ac73|NO_WEBSITE_CONFIRMED||Birdeye|Name+phone -> only Birdeye listing (4 reviews)|Yes
+08a85c20|INACTIVE_OR_UNCLEAR||none|No matching staffing firm found; category looks wrong|No
+a091bd3d|NO_WEBSITE_CONFIRMED||Yelp (36 reviews),Angi,GuildQuality,Manta|prestigehomesolutions.com would not connect; verify by phone before building|Yes
+596811b7|HAS_WEBSITE|https://www.mareia.com|Meetup,Yelp|Association has own site mareia.com|No
+d574e1a0|NO_WEBSITE_CONFIRMED||BBB,Yelp,YellowPages,Manta|Name+phone; BBB lists no website; in business since 2005|Yes
+b4dae9e6|INACTIVE_OR_UNCLEAR||JLL,LoopNet|Commercial property (building), not a business|No
+efa8b0d8|NO_WEBSITE_CONFIRMED||Yelp,Facebook,Networx|Name -> listings (Rosedale, likely same); no own site|Yes
+c8fe8563|BRAND_PAGE_ONLY|https://cornerhouserealty.com/christopher-lutz/|Facebook,Instagram,LinkedIn|Only brokerage agent profile; no personal website|Yes
+b17f6d23|INACTIVE_OR_UNCLEAR||BBB,Yelp (CLOSED)|Yelp marks business closed|No
+6e0f6540|HAS_WEBSITE|https://www.swmc.com|BBB,Birdeye,Yelp|National lender branch with corporate site|No
+e70ded91|NO_WEBSITE_CONFIRMED||Facebook,Nextdoor,StarOfService|Name+address; phone -> only directories/social|Yes
+847a0864|NO_WEBSITE_CONFIRMED||Birdeye,LinkedIn|Name+phone -> Birdeye and LinkedIn only|Yes
+bd49b616|NO_WEBSITE_CONFIRMED||BBB,Yelp,YellowPages,Manta|Name+address; phone -> only directories|Yes
+96bb33b9|INACTIVE_OR_UNCLEAR||Nextdoor,LinkedIn,Birdeye|National corporate subsidiary (Carrington) - not small business|No
+8cd471e6|INACTIVE_OR_UNCLEAR||Yelp (CLOSED),Nextdoor|Yelp marks business closed|No
+c0871a26|NO_WEBSITE_CONFIRMED||Yelp,Baltimore Sun Local|allstate-realty.com is a Brooklyn NY firm; no own site|Yes
+457d2e73|NO_WEBSITE_CONFIRMED||HomeAdvisor,Facebook|Similar domains belong to CA/OH firms; no own site|Yes
+ea2a2efd|HAS_WEBSITE|https://www.zahlco.com|Yelp,Birdeye|zahlco.com shows matching phone|No
+16a8433a|NO_WEBSITE_CONFIRMED||BBB,Yelp,Facebook,Superpages|tigerheatingcooling.com is a Wisconsin firm; no own site|Yes
+192c3271|BRAND_PAGE_ONLY||Hill Management property page,Yelp|Office complex (building) page on hillmgt.com - not a small business|No
+6a7a9806|NO_WEBSITE_CONFIRMED||Yelp,Angi,BBB,Manta,YellowPages|Phone matches directories only; johnnyrooter.com is unrelated (Austin TX)|Yes
+3bfb3a4e|HAS_WEBSITE|https://kellyschuit.com/|Facebook,Yelp,Homes.com|Own site; now with Kelly + Co Realty|No
+0bde0902|HAS_WEBSITE|https://www.baltimoresbestbuilders.com/|Yelp|Own domain found|No
+8ae51aff|NO_WEBSITE_CONFIRMED||Facebook,Catonsville Chamber|Chamber listing has no website; co-owner Carolyn Black-Sotir; office-space rental|Yes
+b7db4a34|NO_WEBSITE_CONFIRMED||Yelp,YellowPages,D&B,ZoomInfo|Name+phone -> directories only|Yes
+e764e17d|INACTIVE_OR_UNCLEAR||none|Corporate registry only; looks like a holding partnership|No
+a7164eef|INACTIVE_OR_UNCLEAR||YellowPages|Only on YP; phone no hits; similar firm is in Elkridge|No
+3fda0848|HAS_WEBSITE|https://www.camllc.com/|BBB,Nextdoor,Yelp|camllc.com found|No
+2bc244fb|NO_WEBSITE_CONFIRMED||Yelp,YellowPages,Manta,MerchantCircle|Name+phone -> directories only|Yes
+36134cb9|INACTIVE_OR_UNCLEAR||Yelp (CLOSED),BBB|Yelp marks closed|No
+f278ee42|HAS_WEBSITE|https://mlmhi.com/|BBB,Yelp|mlmhi.com roofer page|No
+014c8484|HAS_WEBSITE|https://blackoakusa.com/|Facebook,Crunchbase|Own site found|No
+4689a4e0|NO_WEBSITE_CONFIRMED||Yelp,iknowaroofer|Phone no hits; likely domain does not resolve|Yes
+8941d884|BRAND_PAGE_ONLY||BBB,Yelp|Location of regional coworking chain|No
+cc229003|INACTIVE_OR_UNCLEAR||none|No results by name or phone|No
+975f7224|BRAND_PAGE_ONLY||Facebook,Zillow,Instagram|Franchise office; only exitrealty.com agent profiles|Yes
+2c46de0c|HAS_WEBSITE|https://www.local99healthandwelfarefund.org/|LinkedIn|Union trust fund - not small business|No
+0e83dd1b|BRAND_PAGE_ONLY||Coldwell Banker profile|Now with Coldwell Banker; no personal site|Yes
+e8c9a829|NO_WEBSITE_CONFIRMED||Zillow,Yelp,YellowPages,Manta|Phone -> directories and bid sites only|Yes
+fdd1d647|BRAND_PAGE_ONLY||Yelp,Zillow lender profile|Branch of national lender Envoy|No
+1a6dfb9a|HAS_WEBSITE|https://www.kingconstructioninc.com/|BBB,Yelp,LinkedIn|Domain confirmed; address and phone match|No
+dc6a13cb|INACTIVE_OR_UNCLEAR||Yelp (CLOSED)|Yelp marks closed|No
+2560e59d|BRAND_PAGE_ONLY||Facebook,Yelp,Nextdoor|Division of Saffer Total Home (saffertotalhome.com)|No
+c7de15fd|BRAND_PAGE_ONLY||Facebook,LinkedIn|Subdomain page on Alex Cooper brokerage site|No
+8b5c02c7|NO_WEBSITE_CONFIRMED||Facebook,Groupon,BuildZoom,YellowPages|Phone -> reviews/directories only; likely domain does not resolve|Yes
+84cb16cc|INACTIVE_OR_UNCLEAR||none|No hits for names or phone|No
+ef4fafe0|NO_WEBSITE_CONFIRMED||Facebook,Nextdoor|Phone no hits; gglights.com unrelated|Yes
+f56a962b|HAS_WEBSITE|https://www.glickseidelshapiro.com/|Facebook,Zillow|Team domain found|No
+bea2bd54|NO_WEBSITE_CONFIRMED||Birdeye,EcoHome,LeadSmart|Phone no hits; likely domain does not resolve|Yes
+e542b44d|BRAND_PAGE_ONLY||YellowPages,D&B|Branch page on stewart.com - national title company|No
+1fcdc297|INACTIVE_OR_UNCLEAR||Facebook,BBB,Yelp|bmoreheatingandcooling.com exists but could not be opened - check by hand|No
+bab85629|BRAND_PAGE_ONLY||Long & Foster profile,Facebook|Only longandfoster.com agent page; no personal domain|Yes
+d434186c|HAS_WEBSITE|https://www.realty1md.com/|Facebook,Yelp|Name and phone point to realty1md.com|No
+f316a1c1|HAS_WEBSITE|https://www.heatingandcoolinginc.com/|BBB,Nextdoor|Trade name H & C Heating & Cooling has own site|No
+ca02d030|BRAND_PAGE_ONLY|https://www.rate.com/loan-officers/alex-barresi-483886|Rate.com|Loan officer page only|No
+bb46664d|HAS_WEBSITE|https://aurora-energy.com/|Facebook,Yelp,EnergySage|Own site found|No
+0a405722|HAS_WEBSITE|https://cummingsrealtors.com/|Brokerage site|Large regional brokerage|No
+55b7b8fc|HAS_WEBSITE|https://beltwayroofing.com/|BBB,GAF|Own site found|No
+97b8cff4|HAS_WEBSITE|https://www.naylorgardensapt.com/|BBB,Apartments.com|Washington DC co-op; source row mis-tagged|No
+6c106e3d|HAS_WEBSITE|https://libertywindowsandsiding.com/|Facebook,BBB,HomeAdvisor|Phone search -> own site|No
+7aedf21f|INACTIVE_OR_UNCLEAR||Buzzfile,Crunchbase|Now funded startup WareSpace - not small local business|No
+d356a1c7|HAS_WEBSITE|https://www.parkerfuel.com/|BBB,LinkedIn|parkerfuel.com shows matching phone|No
+b2f5bfc0|INACTIVE_OR_UNCLEAR||none|No trace found; domain could not be opened|No
+923dfc84|NO_WEBSITE_CONFIRMED||OpenCorporates,ZoomInfo|Only directories at the address|Yes
+becd4e7b|NO_WEBSITE_CONFIRMED||Redfin records|No personal site; active agent (Keller Williams)|Yes
+d005417a|NO_WEBSITE_CONFIRMED||BBB,YellowPages,MerchantCircle|Phone -> directories only; guessed domain does not exist|Yes
+d8d91f62|HAS_WEBSITE|https://storkpropertymanagement.com/|Facebook,BBB,Yelp|Own site found|No
+d645874c|HAS_WEBSITE|http://www.endeavorelectric.services/|Houzz,Instagram,Yelp,Angi|Endeavor Electric own site|No
+dfc7df52|NO_WEBSITE_CONFIRMED||Homes.com profile|No personal website found; active agent (Keller Williams)|Yes
+63081e75|HAS_WEBSITE|https://canamcontractors.com/|D&B,ZoomInfo|Own site (commercial drywall)|No
+caeaa8ec|INACTIVE_OR_UNCLEAR||ZoomInfo|Employee record only|No
+3303aa69|NO_WEBSITE_CONFIRMED||Nextdoor,BBB,Yelp,BuildZoom|stantonplumbing.com is for sale; only directories|Yes
+7e0b94d4|BRAND_PAGE_ONLY|https://www.rate.com/loan-officers/victor-wazen-2156865|Rate.com,Birdeye|Loan officer page only|No
+76f08156|INACTIVE_OR_UNCLEAR||none|No results by name, phone or address|No
+7aaaef29|BRAND_PAGE_ONLY|https://www.rate.com/loan-officers/irv-shnidman-182740|Rate.com|Loan officer page only|No
+c8aafdfb|NO_WEBSITE_CONFIRMED||Nextdoor,Yelp,YellowPages,BBB|Phone -> directories only; guessed domain does not exist|Yes
+fac84290|BRAND_PAGE_ONLY|https://www.compass.com/agents/steven-fraser/|Facebook,LinkedIn|Moved to Compass; brokerage profile only|No
+31e97ffc|BRAND_PAGE_ONLY|https://nextdaygutters.com/locations/gutter-installation-howard-county-md/|Facebook,Nextdoor|Franchise location page|No
+5236b0ec|BRAND_PAGE_ONLY|https://cummingsrealtors.com/deja-carter/|Cummings profile|Agent page only|No
+a670d29c|NO_WEBSITE_CONFIRMED||Facebook,Yelp,Foursquare|Name+phone -> social/directories only|Yes
+9eaf6874|BRAND_PAGE_ONLY|https://www.rate.com/loan-officers/kate-estep-72037|Rate.com|Loan officer page only|No
+f67dd311|INACTIVE_OR_UNCLEAR||none|No results; only gmail on file|No
+628eced2|BRAND_PAGE_ONLY|https://www.rate.com/loan-officers/david-kontsevenko-1968174|Rate.com|Loan officer page only|No
+cbc84115|BRAND_PAGE_ONLY|https://www.rotorooter.com/|National franchise|Franchise location|No
+b03c7756|BRAND_PAGE_ONLY|https://www.rate.com/loan-officers/brian-fein-368673|Rate.com|Branch manager page only|No

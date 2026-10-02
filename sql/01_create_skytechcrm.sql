@@ -1,5 +1,5 @@
--- Version: V1.0 (2026-10-01) — sql/01_create_skytechcrm.sql — V1.0
--- SkyTechCRM: run once in SQL Server Management Studio (SQL Server 2022 Express)
+-- Version: V1.1 (2026-10-02) — sql/01_create_skytechcrm.sql — V1.1
+-- SkyTechCRM: run once in SQL Server Management Studio on the owner's SQL Server 2014 Developer edition (also works on newer versions)
 CREATE DATABASE SkyTechCRM;
 GO
 USE SkyTechCRM;

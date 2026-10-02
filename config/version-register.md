@@ -13,16 +13,18 @@
 ## Register (as of 2026-10-02)
 | File | Version | Date | Notes |
 |---|---|---|---|
-| 90-Day Plan living doc (claude.ai artifact) | V2.1 | 2026-10-02 | V2.0 free lead sources; V2.1 niche and area chosen |
-| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.2 | 2026-10-02 | Free lead sources; pasted into Project Instructions by owner |
-| Version register (claude.ai project + `config/version-register.md`) | V1.6 | 2026-10-02 | This register |
+| 90-Day Plan living doc (claude.ai artifact) + `docs/90-day-plan.md` | V2.2 | 2026-10-02 | V2.0 free lead sources; V2.1 niche and area chosen |
+| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.3 | 2026-10-02 | Free lead sources; pasted into Project Instructions by owner |
+| Version register (claude.ai project + `config/version-register.md`) | V1.7 | 2026-10-02 | This register |
 | SkyTech-90-Day-Plan-link.md (claude.ai project) | V1.3 | 2026-10-02 | Plan notes and next steps |
 | SkyTech-Prompts-2026-10-02-V1.0.md | V1.0 | 2026-10-02 | Day-2 prompts 2.01–2.06 |
 | Prompt book PDF (Day 1) | V1.0 | 2026-10-01 | 1.01–1.18 + L-01–L-10 |
 | `scripts/leads/make_sample.py` | V1.1 | 2026-10-02 | Baltimore City added |
 | Local working folder | — | 2026-10-02 | C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program |
-| `data/samples/SkyTech_Leads_Sample100.csv` + `_import.sql` | V1.0 | 2026-10-02 | First 100-lead sample |
-| GitHub repository `skytech-agent-program` | R2.2 | 2026-10-02 | See `INDEX.md` |
+| `agents/SkyTech_BackOffice.md` | V1.0 | 2026-10-02 | BackOffice role (owner-editable) |
+| `data/verification/2026-10-02_backoffice_results.txt` | V1.0 | 2026-10-02 | 100-lead website verification |
+| `data/samples/SkyTech_Leads_Sample100.csv` + `_import.sql` | V1.1 | 2026-10-02 | First 100-lead sample |
+| GitHub repository `skytech-agent-program` | R2.3 | 2026-10-02 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -32,6 +34,7 @@
 - 2026-10-02 Plan doc V2.0 → V2.1: niche and area chosen (real estate + utility trades; Baltimore City, Baltimore County, Howard County). Lead script V1.1 (Baltimore City). GitHub repository organized as R1.0 + R2.0 with `INDEX.md`. Register → V1.4.
 - 2026-10-02 Local working folder recorded: C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program; git remote set; README V2.1, instructions V1.2, data README V1.1, log V1.1, INDEX V1.1, plan notes V1.3. Repo release R2.1. Register → V1.5.
 - 2026-10-02 First 100-lead sample built (R2.2): extract + scripts + CSV + SQL; INDEX V1.2, CHANGELOG V1.2, data README V1.2, log V1.2. Register → V1.6.
+- 2026-10-02 R2.3: SkyTech_Manager naming; SkyTech_BackOffice created and verified 100 leads (36 potential clients); SQL Server 2014 Developer adopted (plan V2.2, instructions V1.3, SQL script V1.1). Register → V1.7.
 
 ---
-Version: V1.6 (2026-10-02) — SkyTech-Version-Register.md — V1.6
+Version: V1.7 (2026-10-02) — SkyTech-Version-Register.md — V1.7
