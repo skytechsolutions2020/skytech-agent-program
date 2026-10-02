@@ -1,5 +1,10 @@
 # Changelog
 
+## R2.4 — 2026-10-02
+- Duplicate protection: `sql/01_create_skytechcrm.sql` V2.0 (re-runnable; upgrades V1 databases) adds `StgLeads`, `ImportBatches`, `usp_ImportStagedLeads`, `fn_NormName`, `fn_DigitsOnly`, unique indexes and `vw_PossibleDuplicates`.
+- Sample import → V1.2 (staging + procedure; safe to re-run); build script → V1.2; make_sample.py → V1.2 (SQL output superseded).
+- Rules added to data README (V1.3), BackOffice role (V1.1) and project instructions (V1.4).
+
 ## R2.3 — 2026-10-02
 - Added `agents/SkyTech_BackOffice.md` (V1.0); SkyTech_Manager role named in project instructions (V1.3).
 - BackOffice verified all 100 leads: 36 potential clients. Added `data/verification/2026-10-02_backoffice_results.txt`; lead CSV and SQL import → V1.1; build script → V1.1.
@@ -26,4 +31,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.3 (2026-10-02) — CHANGELOG.md — V1.3
+Version: V1.4 (2026-10-02) — CHANGELOG.md — V1.4

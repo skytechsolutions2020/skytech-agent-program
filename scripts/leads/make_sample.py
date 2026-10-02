@@ -1,6 +1,7 @@
 """Turn Overture Maps Explorer downloads (GeoJSON/CSV) into a 100-lead sample
 for Baltimore City + Baltimore County + Howard County: real estate and utility trades.
-Version: V1.1 (2026-10-02) - Baltimore City added."""
+Version: V1.2 (2026-10-02) - Baltimore City added. NOTE: its SQL output is superseded; for database imports use
+scripts/leads/build_sample_from_extract.py, which loads through the duplicate-safe dbo.usp_ImportStagedLeads."""
 import sys, json, csv, glob, re, random
 HOWARD = "20701 20723 20759 20763 20777 20794 21029 21036 21041 21042 21043 21044 21045 21046 21075 21104 21150 21723 21737 21738 21765 21794 21797".split()
 BALTCO = ("21013 21020 21022 21023 21027 21030 21031 21051 21052 21053 21057 21065 21071 21082 21087 21092 21093 21094 "

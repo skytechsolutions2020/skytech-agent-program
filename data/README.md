@@ -9,8 +9,15 @@ data/
 ```
 
 - Status (2026-10-02): first sample in `samples/` (100 leads) from `raw/overture/2026-10-02/`. First pull = 100-lead sample, real estate + utility trades, Baltimore City / Baltimore County / Howard County.
-- Databases: SkyTechCRM runs on SQL Server Express on the owner's laptop. Its schema is `sql/01_create_skytechcrm.sql`; database backups (.bak) are not stored in Git. Export reports as CSV into `data/` instead.
+## No duplicates (standing rule, from 2026-10-02)
+- All imports go through `dbo.StgLeads` + `EXEC dbo.usp_ImportStagedLeads` (created by `sql/01_create_skytechcrm.sql` V2.0). Never INSERT directly into Companies/Leads.
+- A company is the same company if it has the same source ID (e.g. Overture ID), or else the same normalized name + ZIP. Existing companies are updated (blanks filled), never duplicated; leads already in outreach keep their status.
+- The database enforces it with unique indexes (source ID; name + ZIP; one WebPresence row and one Lead per company).
+- Every run is logged in `dbo.ImportBatches`; `dbo.vw_PossibleDuplicates` lists near-matches (same phone, or same name in another ZIP) for review.
+- Import scripts are safe to re-run.
+
+- Databases: SkyTechCRM runs on SQL Server 2014 Developer edition on the owner's laptop. Its schema is `sql/01_create_skytechcrm.sql`; database backups (.bak) are not stored in Git. Export reports as CSV into `data/` instead.
 - Lead data contains business contact details: keep this repository **private**.
 
 ---
-Version: V1.2 (2026-10-02) — data/README.md — V1.2
+Version: V1.3 (2026-10-02) — data/README.md — V1.3

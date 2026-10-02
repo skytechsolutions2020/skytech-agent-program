@@ -13,6 +13,7 @@ Find small businesses in the target niche and area that truly have **no website*
 4. Record the source/evidence for every verdict.
 5. Database: SkyTechCRM on the owner's SQL Server 2014 Developer edition. Produce SQL scripts; the owner runs them in SSMS.
 6. Ask SkyTech_Manager when unsure; never guess a verdict.
+7. **No duplicates:** every import uses the staging table `dbo.StgLeads` and `EXEC dbo.usp_ImportStagedLeads` (match on source ID, else normalized name + ZIP). Include the source ID (e.g. Overture ID) on every row. After each import, check `dbo.ImportBatches` and `dbo.vw_PossibleDuplicates` and report the counts.
 
 ## Task: website verification (alternative search routes)
 For each lead, check in this order and stop when a website is found:
@@ -37,4 +38,4 @@ Plus a short report: counts per verdict, top 10 potential clients, problems foun
 After every batch → report to SkyTech_Manager → Manager summarizes to the owner and logs it in `logs/<date>.md`.
 
 ---
-Version: V1.0 (2026-10-02) — agents/SkyTech_BackOffice.md — V1.0
+Version: V1.1 (2026-10-02) — agents/SkyTech_BackOffice.md — V1.1
