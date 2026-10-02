@@ -1,0 +1,85 @@
+# SkyTech Admin Site
+
+A private admin website for SkyTech Solutions LLC. Sign in, see dashboards that highlight what needs attention, drill down from any chart into the matching records, and create, read, update and delete (CRUD) records in **SkyTechCRM**.
+
+- Runs on your laptop at **http://127.0.0.1:3030**, visible only on this computer.
+- Data: SkyTechCRM on SQL Server 2014 Developer (your existing install).
+- Every login, change and delete is written to the **Audit log**.
+- Duplicate protection: the database rules from `sql/01_create_skytechcrm.sql` V2.0 also apply to edits made here.
+
+## What you get
+
+| Screen | What it shows / does |
+| --- | --- |
+| Dashboard | Potential clients, demos, contacted, pipeline, clients won, monthly recurring revenue, setup revenue, follow-ups due, possible duplicates; charts by status and by area × niche (click to drill down); follow-ups for the next 7 days; recent activity; recent imports |
+| Leads | Search, filter (status, agent, county, niche), sort, page, export CSV; open a lead to edit status, follow-up date, deal value, monthly plan, demo URL; log calls/emails; jump to the company and its web presence |
+| Companies | Full CRUD; name + ZIP duplicates are refused |
+| Web presence | Website / Facebook / Google profile per company |
+| Activities | Calls, emails, posts and notes per lead |
+| Imports | Every import run with rows in, new, updated, skipped |
+| Possible duplicates | Same phone, or same name in another ZIP — for review |
+| Audit log | Who changed what, when (before → after) |
+
+Two roles: **admin** (read and write) and **viewer** (read only).
+
+## One-time setup (Windows)
+
+1. **Install Node.js** (free): download the **LTS** version from https://nodejs.org and install with default options.
+2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (both are safe to re-run):
+   1. `sql\01_create_skytechcrm.sql`
+   2. `sql\04_admin_site.sql`
+3. **Settings:** in this `admin-site` folder, copy `.env.example` to a new file named `.env` and edit:
+   - `DB_SERVER` = the server name you use in SSMS (e.g. `localhost` or `localhost\SQL2014`)
+   - `DB_AUTH=windows` (uses your Windows login, no password)
+   - `DB_DRIVER` = an installed ODBC driver. To check: press Windows key → type **ODBC Data Sources (64-bit)** → **Drivers** tab. Use `SQL Server Native Client 11.0` (comes with SQL Server 2014) or `ODBC Driver 17 for SQL Server` if you see it.
+   - `SESSION_SECRET` = any long random phrase.
+4. **Install the site:** open a Command Prompt in this folder (in File Explorer, click the address bar, type `cmd`, press Enter) and run:
+   ```
+   npm install
+   ```
+5. **Create your login:**
+   ```
+   npm run create-admin
+   ```
+   Enter a username, a password of at least 10 characters, and the role `admin`.
+
+## Daily use
+
+Double-click **`start-admin.bat`** (or run `npm start`), then open **http://127.0.0.1:3030** and sign in. Close the black window to stop the site.
+
+**Try it without the database:** `npm run demo` loads the 100-lead sample into memory (login `admin` / `demo1234`, or `viewer` / `demo1234` for read-only). Demo changes are discarded when it stops.
+
+## Troubleshooting
+
+| Message | Fix |
+| --- | --- |
+| Could not connect to the database | Check `DB_SERVER` matches SSMS, the SQL Server service is **Running**, and `DB_DRIVER` is an installed driver |
+| Windows login needs the "msnodesqlv8" package | Run `npm install` again on this Windows PC (it installs the Windows driver bridge) |
+| Invalid object name 'dbo.vw_LeadDetail' / 'dbo.AdminUsers' | Run `sql\04_admin_site.sql` in SSMS |
+| Wrong username or password | Run `npm run create-admin` again with the same username to reset the password |
+
+## Moving to skytechsolutions.us (Hostinger) later
+
+The site is a standard Node.js app, the same type as your current Hostinger website, so the code can move as it is. The **database** is the part to plan:
+
+1. Hostinger cannot reach the SQL Server on your laptop, and Hostinger hosting provides **MySQL**, not SQL Server.
+2. The recommended path is to move SkyTechCRM to a Hostinger MySQL database and add a MySQL adapter next to `src/db/mssql.js`. The screens, login and audit stay the same, because all database access lives in `src/db/`.
+3. Before going online: run it as a separate subdomain (e.g. `admin.skytechsolutions.us`) with HTTPS, set `HOST=0.0.0.0`, `COOKIE_SECURE=1` and a new `SESSION_SECRET`, create strong passwords, and keep `.env` off GitHub.
+
+SkyTech_Manager will prepare the migration when you decide to move.
+
+## Files
+
+| Path | Purpose |
+| --- | --- |
+| `server.js` | Web server: login, permissions, API, audit |
+| `src/schema.js` | Whitelist of tables and columns the site may use |
+| `src/db/mssql.js` | SQL Server connection (all values sent as parameters) |
+| `src/db/memory.js` | Demo mode (no database) |
+| `public/` | The web pages: `index.html`, `app.js`, `style.css`, `vendor/chart.umd.min.js` (charts) |
+| `scripts/create-admin.js` | Create or reset a login |
+| `start-admin.bat` | Double-click start on Windows |
+| `.env.example` | Settings template (copy to `.env`) |
+
+---
+Version: V1.0 (2026-10-02) — admin-site/README.md — V1.0

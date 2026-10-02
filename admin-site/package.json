@@ -1,0 +1,23 @@
+{
+  "name": "skytech-admin-site",
+  "version": "1.0.0",
+  "description": "SkyTech Solutions admin site: dashboards, drill-down and CRUD on SkyTechCRM",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "demo": "node server.js --demo",
+    "create-admin": "node scripts/create-admin.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "mssql": "^11.0.1"
+  },
+  "optionalDependencies": {
+    "msnodesqlv8": "^4.5.0"
+  },
+  "engines": { "node": ">=18" }
+}

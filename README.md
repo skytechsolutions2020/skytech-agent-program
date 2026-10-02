@@ -20,6 +20,7 @@ Real estate and utility trades in Baltimore City, Baltimore County and Howard Co
 
 | Folder | Holds |
 | --- | --- |
+| `admin-site/` | Admin website: login, dashboards, drill-down, CRUD on SkyTechCRM (see its README) |
 | `agents/` | Agent role files (SkyTech_BackOffice …) — edit to control each agent |
 | `config/` | Project instructions, version register |
 | `docs/` | 90-day plan, agent roles |
@@ -51,4 +52,4 @@ git push -u origin main --tags
 - Keep this repository private: it holds business contact data.
 
 ---
-Version: V2.2 (2026-10-02) — README.md — V2.2
+Version: V2.3 (2026-10-02) — README.md — V2.3
