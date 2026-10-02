@@ -1,4 +1,4 @@
-# SkyTech Project Instructions — V1.1
+# SkyTech Project Instructions — V1.2
 
 Text to keep in the claude.ai Project Instructions field. Approved by owner on 2026-10-02.
 
@@ -29,7 +29,8 @@ ClientBase/Revenue Generation in 3 months for SkyTechSolutions:
 - $0/month budget, free tools only; owner approves every action and personally makes phone calls (TCPA).
 - Program runs Oct 5, 2026 – Jan 3, 2027.
 - Library data step removed (Oct 2, 2026); free lead sources replace it.
+- Local working folder: `C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program` (linked to the desktop app; GitHub Desktop pushes from here). All project files are saved here going forward.
 - First niche and area: real estate and utility trades in Baltimore City, Baltimore County and Howard County; 100-lead test sample first.
 
 ---
-Version: V1.1 (2026-10-02) — config/project-instructions.md — V1.1
+Version: V1.2 (2026-10-02) — config/project-instructions.md — V1.2

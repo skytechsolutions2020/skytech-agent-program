@@ -4,6 +4,8 @@ Client acquisition program for **SkyTech Solutions LLC** (Maryland): free one-pa
 
 - Company website: https://skytechsolutions.us
 - Facebook: https://www.facebook.com/profile.php?id=100063685406708
+- Local working folder (owner's computer): `C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program`
+- GitHub: https://github.com/skytechsolutions2020/skytech-agent-program (private)
 - Living plan document: https://claude.ai/code/artifact/df79af8a-1a3f-468e-8a59-c9b644cb8129
 
 **Start here:** [`INDEX.md`](INDEX.md) lists every file and what each release contains. [`CHANGELOG.md`](CHANGELOG.md) explains what changed.
@@ -48,4 +50,4 @@ git push -u origin main --tags
 - Keep this repository private: it holds business contact data.
 
 ---
-Version: V2.0 (2026-10-02) — README.md — V2.0
+Version: V2.1 (2026-10-02) — README.md — V2.1

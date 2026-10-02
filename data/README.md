@@ -1,6 +1,6 @@
 # data/
 
-Lead data files live here, one folder per pull:
+Lead data files live here (`C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program\data`), one folder per pull:
 
 ```
 data/
@@ -13,4 +13,4 @@ data/
 - Lead data contains business contact details: keep this repository **private**.
 
 ---
-Version: V1.0 (2026-10-02) — data/README.md — V1.0
+Version: V1.1 (2026-10-02) — data/README.md — V1.1
