@@ -1,5 +1,9 @@
 # Changelog
 
+## R3.1 — 2026-10-02
+- Prompt Book V2.0 (`prompts/SkyTech_Prompts_V2.0_2026-10-02.pdf`): every prompt to date rewritten in professional form; repeated and lengthy messages consolidated (Day 1: 18 → 9; Day 2: 19 prompts), numbered by date; new standing-rules section; library L-01–L-10 updated to the current setup. Clean PDF properties.
+- Prompt book scripts V2.0 (edited in place); the Day-2 markdown prompt file (V1.0) is superseded by the PDF.
+
 ## R3.0 — 2026-10-02
 - New agent **SkyTech_WebsiteDeveloper** (`agents/SkyTech_WebsiteDeveloper.md` V1.0) with honesty rules: preview banner, noindex, no made-up facts or reviews, no logos without permission, disclosure placeholders for real estate and mortgage.
 - `scripts/website/build_demo_sites.py` + `content.py` (V1.0): two templates (utility trades, real estate) with colour and icon per trade; one self-contained page per business; `demo-sites/manifest.csv` (no duplicates); `sql/05_demo_sites_built.sql` (re-runnable; leads → DemoBuilt + one Note activity).
@@ -63,4 +67,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.0 (2026-10-02) — CHANGELOG.md — V2.0
+Version: V2.1 (2026-10-02) — CHANGELOG.md — V2.1

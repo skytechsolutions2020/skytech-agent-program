@@ -17,8 +17,9 @@
 | Project instructions (claude.ai field + `config/project-instructions.md`) | V1.6 | 2026-10-02 | Free lead sources; pasted into Project Instructions by owner |
 | Version register (claude.ai project + `config/version-register.md`) | V2.2 | 2026-10-02 | This register |
 | SkyTech-90-Day-Plan-link.md (claude.ai project) | V1.3 | 2026-10-02 | Plan notes and next steps |
-| SkyTech-Prompts-2026-10-02-V1.0.md | V1.0 | 2026-10-02 | Day-2 prompts 2.01–2.06 |
-| Prompt book PDF (Day 1) | V1.0 | 2026-10-01 | 1.01–1.18 + L-01–L-10 |
+| SkyTech-Prompts-2026-10-02-V1.0.md | V1.0 | 2026-10-02 | Day-2 prompts 2.01–2.06 (superseded by Prompt Book V2.0) |
+| Prompt book PDF (Day 1) | V1.0 | 2026-10-01 | 1.01–1.18 + L-01–L-10 (superseded) |
+| Prompt book PDF `SkyTech_Prompts_V2.0_2026-10-02.pdf` | V2.0 | 2026-10-02 | All prompts consolidated: 1.01–1.09, 2.01–2.19 + standing rules + L-01–L-10 |
 | `scripts/leads/make_sample.py` | V1.1 | 2026-10-02 | Baltimore City added |
 | Local working folder | — | 2026-10-02 | C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program |
 | `agents/SkyTech_BackOffice.md` | V1.1 | 2026-10-02 | BackOffice role (owner-editable) |
@@ -32,7 +33,7 @@
 | `sql/04_admin_site.sql` | V1.2 | 2026-10-02 | Admin site tables, views, duplicate check and fix procedures |
 | `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.2 | 2026-10-02 | Infrastructure, data flow, agents, roles, versions |
 | `push-to-github.bat` | V1.0 | 2026-10-02 | One-click upload of commits + tags |
-| GitHub repository `skytech-agent-program` | R3.0 | 2026-10-02 | See `INDEX.md` |
+| GitHub repository `skytech-agent-program` | R3.1 | 2026-10-02 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -50,6 +51,7 @@
 - 2026-10-02 R2.8: push-to-github.bat; instructions V1.6 (artifacts in local folder, committed/tagged on every change). Register → V2.2.
 - 2026-10-02 R2.9: Admin site V1.2 + sql/04 V1.2 (live duplicate check across all tables); infrastructure diagram V1.1. Register → V2.3.
 - 2026-10-02 R3.0: SkyTech_WebsiteDeveloper created; demo-site generator; first 3 demos; sql/05; diagram V1.2. Register → V2.4.
+- 2026-10-02 R3.1: Prompt Book V2.0 PDF (all prompts consolidated, numbered by date). Register → V2.5.
 
 ---
-Version: V2.4 (2026-10-02) — SkyTech-Version-Register.md — V2.4
+Version: V2.5 (2026-10-02) — SkyTech-Version-Register.md — V2.5
