@@ -1,5 +1,10 @@
 # Changelog
 
+## R2.2 — 2026-10-02
+- First 100-lead sample collected from Overture Explorer (2,896 matching businesses found; 99 of 100 with no website listed and a phone number). Priority A = 63, B = 5, C = 32.
+- Added `scripts/leads/overture_browser_extract.js`, `scripts/leads/build_sample_from_extract.py`, the raw extract and the review CSV + SQL import.
+- Version tags R1.0–R2.1 pushed to GitHub.
+
 ## R2.1 — 2026-10-02
 - Recorded the local working folder `C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program` and the GitHub link in README, project instructions, data README, Day-2 log, INDEX and version register.
 
@@ -16,4 +21,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V1.1 (2026-10-02) — CHANGELOG.md — V1.1
+Version: V1.2 (2026-10-02) — CHANGELOG.md — V1.2
