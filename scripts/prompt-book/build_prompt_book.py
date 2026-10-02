@@ -8,7 +8,7 @@ from reportlab.lib.units import inch
 from xml.sax.saxutils import escape
 
 VERSION, DATE = "1.0", "October 1, 2026"
-OUT = "/mnt/user-data/outputs/SkyTech_Prompts_v1.0_2026-10-01.pdf"
+OUT = "../../prompts/SkyTech_Prompts_v1.0_2026-10-01.pdf"  # run from scripts/prompt-book
 ss = getSampleStyleSheet(); navy = colors.HexColor("#1F3A5F")
 H1 = ParagraphStyle("H1", parent=ss["Heading1"], textColor=navy, fontSize=16, spaceAfter=8)
 DAY = ParagraphStyle("DAY", parent=H1, fontSize=14, backColor=colors.HexColor("#E6ECF3"), borderPadding=6, spaceBefore=6, spaceAfter=10)

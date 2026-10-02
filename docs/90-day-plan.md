@@ -11,7 +11,7 @@ Find local businesses with no website, build each one a free demo one-page site,
 - **Agents** are Claude routines run from the Claude project, each with a written role, plus small free Python scripts. The owner approves every send and every call.
 - **The owner** makes the phone calls, closes deals and takes payment. The agents prepare everything else.
 - **Volume target:** 20 businesses researched a day, 10 demo sites a week, 150–200 owners contacted a month.
-- **Open question:** client data file and its license terms. Import starts when provided.
+- **First niche and area (chosen Oct 2):** real estate and utility trades in Baltimore City, Baltimore County and Howard County; 100-lead test sample first.
 
 ## Gaps fixed and legal guardrails
 
@@ -19,7 +19,7 @@ General information, not legal advice.
 
 | Gap | Risk if ignored | Fix |
 | --- | --- | --- |
-| Library data license | Library databases (e.g., Data Axle Reference Solutions) usually ban bulk export and commercial use | Read the terms before export; if barred, use free public sources: Google Maps, MD SDAT business registry, chamber of commerce lists, Yelp, Facebook |
+| Library data (step removed) | Library databases (e.g., Data Axle Reference Solutions) usually ban bulk export and commercial use | Removed from the plan. Leads now come from free sources licensed for business use (next section) |
 | AI voice phone calls | FCC (2024) treats AI voices as "artificial" under TCPA; fines per call to cell phones without consent | Agent prepares lists and scripts; owner or a hired caller dials. Check the National Do Not Call list |
 | Cold email rules | CAN-SPAM fines; Gmail account suspended | Real business address, unsubscribe line, honest subject, max 30–50 a day, honor opt-outs within 10 days |
 | Domain reputation | skytechsolutions.us lands on spam lists | Send outreach from a second address or a cheap secondary domain later; warm up slowly |
@@ -28,6 +28,22 @@ General information, not legal advice.
 | No CRM | Leads lost, double calls | Status column in SQL plus HubSpot Free CRM |
 | No contract or payments | Unpaid work | One-page service agreement; Stripe/Square/PayPal invoice before go-live |
 | SQL Server 2014 | Out of support since July 2024; Developer edition not licensed for business use | Install SQL Server 2022 Express (free, licensed for production) |
+
+## Free lead data sources
+
+The library download step is removed. Leads come from free sources that allow business use. Overture Maps is the main source because each record already shows whether a website is listed.
+
+| # | Source | What you get | Cost and license | How to pull | Use it for |
+| --- | --- | --- | --- | --- | --- |
+| 1 | [Overture Maps Places](https://docs.overturemaps.org/guides/places/) (main) | Name, category, address, phone, website, social links, confidence score | Free; CDLA Permissive 2.0 / Apache 2.0, commercial use allowed | Overture Maps Explorer: zoom to an area, click "Download Visible"; or Python/DuckDB by map area | Main lead list; no website = first candidates |
+| 2 | Foursquare Open Source Places | Name, category, address, phone, website where known | Free; Apache 2.0 | Hugging Face download (free account) | Fill gaps |
+| 3 | OpenStreetMap (Overpass Turbo) | Name, address, phone, website tags | Free; ODbL (credit OSM, separate table) | Query by area | Extra small businesses |
+| 4 | Maryland Business Express entity search | Legal name, status, resident agent | Free lookups | Search by name | Confirm active; owner/agent name |
+| 5 | Maryland Dept. of Labor license lookups | Licensee name, company, license no., city | Free lookups | Search by trade and city | Trades: owner names |
+| 6 | Google Places API (check only) | Website, phone | 1,000 free Enterprise calls/month; billing account linked | Check each lead before a demo | Confirm "no website" |
+| 7 | Chamber/county directories, Yelp, Facebook, Nextdoor | Name, phone, sometimes owner | Free to browse | Manual only | Fill gaps |
+
+Rules: never scrape Google Maps, Yelp or Facebook with bots. Record the source of every row in Companies.SourceFile. Processing script: `scripts/leads/make_sample.py`.
 
 ## Agent team
 
@@ -105,7 +121,7 @@ Revenue math: 20 clients on Care Plan = $780 a month recurring, plus $3,980 in s
 
 | Phase / milestone | Dates | Focus | Exit gate |
 | --- | --- | --- | --- |
-| 1 Setup | Oct 5 – Oct 18 | Tools, SQL database, demo template, agent skills, data import | 10 demo sites built from real leads |
+| 1 Setup | Oct 5 – Oct 18 | Tools, SQL database, demo template, agent skills, first free lead pull | 10 demo sites built from real leads |
 | Milestone: first 10 demos live | Oct 16 | | |
 | 2 Pilot one niche | Oct 19 – Nov 15 | One niche, one city; owner calls daily; refine script and pricing | First paid client; reply rate known |
 | Milestone: first paying client | Nov 6 | | |
@@ -118,7 +134,7 @@ ProjectManagement checks progress against these gates every Friday.
 
 ## Getting started checklist
 
-- [ ] Read the library database's terms of use; confirm export and business use are allowed
+- [ ] Download the first free lead files from Overture Maps Explorer (Baltimore City, Baltimore County, Howard County)
 - [ ] Install SQL Server 2022 Express and SQL Server Management Studio
 - [ ] Run `sql/01_create_skytechcrm.sql`
 - [ ] Create Google Drive folders: /SkyTech/Demos, /SkyTech/Reports, /SkyTech/Templates, /SkyTech/Contracts
@@ -126,6 +142,9 @@ ProjectManagement checks progress against these gates every Friday.
 - [x] Create a SkyTech Facebook Page
 - [ ] Create a Google Business Profile for SkyTech Solutions LLC
 - [ ] Add a "Websites for Local Businesses" page with pricing to skytechsolutions.us
-- [ ] Pick the first niche and city (suggested: home services in your county)
+- [x] Pick the first niche and area: real estate and utility trades in Baltimore City, Baltimore County, Howard County
 - [ ] Set up the 7 agent skills and the demo website template
-- [ ] Provide the client data file for import
+- [ ] Send the lead files for the 100-lead sample
+
+---
+Version: V2.1 (2026-10-02) — docs/90-day-plan.md — V2.1

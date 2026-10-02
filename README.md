@@ -1,32 +1,51 @@
 # SkyTech Agent Program
 
-Client acquisition program for **SkyTech Solutions LLC** (Maryland) — free one-page demo websites for local businesses with no web presence, converted into paid setup and monthly care plans.
+Client acquisition program for **SkyTech Solutions LLC** (Maryland): free one-page demo websites for local businesses with no web presence, converted into paid setup and monthly care plans.
 
-- Company website: https://skytechsolutions.us (Hostinger, Node.js app)
+- Company website: https://skytechsolutions.us
 - Facebook: https://www.facebook.com/profile.php?id=100063685406708
-- Live plan document: https://claude.ai/code/artifact/df79af8a-1a3f-468e-8a59-c9b644cb8129
+- Living plan document: https://claude.ai/code/artifact/df79af8a-1a3f-468e-8a59-c9b644cb8129
+
+**Start here:** [`INDEX.md`](INDEX.md) lists every file and what each release contains. [`CHANGELOG.md`](CHANGELOG.md) explains what changed.
 
 ## Goal (Oct 5, 2026 – Jan 3, 2027)
-
 15–25 paying website clients, $800–$1,500 monthly recurring revenue plus $3,000–$5,000 in setup fees, at $0/month in tools.
 
-## Repository contents
+## Current focus
+Real estate and utility trades in Baltimore City, Baltimore County and Howard County. First step: a 100-lead test sample.
 
-| Path | What it holds |
+## Folders
+
+| Folder | Holds |
 | --- | --- |
-| `docs/90-day-plan.md` | Full plan: guardrails, agent team, tools, workflow, pricing, revenue ideas, timeline, checklist |
-| `docs/agents.md` | Role of each SkyTech agent |
-| `sql/01_create_skytechcrm.sql` | Creates the SkyTechCRM database and 4 tables |
-| `sql/02_daily_batch_query.sql` | BackOffice agent's daily lead batch query |
-| `website/robots.txt` | robots.txt to add to skytechsolutions.us |
-| `logs/` | Daily session logs and status |
+| `config/` | Project instructions, version register |
+| `docs/` | 90-day plan, agent roles |
+| `sql/` | SkyTechCRM schema and queries |
+| `scripts/` | Lead processing and prompt-book scripts |
+| `data/` | Lead files (none yet) |
+| `prompts/` | Daily prompt sets and prompt book |
+| `website/` | Files for skytechsolutions.us |
+| `exports/pdf/` | PDF copies of the documents |
+| `logs/` | Daily session logs |
+
+## Make the 100-lead sample
+1. Download Places files from https://explorer.overturemaps.org for Baltimore City, Baltimore County and Howard County ("Download Visible").
+2. Put them in `data/raw/overture/<date>/`.
+3. Run: `python scripts/leads/make_sample.py data/raw/overture/<date>/*.geojson`
+4. Review `SkyTech_Leads_Sample100.csv`; run `SkyTech_Leads_Sample100_import.sql` in SSMS.
+
+## Push to GitHub (first time)
+On your computer, inside this folder:
+```
+git remote add origin https://github.com/skytechsolutions2020/skytech-agent-program.git
+git push -u origin main --tags
+```
 
 ## Working rules
+- $0/month budget, free tools only.
+- Owner approves every action; owner makes all phone calls.
+- Every file carries a version footer; edit files in place and log changes in `config/version-register.md` and `INDEX.md`.
+- Keep this repository private: it holds business contact data.
 
-- $0/month budget — free tools only.
-- Owner approves every action manually (no automatic approval).
-- Owner makes phone calls personally (no AI-voice cold calls — TCPA).
-
-## Current status
-
-See [`logs/2026-10-01.md`](logs/2026-10-01.md) for the latest status and next steps.
+---
+Version: V2.0 (2026-10-02) — README.md — V2.0

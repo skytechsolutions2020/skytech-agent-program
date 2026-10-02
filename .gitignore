@@ -1,0 +1,12 @@
+# Version: V1.0 (2026-10-02) — .gitignore — V1.0
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+# SQL Server backups and local database files stay off GitHub
+*.bak
+*.mdf
+*.ldf
+# secrets
+.env
+*.key

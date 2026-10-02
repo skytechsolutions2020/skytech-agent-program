@@ -1,3 +1,4 @@
+-- Version: V1.0 (2026-10-01) — sql/02_daily_batch_query.sql — V1.0
 -- BackOffice agent: 20 unchecked companies in one industry and city
 USE SkyTechCRM;
 GO

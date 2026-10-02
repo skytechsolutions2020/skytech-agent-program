@@ -1,0 +1,5 @@
+# Version: V1.0 (2026-10-02) — .gitattributes — V1.0
+*.pdf binary
+*.sql text eol=crlf
+*.md text eol=lf
+*.py text eol=lf
