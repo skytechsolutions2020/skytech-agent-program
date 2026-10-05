@@ -1,5 +1,17 @@
 # Changelog
 
+## R3.2 — 2026-10-05
+- Three unique, customer-ready demo websites (template V2.0):
+  - C&A Plumbing: layout `split`, Fresh Water palette.
+  - David P Davis Construction: layout `bold`, Blueprint palette.
+  - Lee Newton Co.: layout `classic`, Harbor Classic palette.
+  - Each has its own font pair, concept logo, original illustration, headline, services, highlights and steps.
+  - Stock-photo sites are blocked on this network, so all artwork is original and licence-free.
+- New table **dbo.DemoSites** (`sql/01` V2.1): one row per company, unique slug. View `vw_DemoSiteDetail` (`sql/04` V1.3). Loader `sql/05` V2.0 is insert-only, so Admin edits are never overwritten.
+- Admin site V1.3: **Demo sites** tab to edit every design field (colour pickers, hints), live preview straight from the database, Download HTML, Save to demo-sites folder; colour and slug validation; audited.
+- New `admin-site/src/demo/render.js` + `scripts/build-demos.js` (`npm run build-demos`); `demo-sites/designs/*.json`; Python generator retired (V2.0 stub).
+- WebsiteDeveloper role V1.1; infrastructure diagram V1.3; version register V2.9 (claude.ai and repo copies merged); Day 3–5 prompt files; log 2026-10-05.
+
 ## R3.1 — 2026-10-02
 - Prompt Book V2.0 (`prompts/SkyTech_Prompts_V2.0_2026-10-02.pdf`): every prompt to date rewritten in professional form; repeated and lengthy messages consolidated (Day 1: 18 → 9; Day 2: 19 prompts), numbered by date; new standing-rules section; library L-01–L-10 updated to the current setup. Clean PDF properties.
 - Prompt book scripts V2.0 (edited in place); the Day-2 markdown prompt file (V1.0) is superseded by the PDF.
@@ -67,4 +79,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.1 (2026-10-02) — CHANGELOG.md — V2.1
+Version: V2.2 (2026-10-05) — CHANGELOG.md — V2.2

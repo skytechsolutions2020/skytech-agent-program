@@ -1,4 +1,4 @@
-// Version: V1.2 (2026-10-02) — admin-site/server.js — V1.2
+// Version: V1.3 (2026-10-05) — admin-site/server.js — V1.3
 // SkyTech Admin site: login, dashboard, drill-down and CRUD for SkyTechCRM.
 // Start: "npm start" (SQL Server)  |  "npm run demo" (no database, sample data)
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
@@ -7,7 +7,9 @@ const crypto = require('crypto');
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
 const { ENTITIES, STATUSES, ACTIVITY_TYPES, AGENTS } = require('./src/schema');
+const { render: renderDemo } = require('./src/demo/render');
 
 const DEMO = process.argv.includes('--demo') || process.env.DEMO === '1';
 const db = DEMO ? require('./src/db/memory') : require('./src/db/mssql');
@@ -55,6 +57,15 @@ app.post('/api/logout', (req, res) => req.session.destroy(() => res.json({ ok: t
 function auth(req, res, next) { if (req.session.user) return next(); res.status(401).json({ error: 'Please log in.' }); }
 function adminOnly(req, res, next) { if (req.session.user.role === 'admin') return next(); res.status(403).json({ error: 'Read-only account.' }); }
 function entity(req, res, next) { const e = ENTITIES[req.params.entity]; if (!e) return res.status(404).json({ error: 'Unknown table.' }); req.e = e; next(); }
+// demo sites: field checks before saving (colours, folder name)
+function checkDemo(req, res, next) {
+  if (req.params.entity !== 'demosites') return next();
+  const b = req.body || {};
+  if ('Slug' in b && !/^[a-z0-9][a-z0-9-]{2,79}$/.test(String(b.Slug))) return res.status(400).json({ error: 'Slug: use 3-80 lowercase letters, numbers and dashes.' });
+  const bad = ['PrimaryColor', 'AccentColor', 'BackgroundColor'].find(k => b[k] && !/^#[0-9a-fA-F]{6}$/.test(String(b[k])));
+  if (bad) return res.status(400).json({ error: bad + ': use a colour like #1f5fbf.' });
+  next();
+}
 const wrap = fn => (req, res) => fn(req, res).catch(e => { console.error(e.message); res.status(400).json({ error: e.message }); });
 
 app.get('/api/me', auth, (req, res) => res.json({ user: req.session.user, mode: db.name }));
@@ -72,7 +83,7 @@ app.get('/api/data/:entity/:key', auth, entity, wrap(async (req, res) => {
   if (!row) return res.status(404).json({ error: 'Not found.' });
   res.json(row);
 }));
-app.post('/api/data/:entity', auth, adminOnly, entity, wrap(async (req, res) => {
+app.post('/api/data/:entity', auth, adminOnly, entity, checkDemo, wrap(async (req, res) => {
   if (!req.e.writable) return res.status(405).json({ error: 'This view is read-only.' });
   const missing = Object.entries(req.e.columns).filter(([k, c]) => c.required && !c.view && (req.body[k] === undefined || req.body[k] === '')).map(([k]) => k);
   if (missing.length) return res.status(400).json({ error: 'Required: ' + missing.join(', ') });
@@ -80,7 +91,7 @@ app.post('/api/data/:entity', auth, adminOnly, entity, wrap(async (req, res) => 
   await db.audit(req.session.user.name, req.params.entity, 'CREATE', key, req.body);
   res.json({ key });
 }));
-app.put('/api/data/:entity/:key', auth, adminOnly, entity, wrap(async (req, res) => {
+app.put('/api/data/:entity/:key', auth, adminOnly, entity, checkDemo, wrap(async (req, res) => {
   if (!req.e.writable) return res.status(405).json({ error: 'This view is read-only.' });
   const before = await db.get(req.params.entity, req.params.key);
   if (!before) return res.status(404).json({ error: 'Not found.' });
@@ -132,6 +143,33 @@ app.post('/api/duplicates/dismiss', auth, adminOnly, cat, wrap(async (req, res) 
   await db.dismissDuplicate(req.cat, a, b, req.session.user.name);
   await db.audit(req.session.user.name, 'duplicates', 'DISMISS', `${req.cat}:${a}-${b}`, null);
   res.json({ ok: true });
+}));
+
+// ---- demo websites: live preview from the database, download, save to the demo-sites folder
+const DEMO_DIR = process.env.DEMO_SITES_DIR || path.join(__dirname, '..', 'demo-sites');
+const PAGE_CSP = "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'";
+async function demoPage(id) {
+  const s = await db.get('demosites', id);
+  if (!s) { const err = new Error('Demo site not found.'); err.status = 404; throw err; }
+  return { s, html: renderDemo(s) };
+}
+app.get('/demo/:id/preview', auth, (req, res) => demoPage(req.params.id)
+  .then(({ html }) => res.set({ 'Content-Security-Policy': PAGE_CSP, 'Cache-Control': 'no-store' }).type('html').send(html))
+  .catch(e => res.status(e.status || 400).type('text').send(e.message)));
+app.get('/api/demosites/:id/download', auth, wrap(async (req, res) => {
+  const { s, html } = await demoPage(req.params.id);
+  res.set('Content-Disposition', `attachment; filename="${String(s.Slug).replace(/[^a-z0-9-]/g, '')}.html"`).type('html').send(html);
+}));
+app.post('/api/demosites/:id/save', auth, adminOnly, wrap(async (req, res) => {
+  const { s, html } = await demoPage(req.params.id);
+  const slug = String(s.Slug || '').replace(/[^a-z0-9-]/g, '');
+  if (!slug) throw new Error('This demo has no valid Slug.');
+  if (!fs.existsSync(DEMO_DIR)) throw new Error('The demo-sites folder was not found next to admin-site.');
+  const dir = path.join(DEMO_DIR, slug);
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'index.html'), html);
+  await db.audit(req.session.user.name, 'demosites', 'EXPORT', String(s.DemoID), { file: `demo-sites/${slug}/index.html` });
+  res.json({ file: `demo-sites/${slug}/index.html` });
 }));
 
 app.use(express.static(path.join(__dirname, 'public'), { index: 'index.html' }));

@@ -1,4 +1,4 @@
--- Version: V2.0 (2026-10-02) — sql/01_create_skytechcrm.sql — V2.0
+-- Version: V2.1 (2026-10-05) — sql/01_create_skytechcrm.sql — V2.1 (adds dbo.DemoSites)
 -- SkyTechCRM setup + duplicate protection. SQL Server 2014 Developer (also newer versions).
 -- SAFE TO RE-RUN: creates what is missing, upgrades a V1 database, never deletes data.
 --
@@ -316,8 +316,53 @@ BEGIN
   END CATCH
 END
 GO
+---------------------------------------------------------------- demo websites (V2.1)
+-- One row per company (unique), edited in the Admin site "Demo sites" tab.
+IF OBJECT_ID(N'dbo.DemoSites', N'U') IS NULL
+CREATE TABLE dbo.DemoSites (
+  DemoID          INT IDENTITY PRIMARY KEY,
+  CompanyID       INT NOT NULL REFERENCES dbo.Companies(CompanyID),
+  Slug            NVARCHAR(80)  NOT NULL,
+  Status          VARCHAR(20)   NOT NULL CONSTRAINT DF_DemoSites_Status DEFAULT 'Draft'
+                  CONSTRAINT CK_DemoSites_Status CHECK (Status IN ('Draft', 'ReadyForReview', 'Approved', 'Sent', 'Published', 'Removed')),
+  Layout          VARCHAR(20)   NOT NULL CONSTRAINT DF_DemoSites_Layout DEFAULT 'split',
+  Theme           NVARCHAR(60)  NULL,
+  PrimaryColor    VARCHAR(7)    NULL,
+  AccentColor     VARCHAR(7)    NULL,
+  BackgroundColor VARCHAR(7)    NULL,
+  HeadingFont     NVARCHAR(60)  NULL,
+  BodyFont        NVARCHAR(60)  NULL,
+  LogoText        NVARCHAR(10)  NULL,
+  LogoShape       VARCHAR(20)   NULL,
+  Illustration    VARCHAR(30)   NULL,
+  BrandName       NVARCHAR(200) NULL,
+  Tagline         NVARCHAR(200) NULL,
+  Headline        NVARCHAR(250) NULL,
+  Subheadline     NVARCHAR(500) NULL,
+  About           NVARCHAR(1000) NULL,
+  Services        NVARCHAR(MAX) NULL,   -- one per line: Title | description
+  Highlights      NVARCHAR(MAX) NULL,   -- one per line: Title | description
+  Steps           NVARCHAR(MAX) NULL,   -- one per line: Title | description
+  ServiceAreas    NVARCHAR(500) NULL,   -- comma separated
+  CallToAction    NVARCHAR(60)  NULL,
+  DisclosureNote  NVARCHAR(400) NULL,
+  PreviewPath     NVARCHAR(250) NULL,
+  PublicURL       NVARCHAR(250) NULL,
+  TemplateVersion VARCHAR(10)   NULL,
+  BuiltBy         VARCHAR(50)   NULL,
+  BuiltOn         DATETIME      NOT NULL CONSTRAINT DF_DemoSites_BuiltOn DEFAULT GETDATE(),
+  UpdatedOn       DATETIME      NOT NULL CONSTRAINT DF_DemoSites_UpdatedOn DEFAULT GETDATE(),
+  Notes           NVARCHAR(500) NULL
+);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_DemoSites_CompanyID')
+  CREATE UNIQUE INDEX UX_DemoSites_CompanyID ON dbo.DemoSites(CompanyID);
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_DemoSites_Slug')
+  CREATE UNIQUE INDEX UX_DemoSites_Slug ON dbo.DemoSites(Slug);
+GO
 ---------------------------------------------------------------- report
 SELECT N'Companies' AS TableName, COUNT(*) AS Rows FROM dbo.Companies
 UNION ALL SELECT N'Leads', COUNT(*) FROM dbo.Leads
+UNION ALL SELECT N'Demo sites', COUNT(*) FROM dbo.DemoSites
 UNION ALL SELECT N'Possible duplicates to review', COUNT(*) FROM dbo.vw_PossibleDuplicates;
 GO

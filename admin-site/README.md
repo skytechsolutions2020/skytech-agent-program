@@ -16,6 +16,7 @@ A private admin website for SkyTech Solutions LLC. Sign in, see dashboards that 
 | Companies | Full CRUD; name + ZIP duplicates are refused |
 | Web presence | Website / Facebook / Google profile per company |
 | Activities | Calls, emails, posts and notes per lead |
+| Demo sites | One row per business demo website (table `DemoSites`). Edit the layout, colours, fonts, concept logo, artwork, headline, services, highlights, steps, areas and status; **Open live preview** shows the page built from the saved fields; **Download HTML** or **Save to demo-sites folder** writes the finished page. Status runs Draft → ReadyForReview → Approved → Sent → Published (the preview banner and "noindex" are removed only at Published) |
 | Imports | Every import run with rows in, new, updated, skipped |
 | Possible duplicates | **Live check of every table**, refreshed every 30 seconds (plus a **Check now** button). The menu shows a red count of duplicates found right now (green 0 when clean), and the Dashboard shows an alert bar. What it finds is listed in the table below. Click a row to compare side by side and fix it. Every decision is in the Audit log |
 | Audit log | Who changed what, when (before → after) |
@@ -38,9 +39,11 @@ Each pair shows only its strongest reason. After the last extra lead or web row 
 ## One-time setup (Windows)
 
 1. **Install Node.js** (free): download the **LTS** version from https://nodejs.org and install with default options.
-2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (both are safe to re-run):
-   1. `sql\01_create_skytechcrm.sql`
-   2. `sql\04_admin_site.sql` (V1.2+ for the live duplicate check)
+2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (all are safe to re-run):
+   1. `sql\01_create_skytechcrm.sql` (V2.1 adds the `DemoSites` table)
+   2. `data\samples\SkyTech_Leads_Sample100_import.sql` (the 100-lead sample)
+   3. `sql\04_admin_site.sql` (V1.3: duplicate check + demo sites view)
+   4. `sql\05_demo_sites_built.sql` (loads the demo websites into `DemoSites`; edits you make in the Admin site are never overwritten)
 3. **Settings:** in this `admin-site` folder, copy `.env.example` to a new file named `.env` and edit:
    - `DB_SERVER` = the server name you use in SSMS (e.g. `localhost` or `localhost\SQL2014`)
    - `DB_AUTH=windows` (uses your Windows login, no password)
@@ -61,6 +64,8 @@ Each pair shows only its strongest reason. After the last extra lead or web row 
 Double-click **`start-admin.bat`** (or run `npm start`), then open **http://127.0.0.1:3030** and sign in. Close the black window to stop the site.
 
 **Try it without the database:** `npm run demo` loads the 100-lead sample into memory (login `admin` / `demo1234`, or `viewer` / `demo1234` for read-only). Demo changes are discarded when it stops.
+
+**Build the demo websites again** (after changing a design file in `demo-sites\designs`): `npm run build-demos`.
 
 **Try the duplicate check:** `npm run demo:duplicates` does the same and adds one example of each duplicate kind (7 in total), so you can see the red count and practise each fix.
 
@@ -91,10 +96,12 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | `src/schema.js` | Whitelist of tables and columns the site may use |
 | `src/db/mssql.js` | SQL Server connection (all values sent as parameters) |
 | `src/db/memory.js` | Demo mode (no database) |
+| `src/demo/render.js` | Builds a demo website page from a `DemoSites` record (used by preview, download, save and `build-demos`) |
+| `scripts/build-demos.js` | Builds `demo-sites/<business>/index.html` from `demo-sites/designs/*.json` and writes `sql/05_demo_sites_built.sql` |
 | `public/` | The web pages: `index.html`, `app.js`, `style.css`, `vendor/chart.umd.min.js` (charts) |
 | `scripts/create-admin.js` | Create or reset a login |
 | `start-admin.bat` | Double-click start on Windows |
 | `.env.example` | Settings template (copy to `.env`) |
 
 ---
-Version: V1.2 (2026-10-02) — admin-site/README.md — V1.2
+Version: V1.3 (2026-10-05) — admin-site/README.md — V1.3

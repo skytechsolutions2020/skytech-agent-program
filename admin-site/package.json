@@ -1,6 +1,6 @@
 {
   "name": "skytech-admin-site",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "SkyTech Solutions admin site: dashboards, drill-down and CRUD on SkyTechCRM",
   "private": true,
   "main": "server.js",
@@ -8,7 +8,8 @@
     "start": "node server.js",
     "demo": "node server.js --demo",
     "create-admin": "node scripts/create-admin.js",
-    "demo:duplicates": "node server.js --demo --with-duplicates"
+    "demo:duplicates": "node server.js --demo --with-duplicates",
+    "build-demos": "node scripts/build-demos.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -1,6 +1,6 @@
--- Version: V1.2 (2026-10-02) — sql/04_admin_site.sql — V1.2 (live duplicate check across Companies, Leads, WebPresence, Activities)
+-- Version: V1.3 (2026-10-05) — sql/04_admin_site.sql — V1.3 (adds vw_DemoSiteDetail for the Demo sites tab)
 -- Objects used by the SkyTech Admin site. SQL Server 2014 Developer (SSMS).
--- Run AFTER sql/01_create_skytechcrm.sql (V2.0+). SAFE TO RE-RUN; never deletes data.
+-- Run AFTER sql/01_create_skytechcrm.sql (V2.1+). SAFE TO RE-RUN; never deletes data.
 USE SkyTechCRM;
 GO
 SET ANSI_NULLS ON; SET QUOTED_IDENTIFIER ON;
@@ -295,6 +295,20 @@ BEGIN
      AND NOT EXISTS (SELECT CompanyID FROM dbo.WebPresence WHERE CompanyID IS NOT NULL GROUP BY CompanyID HAVING COUNT(*) > 1)
     CREATE UNIQUE INDEX UX_WebPresence_CompanyID ON dbo.WebPresence(CompanyID) WHERE CompanyID IS NOT NULL;
 END
+GO
+---------------------------------------------------------------- demo websites view (V1.3)
+IF OBJECT_ID(N'dbo.vw_DemoSiteDetail', N'V') IS NOT NULL DROP VIEW dbo.vw_DemoSiteDetail;
+GO
+CREATE VIEW dbo.vw_DemoSiteDetail AS
+-- demo site design + the company facts the page shows + the lead's sales status
+SELECT s.DemoID, s.CompanyID, s.Slug, s.Status, s.Layout, s.Theme, s.PrimaryColor, s.AccentColor, s.BackgroundColor,
+       s.HeadingFont, s.BodyFont, s.LogoText, s.LogoShape, s.Illustration, s.BrandName, s.Tagline, s.Headline, s.Subheadline,
+       s.About, s.Services, s.Highlights, s.Steps, s.ServiceAreas, s.CallToAction, s.DisclosureNote, s.PreviewPath, s.PublicURL,
+       s.TemplateVersion, s.BuiltBy, s.BuiltOn, s.UpdatedOn, s.Notes,
+       c.CompanyName, c.Phone, c.Email, c.Address, c.City, c.County, c.Zip, l.LeadID, l.Status AS LeadStatus
+  FROM dbo.DemoSites s
+  JOIN dbo.Companies c ON c.CompanyID = s.CompanyID
+  LEFT JOIN dbo.Leads l ON l.CompanyID = s.CompanyID;
 GO
 SELECT N'Admin site objects ready' AS Result,
        (SELECT COUNT(*) FROM dbo.AdminUsers) AS AdminUsers;

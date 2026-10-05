@@ -1,4 +1,4 @@
-Slug,CompanyName,OvertureID,Niche,Category,Template,City,County,Phone,Email,Path,TemplateVersion,BuiltOn
-c-and-a-plumbing-20723,C&A Plumbing,923dfc84-9ee4-4a75-a993-bb9b9e64fd57,Utility Trades,plumbing,trade,Laurel,Howard,(667) 320-2119,caplumbingg@gmail.com,demo-sites/c-and-a-plumbing-20723/index.html,V1.0,2026-10-02
-david-p-davis-construction-21228,David P Davis Construction,8b5c02c7-d0ca-4256-a072-dfbb9fbd14a5,Utility Trades,contractor,trade,Catonsville,Baltimore County,(410) 788-3385,dpdconstruction@gmail.com,demo-sites/david-p-davis-construction-21228/index.html,V1.0,2026-10-02
-lee-newton-co-21217,Lee Newton Co.,c3420521-ee3e-4ebb-b77e-b735849b8628,Real Estate,property management,realty,Baltimore,Baltimore City,(410) 728-5585,,demo-sites/lee-newton-co-21217/index.html,V1.0,2026-10-02
+Slug,CompanyName,OvertureID,Layout,Theme,Status,Path,TemplateVersion,BuiltOn
+c-and-a-plumbing-20723,C&A Plumbing,923dfc84-9ee4-4a75-a993-bb9b9e64fd57,split,Fresh Water,ReadyForReview,demo-sites/c-and-a-plumbing-20723/index.html,V2.0,2026-10-05
+david-p-davis-construction-21228,David P Davis Construction,8b5c02c7-d0ca-4256-a072-dfbb9fbd14a5,bold,Blueprint,ReadyForReview,demo-sites/david-p-davis-construction-21228/index.html,V2.0,2026-10-05
+lee-newton-co-21217,Lee Newton Co.,c3420521-ee3e-4ebb-b77e-b735849b8628,classic,Harbor Classic,ReadyForReview,demo-sites/lee-newton-co-21217/index.html,V2.0,2026-10-05

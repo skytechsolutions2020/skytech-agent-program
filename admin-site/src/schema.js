@@ -1,12 +1,13 @@
-// Version: V1.2 (2026-10-02) — admin-site/src/schema.js — V1.2
+// Version: V1.3 (2026-10-05) — admin-site/src/schema.js — V1.3
 // Whitelist of what the admin site may read and change. Only names listed here
 // ever reach SQL, so the site cannot touch other tables or columns.
 
 const STATUSES = ['New', 'Checked', 'NoSite', 'DemoBuilt', 'Contacted', 'Interested', 'Proposal', 'Won', 'Lost', 'DoNotContact'];
 const ACTIVITY_TYPES = ['Call', 'Email', 'SocialDM', 'Post', 'Meeting', 'Note'];
+const { LAYOUTS, LOGO_SHAPES, ILLUSTRATIONS, FONTS, STATUSES: DEMO_STATUSES } = require('./demo/render');
 const AGENTS = ['SkyTech_Manager', 'SkyTech_BackOffice', 'SkyTech_WebsiteDeveloper', 'SkyTech_PhoneMarketing', 'SkyTech_SocialMediaMarketing', 'SkyTech_ProjectManagement', 'Owner'];
 
-// type: text | longtext | int | money | bit | date | datetime | enum
+// type: text | longtext | int | money | bit | date | datetime | enum | color
 const ENTITIES = {
   leads: {
     label: 'Leads', source: 'dbo.vw_LeadDetail', table: 'dbo.Leads', key: 'LeadID', writable: true,
@@ -74,6 +75,42 @@ const ENTITIES = {
       CompanyName: { type: 'text', view: true },
       Agent: { type: 'enum', options: AGENTS }, ActivityType: { type: 'enum', options: ACTIVITY_TYPES, required: true },
       Outcome: { type: 'longtext' }, ActivityDate: { type: 'datetime' }
+    }
+  },
+  demosites: {
+    label: 'Demo sites', source: 'dbo.vw_DemoSiteDetail', table: 'dbo.DemoSites', key: 'DemoID', writable: true,
+    defaultSort: 'UpdatedOn', defaultDir: 'desc',
+    listColumns: ['DemoID', 'BrandName', 'City', 'County', 'Theme', 'Layout', 'Status', 'LeadStatus', 'UpdatedOn'],
+    searchColumns: ['BrandName', 'CompanyName', 'City', 'Theme', 'Headline', 'Slug'],
+    filterColumns: ['Status', 'Layout', 'County'],
+    columns: {
+      DemoID: { type: 'int', readonly: true },
+      CompanyID: { type: 'int', required: true, ref: 'companies' },
+      Status: { type: 'enum', options: DEMO_STATUSES, required: true, hint: 'Draft → ReadyForReview → Approved → Sent → Published (or Removed)' },
+      BrandName: { type: 'text', required: true },
+      Slug: { type: 'text', required: true, hint: 'Folder name: lowercase letters, numbers and dashes' },
+      Layout: { type: 'enum', options: LAYOUTS, required: true, hint: 'split = fresh, bold = dark/strong, classic = elegant' },
+      Theme: { type: 'text' },
+      PrimaryColor: { type: 'color' }, AccentColor: { type: 'color' }, BackgroundColor: { type: 'color' },
+      HeadingFont: { type: 'enum', options: FONTS }, BodyFont: { type: 'enum', options: FONTS },
+      LogoText: { type: 'text', max: 4, hint: 'Concept logo letters (up to 4)' },
+      LogoShape: { type: 'enum', options: LOGO_SHAPES }, Illustration: { type: 'enum', options: ILLUSTRATIONS },
+      Tagline: { type: 'text' }, Headline: { type: 'text' },
+      Subheadline: { type: 'longtext' }, About: { type: 'longtext' },
+      Services: { type: 'longtext', hint: 'One per line: Title | short description' },
+      Highlights: { type: 'longtext', hint: 'One per line: Title | short description (no reviews, prices or licence claims)' },
+      Steps: { type: 'longtext', hint: 'One per line: Title | short description (3 or 4 steps)' },
+      ServiceAreas: { type: 'text', hint: 'Comma separated' },
+      CallToAction: { type: 'text' },
+      DisclosureNote: { type: 'longtext', hint: 'Required licence / disclosure line (MHIC, brokerage, NMLS)' },
+      PublicURL: { type: 'text', hint: 'Live link after publishing' },
+      PreviewPath: { type: 'text' },
+      Notes: { type: 'longtext' },
+      CompanyName: { type: 'text', view: true }, Phone: { type: 'text', view: true }, Email: { type: 'text', view: true },
+      Address: { type: 'text', view: true }, City: { type: 'text', view: true }, County: { type: 'text', view: true }, Zip: { type: 'text', view: true },
+      LeadID: { type: 'int', view: true }, LeadStatus: { type: 'text', view: true },
+      TemplateVersion: { type: 'text', readonly: true }, BuiltBy: { type: 'text', readonly: true },
+      BuiltOn: { type: 'datetime', readonly: true }, UpdatedOn: { type: 'datetime', readonly: true }
     }
   },
   imports: {

@@ -1,4 +1,4 @@
-// Version: V1.2 (2026-10-02) — admin-site/src/db/mssql.js — V1.2
+// Version: V1.3 (2026-10-05) — admin-site/src/db/mssql.js — V1.3
 // SQL Server adapter (SkyTechCRM on SQL Server 2014+). All values are sent as
 // parameters; table/column names come only from src/schema.js.
 const { ENTITIES, editableColumns } = require('../schema');
@@ -155,6 +155,7 @@ module.exports = {
         `dbo.fn_DigitsOnly(${vals[cols.indexOf('[Phone]')] || 'NULL'})`, 'GETDATE()');
     }
     if (entity === 'leads') { cols.push('[UpdatedOn]'); vals.push('GETDATE()'); }
+    if (entity === 'demosites') { cols.push('[BuiltBy]', '[TemplateVersion]'); vals.push("'Owner'", "'V2.0'"); }
     try {
       const r = await req.query(`INSERT INTO ${e.table} (${cols.join(', ')}) VALUES (${vals.join(', ')});
         SELECT CAST(SCOPE_IDENTITY() AS INT) AS NewKey;`);
@@ -174,7 +175,7 @@ module.exports = {
       if (entity === 'companies' && c === 'Phone') sets.push(`[PhoneDigits] = dbo.fn_DigitsOnly(@v${i})`);
     });
     if (!sets.length) return 0;
-    if (entity === 'companies' || entity === 'leads') sets.push('[UpdatedOn] = GETDATE()');
+    if (['companies', 'leads', 'demosites'].includes(entity)) sets.push('[UpdatedOn] = GETDATE()');
     try {
       const r = await req.query(`UPDATE ${e.table} SET ${sets.join(', ')} WHERE ${q(e.key)} = @k`);
       return r.rowsAffected[0];

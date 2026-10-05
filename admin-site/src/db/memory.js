@@ -1,4 +1,4 @@
-// Version: V1.2 (2026-10-02) — admin-site/src/db/memory.js — V1.2
+// Version: V1.3 (2026-10-05) — admin-site/src/db/memory.js — V1.3
 // DEMO adapter: no database needed. Loads the 100-lead sample CSV into memory so
 // the site can be tried and tested. Changes are lost when the server stops.
 const fs = require('fs');
@@ -6,8 +6,8 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { ENTITIES, editableColumns } = require('../schema');
 
-const T = { companies: [], webpresence: [], leads: [], activities: [], imports: [], audit: [], users: [], dismissed: new Set() };
-let seq = { companies: 0, leads: 0, activities: 0, audit: 0 };
+const T = { companies: [], webpresence: [], leads: [], activities: [], demosites: [], imports: [], audit: [], users: [], dismissed: new Set() };
+let seq = { companies: 0, leads: 0, activities: 0, demosites: 0, audit: 0 };
 
 function parseCSV(text) {
   const rows = []; let row = [], cell = '', q = false;
@@ -101,12 +101,15 @@ function views() {
     'dbo.Companies': T.companies,
     'dbo.vw_WebPresenceDetail': T.webpresence.map(w => ({ ...w, CompanyName: (co[w.CompanyID] || {}).CompanyName })),
     'dbo.vw_ActivityDetail': T.activities.map(a => ({ ...a, CompanyName: (co[(ld[a.LeadID] || {}).CompanyID] || {}).CompanyName })),
+    'dbo.vw_DemoSiteDetail': T.demosites.map(d => { const c = co[d.CompanyID] || {}, l = T.leads.find(x => x.CompanyID === d.CompanyID) || {};
+      return { ...d, CompanyName: c.CompanyName, Phone: c.Phone, Email: c.Email, Address: c.Address, City: c.City, County: c.County, Zip: c.Zip,
+        LeadID: l.LeadID, LeadStatus: l.Status }; }),
     'dbo.ImportBatches': T.imports,
     'dbo.vw_DuplicateCheck': dups,
     'dbo.AuditLog': T.audit
   };
 }
-const tableOf = { companies: 'companies', leads: 'leads', webpresence: 'webpresence', activities: 'activities' };
+const tableOf = { companies: 'companies', leads: 'leads', webpresence: 'webpresence', activities: 'activities', demosites: 'demosites' };
 function coerce(def, v) {
   if (v === '' || v === undefined || v === null) return null;
   if (def.type === 'int') return parseInt(v, 10);
@@ -138,6 +141,18 @@ module.exports = {
     });
     T.imports.push({ BatchID: 1, BatchName: 'Sample100 Oct-2026', SourceFile: 'Overture Maps Places 2026-09-23.1', FirstRunOn: now, LastRunOn: now, Runs: 1, RowsIn: rows.length, Inserted: rows.length, Updated: 0, SkippedInFile: 0 });
     if (process.argv.includes('--with-duplicates')) plantDuplicates(now);
+    // demo websites: same as running sql/05 (designs from demo-sites/designs, matched on the Overture source ID)
+    const ddir = path.join(__dirname, '..', '..', '..', 'demo-sites', 'designs');
+    if (fs.existsSync(ddir)) fs.readdirSync(ddir).filter(f => f.endsWith('.json')).sort().forEach(f => {
+      const d = JSON.parse(fs.readFileSync(path.join(ddir, f), 'utf8'));
+      const c = T.companies.find(x => x.SourceRecordID === d.OvertureID); if (!c || T.demosites.some(x => x.CompanyID === c.CompanyID)) return;
+      const rec = { DemoID: ++seq.demosites, CompanyID: c.CompanyID, PreviewPath: `demo-sites/${d.Slug}/index.html`, PublicURL: null,
+        TemplateVersion: 'V2.0', BuiltBy: 'SkyTech_WebsiteDeveloper', BuiltOn: now, UpdatedOn: now };
+      editableColumns('demosites').forEach(k => { if (k in d) rec[k] = d[k]; });
+      T.demosites.push(rec);
+      const l = T.leads.find(x => x.CompanyID === c.CompanyID);
+      if (l && ['New', 'Checked', 'NoSite'].includes(l.Status)) { l.Status = 'DemoBuilt'; l.DemoURL = l.DemoURL || 'preview: ' + rec.PreviewPath; l.AssignedAgent = 'SkyTech_WebsiteDeveloper'; }
+    });
     T.users.push({ UserID: 1, Username: 'admin', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'admin', IsActive: 1 });
     T.users.push({ UserID: 2, Username: 'viewer', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'viewer', IsActive: 1 });
   },
@@ -190,6 +205,10 @@ module.exports = {
     if (entity === 'webpresence' && T.webpresence.some(w => w.CompanyID === rec.CompanyID)) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).');
     if (entity === 'leads') { if (T.leads.some(l => l.CompanyID === rec.CompanyID)) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).'); rec.UpdatedOn = new Date().toISOString(); }
     if (entity === 'activities' && !rec.ActivityDate) rec.ActivityDate = new Date().toISOString();
+    if (entity === 'demosites') {
+      if (T.demosites.some(d => d.CompanyID === rec.CompanyID || d.Slug === rec.Slug)) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).');
+      rec.BuiltOn = rec.UpdatedOn = new Date().toISOString(); rec.BuiltBy = 'Owner'; rec.TemplateVersion = 'V2.0';
+    }
     if (!e.keyIsInput) rec[e.key] = ++seq[tableOf[entity]];
     t.push(rec); return rec[e.key];
   },
@@ -198,6 +217,7 @@ module.exports = {
     if (!rec) return 0;
     editableColumns(entity).forEach(c => { if (c in values && c !== e.key) rec[c] = coerce(e.columns[c], values[c]); });
     if (entity === 'companies') { rec.NormName = normName(rec.CompanyName); rec.PhoneDigits = digits(rec.Phone); }
+    if (entity === 'demosites' && T.demosites.some(d => d !== rec && (d.Slug === rec.Slug || d.CompanyID === rec.CompanyID))) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).');
     if ('UpdatedOn' in rec) rec.UpdatedOn = new Date().toISOString();
     return 1;
   },
@@ -276,7 +296,7 @@ module.exports = {
 
   async remove(entity, key) {
     const e = ENTITIES[entity], t = T[tableOf[entity]];
-    if (entity === 'companies' && (T.leads.some(l => String(l.CompanyID) === String(key)) || T.webpresence.some(w => String(w.CompanyID) === String(key))))
+    if (entity === 'companies' && (T.leads.some(l => String(l.CompanyID) === String(key)) || T.webpresence.some(w => String(w.CompanyID) === String(key)) || T.demosites.some(d => String(d.CompanyID) === String(key))))
       throw new Error('This record is linked to other records (leads, web presence or activities). Change or delete those first.');
     if (entity === 'leads' && T.activities.some(a => String(a.LeadID) === String(key)))
       throw new Error('This record is linked to other records (leads, web presence or activities). Change or delete those first.');

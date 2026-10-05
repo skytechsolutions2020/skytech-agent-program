@@ -1,4 +1,4 @@
-// Version: V1.2 (2026-10-02) — admin-site/public/app.js — V1.2 (live duplicate check across all tables)
+// Version: V1.3 (2026-10-05) — admin-site/public/app.js — V1.3 (demo sites: edit, live preview, download, save)
 // SkyTech Admin site front end (no framework). Routes: #dashboard, #<entity>?search=&f_Col=val
 (() => {
   const $ = s => document.querySelector(s);
@@ -21,6 +21,7 @@
     if (col === 'Status') return `<span class="pill ${esc(v)}">${esc(v)}</span>`;
     if (col === 'Severity') return `<span class="sev ${esc(v)}">${esc(v)}</span>`;
     if (def && def.type === 'bit') return v ? 'Yes' : 'No';
+    if (def && def.type === 'color') return /^#[0-9a-f]{6}$/i.test(v) ? `<span class="swatch" style="background:${v}"></span>${esc(v)}` : esc(v);
     if (def && def.type === 'date') return esc(fmtDate(v));
     if (def && def.type === 'datetime') return esc(fmtDT(v));
     if (def && def.type === 'money') return esc(money(v));
@@ -218,9 +219,10 @@
     else if (def.type === 'longtext') input = `<textarea name="${name}">${esc(v)}</textarea>`;
     else if (def.type === 'date') input = `<input type="date" name="${name}" value="${esc(fmtDate(v))}">`;
     else if (def.type === 'datetime') input = `<input type="datetime-local" name="${name}" value="${esc(v ? new Date(v).toISOString().slice(0, 16) : '')}">`;
+    else if (def.type === 'color') input = `<span class="colorpick"><input type="color" value="${esc(/^#[0-9a-f]{6}$/i.test(v) ? v : '#000000')}" data-for="${name}"><input name="${name}" value="${esc(v)}" maxlength="7" placeholder="#rrggbb"></span>`;
     else if (def.type === 'int' || def.type === 'money') input = `<input type="number" step="${def.type === 'money' ? '0.01' : '1'}" name="${name}" value="${esc(v)}">`;
     else input = `<input name="${name}" value="${esc(v)}" ${def.max ? `maxlength="${def.max}"` : ''}>`;
-    return `<label class="${full}">${esc(name)}${def.required ? ' *' : ''}${input}</label>`;
+    return `<label class="${full}">${esc(name)}${def.required ? ' *' : ''}${input}${def.hint ? `<span class="fhint">${esc(def.hint)}</span>` : ''}</label>`;
   }
 
   async function openRecord(entity, key, preset = {}) {
@@ -232,14 +234,16 @@
     $('#drawerTitle').textContent = isNew ? `New ${e.label.replace(/s$/, '').toLowerCase()}` : (rec.CompanyName || rec.Name_A || `${e.label} #${key}`);
     const cols = Object.entries(e.columns).filter(([n, c]) => !(isNew && (c.readonly || c.view)));
     $('#drawerBody').innerHTML = `
+      ${!isNew && entity === 'demosites' ? '<div id="related" class="related-top"></div>' : ''}
       <form id="recForm" class="form">${cols.map(([n, c]) => field(n, c, rec[n], editableName(n, c))).join('')}</form>
       <div class="actions">
         ${!isNew && writable ? '<button class="btn danger" id="del">Delete</button>' : ''}
         <span style="flex:1"></span>
         ${writable ? `<button class="btn primary" id="save">${isNew ? 'Create' : 'Save changes'}</button>` : '<span class="muted">Read-only</span>'}
       </div>
-      <div id="related"></div>`;
+      ${entity === 'demosites' ? '' : '<div id="related"></div>'}`;
     $('#drawer').classList.remove('hidden');
+    document.querySelectorAll('.colorpick input[type=color]').forEach(c => c.addEventListener('input', () => { $(`#recForm [name="${c.dataset.for}"]`).value = c.value; }));
     if ($('#save')) $('#save').addEventListener('click', async () => {
       const body = {};
       new FormData($('#recForm')).forEach((v, k) => { body[k] = v; });
@@ -264,6 +268,20 @@
   }
   async function renderRelated(entity, rec) {
     const box = $('#related');
+    if (entity === 'demosites') {
+      box.innerHTML = `<h3 class="section-title">Website</h3>
+        <p class="muted">Preview shows the page exactly as the business will see it, built from the saved fields. Save changes first, then preview.</p>
+        <div class="actions wrap"><a class="btn primary" href="/demo/${encodeURIComponent(rec.DemoID)}/preview" target="_blank" rel="noopener">Open live preview</a>
+        <a class="btn" href="/api/demosites/${encodeURIComponent(rec.DemoID)}/download">Download HTML</a>
+        ${ME.role === 'admin' ? '<button class="btn" id="saveFolder">Save to demo-sites folder</button>' : ''}</div>
+        <h3 class="section-title">Company</h3><p><a id="toCompany">Open company #${esc(rec.CompanyID)}</a>${rec.LeadID ? ` · <a id="toLead">Lead #${esc(rec.LeadID)} (${esc(rec.LeadStatus || '')})</a>` : ''}</p>`;
+      $('#toCompany').addEventListener('click', () => openRecord('companies', rec.CompanyID));
+      if ($('#toLead')) $('#toLead').addEventListener('click', () => openRecord('leads', rec.LeadID));
+      if ($('#saveFolder')) $('#saveFolder').addEventListener('click', async () => {
+        try { const r = await api('POST', `/api/demosites/${encodeURIComponent(rec.DemoID)}/save`); toast('Saved: ' + r.file, 4000); } catch (err) { toast(err.message, 6000); }
+      });
+      return;
+    }
     if (entity === 'leads') {
       const acts = await api('GET', `/api/data/activities?f_LeadID=${rec.LeadID}&size=50`);
       box.innerHTML = `<h3 class="section-title">Company</h3><p><a id="toCompany">Open company #${esc(rec.CompanyID)}</a> · <a id="toWeb">Web presence</a></p>
@@ -282,9 +300,11 @@
     }
     if (entity === 'companies') {
       const leads = await api('GET', `/api/data/leads?f_CompanyID=${rec.CompanyID}`);
-      box.innerHTML = `<h3 class="section-title">Lead</h3>${leads.rows.length ? leads.rows.map(l => `<p><a data-lead="${l.LeadID}">Lead #${l.LeadID}</a> · <span class="pill ${esc(l.Status)}">${esc(l.Status)}</span></p>`).join('')
+      const demo = await api('GET', `/api/data/demosites?f_CompanyID=${rec.CompanyID}`).catch(() => ({ rows: [] }));
+      box.innerHTML = `${demo.rows.length ? `<h3 class="section-title">Demo site</h3><p><a data-demo="${demo.rows[0].DemoID}">${esc(demo.rows[0].BrandName)}</a> · <span class="pill">${esc(demo.rows[0].Status)}</span></p>` : ''}<h3 class="section-title">Lead</h3>${leads.rows.length ? leads.rows.map(l => `<p><a data-lead="${l.LeadID}">Lead #${l.LeadID}</a> · <span class="pill ${esc(l.Status)}">${esc(l.Status)}</span></p>`).join('')
         : (canWrite('leads') ? '<p class="muted">No lead yet.</p><button class="btn" id="mkLead">Create lead</button>' : '<p class="muted">No lead.</p>')}`;
       box.querySelectorAll('[data-lead]').forEach(a => a.addEventListener('click', () => openRecord('leads', a.dataset.lead)));
+      box.querySelectorAll('[data-demo]').forEach(a => a.addEventListener('click', () => openRecord('demosites', a.dataset.demo)));
       if ($('#mkLead')) $('#mkLead').addEventListener('click', () => openRecord('leads', null, { CompanyID: rec.CompanyID, Status: 'New' }));
     }
   }
