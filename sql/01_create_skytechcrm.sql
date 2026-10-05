@@ -1,4 +1,4 @@
--- Version: V2.1 (2026-10-05) — sql/01_create_skytechcrm.sql — V2.1 (adds dbo.DemoSites)
+-- Version: V2.2 (2026-10-05) — sql/01_create_skytechcrm.sql — V2.2 (DemoSites photo columns)
 -- SkyTechCRM setup + duplicate protection. SQL Server 2014 Developer (also newer versions).
 -- SAFE TO RE-RUN: creates what is missing, upgrades a V1 database, never deletes data.
 --
@@ -354,6 +354,11 @@ CREATE TABLE dbo.DemoSites (
   UpdatedOn       DATETIME      NOT NULL CONSTRAINT DF_DemoSites_UpdatedOn DEFAULT GETDATE(),
   Notes           NVARCHAR(500) NULL
 );
+GO
+-- V2.2: photos (free-licence links, e.g. images.pexels.com) for the banner, About section and footer credit
+IF COL_LENGTH(N'dbo.DemoSites', N'HeroImage') IS NULL ALTER TABLE dbo.DemoSites ADD HeroImage NVARCHAR(400) NULL;
+IF COL_LENGTH(N'dbo.DemoSites', N'AboutImage') IS NULL ALTER TABLE dbo.DemoSites ADD AboutImage NVARCHAR(400) NULL;
+IF COL_LENGTH(N'dbo.DemoSites', N'PhotoCredit') IS NULL ALTER TABLE dbo.DemoSites ADD PhotoCredit NVARCHAR(200) NULL;
 GO
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_DemoSites_CompanyID')
   CREATE UNIQUE INDEX UX_DemoSites_CompanyID ON dbo.DemoSites(CompanyID);

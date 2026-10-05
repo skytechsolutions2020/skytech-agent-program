@@ -15,9 +15,9 @@
 |---|---|---|---|
 | 90-Day Plan living doc (claude.ai artifact) + `docs/90-day-plan.md` | V2.2 | 2026-10-02 | V2.0 free lead sources; V2.1 niche and area chosen |
 | Project instructions (claude.ai field + `config/project-instructions.md`) | V1.6 | 2026-10-02 | Free lead sources; pasted into Project Instructions by owner. Unchanged 2026-10-03, 2026-10-04 and 2026-10-05 |
-| Version register (claude.ai project + `config/version-register.md`) | V2.9 | 2026-10-05 | This register (claude.ai and repo copies merged) |
+| Version register (claude.ai project + `config/version-register.md`) | V3.0 | 2026-10-05 | This register (claude.ai and repo copies kept in step) |
 | SkyTech-90-Day-Plan-link.md (claude.ai project) | V1.3 | 2026-10-02 | Plan notes and next steps |
-| SkyTech-Prompts-2026-10-05-V1.0.md | V1.1 | 2026-10-05 | Day-5 prompts 5.01–5.02 (file name kept; edited in place) |
+| SkyTech-Prompts-2026-10-05-V1.0.md | V1.2 | 2026-10-05 | Day-5 prompts 5.01–5.03 (file name kept; edited in place) |
 | SkyTech-Prompts-2026-10-04-V1.0.md | V1.0 | 2026-10-04 | Day-4 prompts 4.01 |
 | SkyTech-Prompts-2026-10-03-V1.0.md | V1.0 | 2026-10-03 | Day-3 prompts 3.01 |
 | SkyTech-Prompts-2026-10-02-V1.0.md | V1.0 | 2026-10-02 | Day-2 prompts 2.01–2.06 (superseded by Prompt Book V2.0) |
@@ -26,19 +26,19 @@
 | `scripts/leads/make_sample.py` | V1.1 | 2026-10-02 | Baltimore City added |
 | Local working folder | — | 2026-10-02 | C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program |
 | `agents/SkyTech_BackOffice.md` | V1.1 | 2026-10-02 | BackOffice role (owner-editable) |
-| `agents/SkyTech_WebsiteDeveloper.md` | V1.1 | 2026-10-05 | WebsiteDeveloper role (owner-editable): design files, DemoSites table, Admin editing |
+| `agents/SkyTech_WebsiteDeveloper.md` | V1.2 | 2026-10-05 | WebsiteDeveloper role (owner-editable): design files, DemoSites table, Admin editing |
 | `scripts/website/build_demo_sites.py` V2.0 + `content.py` V1.0 | 2026-10-05 | Retired in R3.2 (replaced by `admin-site/scripts/build-demos.js`) |
-| `demo-sites/` (3 sites, template V2.0) + `designs/*.json` V1.0 + README V2.0 | 2026-10-05 | Unique designs: Fresh Water, Blueprint, Harbor Classic |
-| `sql/05_demo_sites_built.sql` | V2.0 | 2026-10-05 | Loads demos into dbo.DemoSites (insert-only), lead → DemoBuilt |
-| `admin-site/src/demo/render.js` + `scripts/build-demos.js` | V1.0 | 2026-10-05 | Demo page renderer (layouts split / bold / classic) and builder |
+| `demo-sites/` (3 sites, template V2.1) + `designs/*.json` (C&A V1.1, others V1.0) + README V2.0 | 2026-10-05 | Unique designs: Fresh Water (with Pexels photos), Blueprint, Harbor Classic |
+| `sql/05_demo_sites_built.sql` | V2.1 | 2026-10-05 | Loads demos into dbo.DemoSites (insert-only), lead → DemoBuilt |
+| `admin-site/src/demo/render.js` + `scripts/build-demos.js` | V1.1 | 2026-10-05 | Demo page renderer (layouts split / bold / classic, photo version) and builder |
 | `data/verification/2026-10-02_backoffice_results.txt` | V1.0 | 2026-10-02 | 100-lead website verification |
 | `data/samples/SkyTech_Leads_Sample100.csv` V1.1 + `_import.sql` V1.2 | 2026-10-02 | First 100-lead sample |
-| `sql/01_create_skytechcrm.sql` | V2.1 | 2026-10-05 | Duplicate-proof setup + import procedure; adds dbo.DemoSites (re-runnable) |
-| `admin-site/` | V1.3 | 2026-10-05 | Admin website; live duplicate check; Demo sites tab (edit, live preview, download, save) |
-| `sql/04_admin_site.sql` | V1.3 | 2026-10-05 | Admin site tables, views, duplicate check, vw_DemoSiteDetail |
-| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.3 | 2026-10-05 | Infrastructure, data flow, agents, roles, versions |
+| `sql/01_create_skytechcrm.sql` | V2.2 | 2026-10-05 | Duplicate-proof setup + import procedure; dbo.DemoSites with photo columns (re-runnable) |
+| `admin-site/` | V1.4 | 2026-10-05 | Admin website; live duplicate check; Demo sites tab (edit incl. photos, live preview, download, save) |
+| `sql/04_admin_site.sql` | V1.4 | 2026-10-05 | Admin site tables, views, duplicate check, vw_DemoSiteDetail |
+| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.4 | 2026-10-05 | Infrastructure, data flow, agents, roles, versions |
 | `push-to-github.bat` | V1.0 | 2026-10-02 | One-click upload of commits + tags |
-| GitHub repository `skytech-agent-program` | R3.2 | 2026-10-05 | See `INDEX.md` |
+| GitHub repository `skytech-agent-program` | R3.3 | 2026-10-05 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -61,6 +61,7 @@
 - 2026-10-04 Scheduled versioning run: Day-4 prompt file `SkyTech-Prompts-2026-10-04-V1.0.md` created (prompt 4.01); rule 5 example extended to 4.01; instructions confirmed at V1.6 (no content change). Register → V2.7.
 - 2026-10-05 Scheduled versioning run (program start day): Day-5 prompt file `SkyTech-Prompts-2026-10-05-V1.0.md` created (prompt 5.01); rule 5 example extended to 5.01; instructions confirmed at V1.6 (no content change). Register → V2.8.
 - 2026-10-05 R3.2: three unique demo websites (layouts split / bold / classic, concept logos, original illustrations); new dbo.DemoSites table (sql/01 V2.1, sql/04 V1.3, sql/05 V2.0); Admin site V1.3 Demo sites tab; WebsiteDeveloper V1.1; old Python generator retired; diagram V1.3; Day-5 prompts V1.1 (5.02). Claude project and repo registers merged. Register → V2.9.
+- 2026-10-05 R3.3: C&A Plumbing demo with free-licence Pexels photos (banner, one per service, About), drop-and-wrench concept logo, "What we fix" card (template V2.1, render/build V1.1); DemoSites photo columns (sql/01 V2.2, sql/04 V1.4, sql/05 V2.1); Admin site V1.4; WebsiteDeveloper V1.2; diagram V1.4; Day-5 prompts V1.2 (5.03). Register → V3.0.
 
 ---
-Version: V2.9 (2026-10-05) — SkyTech-Version-Register.md — V2.9
+Version: V3.0 (2026-10-05) — SkyTech-Version-Register.md — V3.0

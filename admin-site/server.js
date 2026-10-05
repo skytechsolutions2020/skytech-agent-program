@@ -1,4 +1,4 @@
-// Version: V1.3 (2026-10-05) — admin-site/server.js — V1.3
+// Version: V1.4 (2026-10-05) — admin-site/server.js — V1.4
 // SkyTech Admin site: login, dashboard, drill-down and CRUD for SkyTechCRM.
 // Start: "npm start" (SQL Server)  |  "npm run demo" (no database, sample data)
 require('dotenv').config({ path: require('path').join(__dirname, '.env') });
@@ -64,6 +64,8 @@ function checkDemo(req, res, next) {
   if ('Slug' in b && !/^[a-z0-9][a-z0-9-]{2,79}$/.test(String(b.Slug))) return res.status(400).json({ error: 'Slug: use 3-80 lowercase letters, numbers and dashes.' });
   const bad = ['PrimaryColor', 'AccentColor', 'BackgroundColor'].find(k => b[k] && !/^#[0-9a-fA-F]{6}$/.test(String(b[k])));
   if (bad) return res.status(400).json({ error: bad + ': use a colour like #1f5fbf.' });
+  const badImg = ['HeroImage', 'AboutImage'].find(k => b[k] && !/^https:\/\/(images\.pexels\.com|images\.unsplash\.com)\/\S+$/.test(String(b[k])));
+  if (badImg) return res.status(400).json({ error: badImg + ': use a free-licence photo link from images.pexels.com or images.unsplash.com.' });
   next();
 }
 const wrap = fn => (req, res) => fn(req, res).catch(e => { console.error(e.message); res.status(400).json({ error: e.message }); });
@@ -147,7 +149,7 @@ app.post('/api/duplicates/dismiss', auth, adminOnly, cat, wrap(async (req, res) 
 
 // ---- demo websites: live preview from the database, download, save to the demo-sites folder
 const DEMO_DIR = process.env.DEMO_SITES_DIR || path.join(__dirname, '..', 'demo-sites');
-const PAGE_CSP = "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'";
+const PAGE_CSP = "default-src 'none'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src data: https://images.pexels.com https://images.unsplash.com; base-uri 'none'; form-action 'none'";
 async function demoPage(id) {
   const s = await db.get('demosites', id);
   if (!s) { const err = new Error('Demo site not found.'); err.status = 404; throw err; }

@@ -24,5 +24,8 @@
   "DisclosureNote": "Maryland real estate brokerage license details will be shown here (required for leasing and property management).",
   "Status": "ReadyForReview",
   "Notes": "Concept logo and artwork; no email on public listings, confirm by phone.",
-  "Version": "V1.0 (2026-10-05)"
+  "Version": "V1.0 (2026-10-05)",
+  "HeroImage": "",
+  "AboutImage": "",
+  "PhotoCredit": ""
 }

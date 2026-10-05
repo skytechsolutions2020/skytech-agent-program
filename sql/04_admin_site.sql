@@ -1,6 +1,6 @@
--- Version: V1.3 (2026-10-05) — sql/04_admin_site.sql — V1.3 (adds vw_DemoSiteDetail for the Demo sites tab)
+-- Version: V1.4 (2026-10-05) — sql/04_admin_site.sql — V1.4 (vw_DemoSiteDetail adds photo columns)
 -- Objects used by the SkyTech Admin site. SQL Server 2014 Developer (SSMS).
--- Run AFTER sql/01_create_skytechcrm.sql (V2.1+). SAFE TO RE-RUN; never deletes data.
+-- Run AFTER sql/01_create_skytechcrm.sql (V2.2+). SAFE TO RE-RUN; never deletes data.
 USE SkyTechCRM;
 GO
 SET ANSI_NULLS ON; SET QUOTED_IDENTIFIER ON;
@@ -304,6 +304,7 @@ CREATE VIEW dbo.vw_DemoSiteDetail AS
 SELECT s.DemoID, s.CompanyID, s.Slug, s.Status, s.Layout, s.Theme, s.PrimaryColor, s.AccentColor, s.BackgroundColor,
        s.HeadingFont, s.BodyFont, s.LogoText, s.LogoShape, s.Illustration, s.BrandName, s.Tagline, s.Headline, s.Subheadline,
        s.About, s.Services, s.Highlights, s.Steps, s.ServiceAreas, s.CallToAction, s.DisclosureNote, s.PreviewPath, s.PublicURL,
+       s.HeroImage, s.AboutImage, s.PhotoCredit,
        s.TemplateVersion, s.BuiltBy, s.BuiltOn, s.UpdatedOn, s.Notes,
        c.CompanyName, c.Phone, c.Email, c.Address, c.City, c.County, c.Zip, l.LeadID, l.Status AS LeadStatus
   FROM dbo.DemoSites s

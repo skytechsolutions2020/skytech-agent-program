@@ -1,5 +1,16 @@
 # Changelog
 
+## R3.3 — 2026-10-05
+- C&A Plumbing demo made more customer-appealing (template V2.1):
+  - Full-width photo banner with a "What we fix" card listing every service.
+  - A photo service card for each of the six services, with an icon badge.
+  - An About section with photo and checklist.
+  - A new drop-and-wrench concept logo, and separate icons for leak and pipe repair.
+- Photos are free-licence images from Pexels with a footer credit. They were chosen so no other company's branding shows and no stock person appears to be the business's staff.
+- dbo.DemoSites photo columns HeroImage, AboutImage and PhotoCredit (`sql/01` V2.2, `sql/04` V1.4, `sql/05` V2.1).
+- Admin site V1.4: photo fields in the Demo sites tab (free-licence hosts only), and the live preview shows the photos.
+- WebsiteDeveloper role V1.2 (photo rules), infrastructure diagram V1.4, register V3.0, Day-5 prompts V1.2, log V1.1.
+
 ## R3.2 — 2026-10-05
 - Three unique, customer-ready demo websites (template V2.0):
   - C&A Plumbing: layout `split`, Fresh Water palette.
@@ -79,4 +90,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.2 (2026-10-05) — CHANGELOG.md — V2.2
+Version: V2.3 (2026-10-05) — CHANGELOG.md — V2.3

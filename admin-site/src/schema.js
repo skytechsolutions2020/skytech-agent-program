@@ -1,4 +1,4 @@
-// Version: V1.3 (2026-10-05) — admin-site/src/schema.js — V1.3
+// Version: V1.4 (2026-10-05) — admin-site/src/schema.js — V1.4
 // Whitelist of what the admin site may read and change. Only names listed here
 // ever reach SQL, so the site cannot touch other tables or columns.
 
@@ -97,7 +97,10 @@ const ENTITIES = {
       LogoShape: { type: 'enum', options: LOGO_SHAPES }, Illustration: { type: 'enum', options: ILLUSTRATIONS },
       Tagline: { type: 'text' }, Headline: { type: 'text' },
       Subheadline: { type: 'longtext' }, About: { type: 'longtext' },
-      Services: { type: 'longtext', hint: 'One per line: Title | short description' },
+      HeroImage: { type: 'text', hint: 'Banner photo URL (images.pexels.com or images.unsplash.com, free licence)' },
+      AboutImage: { type: 'text', hint: 'Photo for the About section (same rules)' },
+      PhotoCredit: { type: 'text', hint: 'Shown in the footer, e.g. Photos: Pexels (free licence)' },
+      Services: { type: 'longtext', hint: 'One per line: Title | short description | optional photo URL' },
       Highlights: { type: 'longtext', hint: 'One per line: Title | short description (no reviews, prices or licence claims)' },
       Steps: { type: 'longtext', hint: 'One per line: Title | short description (3 or 4 steps)' },
       ServiceAreas: { type: 'text', hint: 'Comma separated' },

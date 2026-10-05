@@ -23,7 +23,7 @@ Build a free one-page demo website for each lead that SkyTech_BackOffice has ver
 1. Every demo shows the **"Website preview"** banner saying SkyTech made it and that the business has not approved it. The banner is removed only after the business agrees.
 2. Demos are hidden from search engines (`noindex`) and are **not published anywhere** without the owner's approval.
 3. **No made-up facts.** That means no reviews, testimonials, ratings, years in business, awards, prices, "licensed", "insured", "24/7" or "free estimates", unless the business gives them to us in writing.
-4. Logos and images are **original concept art** drawn by the template: a concept logo plus vector illustrations. Never copy the business's logo or photos, or anyone else's, without permission. Stock photos are used only from free-licence libraries when the network allows, and the business's own logo and photos replace the concept art after they sign up.
+4. Logos are **original concept logos** drawn by the template. Photos come only from free-licence libraries (Pexels, Unsplash), chosen through the desktop browser pane and credited in the footer. Rules for photos: no other company's branding visible, prefer hands and work close-ups so no stock person appears to be the business's staff, and one photo per service so customers instantly recognise each service. Never copy the business's own logo or photos without permission; theirs replace the concept art after sign-up. Demo pages link to the photos; download and host them when a site goes live.
 5. Required licence lines are shown as a placeholder until the business provides them: MHIC number for home improvement contractors, brokerage licence for real estate and property management, and NMLS number for mortgage.
 6. If a business asks us to remove its demo, delete it the same day and record that in the Admin site.
 
@@ -34,10 +34,10 @@ Build a free one-page demo website for each lead that SkyTech_BackOffice has ver
 | `bold` | Dark and strong: blueprint grid, condensed uppercase headings, numbered project tiles, process timeline | David P Davis Construction (Blueprint: charcoal + amber) |
 | `classic` | Elegant: serif headings, centred hero, rowhouse skyline, approach panel | Lee Newton Co. (Harbor Classic: forest green + brass on cream) |
 
-Illustrations: `plumbing-home`, `house-frame`, `rowhouses`. Concept logo shapes: `drop`, `roof`, `arch`, `circle`. New layouts or artwork are added in `render.js` with a version bump.
+Illustrations: `plumbing-home`, `house-frame`, `rowhouses`. Concept logo shapes: `drop`, `dropwrench`, `roof`, `arch`, `circle`. Photo version (template V2.1, used by C&A Plumbing): full-width photo banner with a "What we fix" card, photo service cards with icon badges, and an About section with photo. New layouts or artwork are added in `render.js` with a version bump.
 
 ## Status flow
 `NoSite` (BackOffice) → `DemoBuilt` (this agent, after the owner runs sql/05) → `Contacted` (PhoneMarketing / owner).
 
 ---
-Version: V1.1 (2026-10-05) — agents/SkyTech_WebsiteDeveloper.md — V1.1
+Version: V1.2 (2026-10-05) — agents/SkyTech_WebsiteDeveloper.md — V1.2

@@ -1,4 +1,4 @@
-# SkyTech Prompts — 2026-10-05 — V1.1
+# SkyTech Prompts — 2026-10-05 — V1.2
 
 End-of-day prompt set. Numbering by day: Day 5 = 5.01, 5.02 … (Day 4 prompts: `SkyTech-Prompts-2026-10-04-V1.0.md`; Day 3 prompts: `SkyTech-Prompts-2026-10-03-V1.0.md`; Day 2 prompts: `SkyTech-Prompts-2026-10-02-V1.0.md`, consolidated in Prompt Book V2.0).
 
@@ -19,8 +19,17 @@ RULES: Free tools only. No third-party logos or photos without permission (stock
 OUTPUT: The 3 redesigned demos, the DemoSites table and Admin tab, updated SQL scripts, and release R3.2.
 RESULT: Layouts split / bold / classic (Fresh Water, Blueprint, Harbor Classic); dbo.DemoSites (sql/01 V2.1, sql/04 V1.3, sql/05 V2.0); Admin site V1.3 with live preview; release R3.2.
 
-### Carry-over — V1.1 (pending)
+### 5.03 C&A Plumbing: clearer services, better logo, real photos — V1.0
+As written: "i will have c& a plumbing more customer appealing so that they can clearly identify their services with good appealing logos and real back images."
+Engineered:
+ROLE: SkyTech_WebsiteDeveloper, reporting to SkyTech_Manager.
+TASK: Make the C&A Plumbing demo more appealing to customers. Each service should be instantly recognisable through its own real photo and icon. Add a stronger concept logo and a real photo as the banner background.
+RULES: Use only free-licence photos (Pexels or Unsplash) with a footer credit. No other company's branding may be visible, and prefer hands and work close-ups so no stock person appears to be the business's staff. Store the photos with the demo in dbo.DemoSites so they can be changed in the Admin site. Keep the preview banner, noindex and no made-up facts.
+OUTPUT: The updated C&A demo, the photo fields in the database and Admin site, and release R3.3.
+RESULT: Template V2.1 adds a photo banner with a "What we fix" card, photo service cards with icon badges, an About section with photo, and a drop-and-wrench logo. Pexels photos were chosen in the desktop browser pane; one banner photo was swapped out because it showed another company's branding. DemoSites gains HeroImage, AboutImage and PhotoCredit; Admin site V1.4; release R3.3.
+
+### Carry-over — V1.2 (pending)
 Owner: run `push-to-github.bat`; set up the database in SSMS (01 → sample import → 04 → 05); review the 3 demos in the Admin site; choose free hosting for demo links (Netlify recommended).
 
 ---
-Version: V1.1 (2026-10-05) — SkyTech-Prompts-2026-10-05-V1.0.md — V1.1
+Version: V1.2 (2026-10-05) — SkyTech-Prompts-2026-10-05-V1.0.md — V1.2

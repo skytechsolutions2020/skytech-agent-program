@@ -1,4 +1,4 @@
-// Version: V1.0 (2026-10-05) — admin-site/src/demo/render.js — V1.0
+// Version: V1.1 (2026-10-05) — admin-site/src/demo/render.js — V1.1 (photos, photo service cards, about section, drop-and-wrench logo)
 // SkyTech_WebsiteDeveloper page renderer. Turns one DemoSites record (design fields + company facts)
 // into a complete, self-contained one-page website. Used by:
 //   - scripts/build-demos.js  (writes demo-sites/<slug>/index.html)
@@ -7,9 +7,9 @@
 // licence claims; concept logo and original illustrations only (no third-party images).
 'use strict';
 
-const TEMPLATE_VERSION = 'V2.0';
+const TEMPLATE_VERSION = 'V2.1';
 const LAYOUTS = ['split', 'bold', 'classic'];
-const LOGO_SHAPES = ['drop', 'roof', 'arch', 'circle'];
+const LOGO_SHAPES = ['drop', 'dropwrench', 'roof', 'arch', 'circle'];
 const ILLUSTRATIONS = ['plumbing-home', 'house-frame', 'rowhouses'];
 const FONTS = ['Plus Jakarta Sans', 'Inter', 'Barlow Condensed', 'Barlow', 'Playfair Display', 'Source Sans 3', 'DM Serif Display', 'Manrope', 'Outfit'];
 const STATUSES = ['Draft', 'ReadyForReview', 'Approved', 'Sent', 'Published', 'Removed'];
@@ -24,6 +24,10 @@ const pick = (v, list, d) => (list.includes(v) ? v : d);
 const lines = v => String(v || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
 const tel = p => { const d = String(p || '').replace(/\D/g, ''); return d.length >= 10 ? '+1' + d.slice(-10) : ''; };
 const ini = s => String(s || '').trim();
+// photos: only free-licence image hosts (or files next to the page) are allowed
+const IMG_HOSTS = /^https:\/\/(images\.pexels\.com|images\.unsplash\.com)\/[\w\-./%?=&]+$/;
+const img = v => { v = ini(v); return IMG_HOSTS.test(v) || /^img\/[\w\-.]+\.(jpe?g|png|webp)$/i.test(v) ? v : ''; };
+const sized = (u, w) => /images\.pexels\.com/.test(u) ? u.split('?')[0] + `?auto=compress&cs=tinysrgb&w=${w}` : u;
 
 function mix(h, w) { // blend hex colour h with white by w (0..1)
   const n = parseInt(h.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
@@ -33,6 +37,7 @@ function mix(h, w) { // blend hex colour h with white by w (0..1)
 
 // ---------- icons (24px line icons, original)
 const I = {
+  leak: '<path d="M3 7h9a3 3 0 0 1 3 3v3"/><path d="M3 4v6"/><path d="M15 16c1.4 1.8 2.2 3 2.2 3.9a2.2 2.2 0 0 1-4.4 0c0-.9.8-2.1 2.2-3.9z"/><path d="M19 9.5c.7.9 1 1.5 1 1.9a1 1 0 0 1-2 0c0-.4.3-1 1-1.9z"/>',
   pipe: '<path d="M3 8h8a3 3 0 0 1 3 3v10"/><path d="M3 5v6"/><path d="M11 21h6"/><path d="M17 9h4"/><path d="M14 11h7"/>',
   drain: '<circle cx="12" cy="12" r="8"/><path d="M12 8a4 4 0 1 1-4 4"/><path d="M12 11.5a.5.5 0 1 1-.5.5"/>',
   heater: '<rect x="7" y="3" width="10" height="16" rx="3"/><path d="M10 21h4"/><path d="M12 9c1.2 1.5 1.8 2.4 1.8 3.2a1.8 1.8 0 0 1-3.6 0c0-.8.6-1.7 1.8-3.2z"/>',
@@ -63,7 +68,7 @@ const I = {
   ruler: '<path d="M3 17 17 3l4 4L7 21z"/><path d="m7 13 2 2"/><path d="m10 10 2 2"/><path d="m13 7 2 2"/>',
   chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8"/>'
 };
-const KEYWORDS = [[/leak|pipe|repip/i, 'pipe'], [/drain|sewer|clog/i, 'drain'], [/heater|tankless/i, 'heater'], [/fixture|faucet|toilet|sink/i, 'faucet'],
+const KEYWORDS = [[/respect|tidy|clean site|care/i, 'shield'], [/leak/i, 'leak'], [/pipe|repip/i, 'pipe'], [/drain|sewer|clog/i, 'drain'], [/heater|tankless/i, 'heater'], [/fixture|faucet|toilet|sink/i, 'faucet'],
   [/sump|pump/i, 'pump'], [/kitchen/i, 'kitchen'], [/bath/i, 'bath'], [/basement/i, 'stairs'], [/deck|outdoor|patio/i, 'deck'], [/paint|drywall/i, 'roller'],
   [/addition/i, 'addition'], [/carpent|repair/i, 'hammer'], [/tenant|resident|screen/i, 'people'], [/leas|market/i, 'doc'], [/rent|collect/i, 'rent'],
   [/mainten/i, 'wrench'], [/inspect/i, 'clipboard'], [/report|owner/i, 'chart'], [/quote|clear|scope/i, 'chat'], [/contact|point/i, 'phone'],
@@ -77,6 +82,7 @@ function logo(shape, text, c1, c2, size = 44) {
   const fs = t.length > 3 ? 15 : t.length > 2 ? 17 : 21;
   const shapes = {
     drop: `<path d="M32 4C44 20 54 30 54 41a22 22 0 0 1-44 0C10 30 20 20 32 4z" fill="${c1}"/><path d="M22 44a10 10 0 0 0 10 10" stroke="${c2}" stroke-width="3" fill="none" stroke-linecap="round"/><text x="32" y="43" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="${fs}" fill="#fff">${t}</text>`,
+    dropwrench: `<defs><linearGradient id="lg${size}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c2}"/><stop offset="1" stop-color="${c1}"/></linearGradient></defs><circle cx="32" cy="32" r="30" fill="url(#lg${size})"/><path d="M32 11c8.5 11.5 14 18.3 14 25a14 14 0 0 1-28 0c0-6.7 5.5-13.5 14-25z" fill="#fff"/><path d="M38.5 31.2a5.2 5.2 0 0 0-6.9 6.6l-7.2 7.2a2 2 0 0 0 2.8 2.8l7.2-7.2a5.2 5.2 0 0 0 6.6-6.9l-3.1 3.1-2.6-.6-.6-2.6z" fill="${c1}"/>`,
     roof: `<rect x="4" y="4" width="56" height="56" rx="10" fill="${c1}"/><path d="M14 30 32 15l18 15" stroke="${c2}" stroke-width="5" fill="none" stroke-linecap="square"/><text x="32" y="50" text-anchor="middle" font-family="Arial Narrow, Arial, sans-serif" font-weight="800" font-size="${fs}" letter-spacing="1" fill="#fff">${t}</text>`,
     arch: `<path d="M8 60V30a24 24 0 0 1 48 0v30z" fill="${c1}"/><path d="M14 58V31a18 18 0 0 1 36 0v27" stroke="${c2}" stroke-width="1.5" fill="none"/><path d="M28 9h8l-1.5 6h-5z" fill="${c2}"/><text x="32" y="45" text-anchor="middle" font-family="Georgia, serif" font-size="${fs + 1}" fill="#fff">${t}</text>`,
     circle: `<circle cx="32" cy="32" r="28" fill="${c1}"/><circle cx="32" cy="32" r="22" stroke="${c2}" stroke-width="2" fill="none"/><text x="32" y="39" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="${fs}" fill="#fff">${t}</text>`
@@ -148,7 +154,8 @@ function render(s, opts = {}) {
   const zip = ini(s.Zip).slice(0, 5);
   const addr = [ini(s.Address).replace(/\s{2,}/g, ' '), city, ('MD ' + zip).trim()].filter(Boolean).join(', ');
   const phone = ini(s.Phone), email = ini(s.Email), t = tel(phone);
-  const services = lines(s.Services).map(l => { const [a, ...b] = l.split('|'); return [a.trim(), b.join('|').trim()]; }).slice(0, 9);
+  const services = lines(s.Services).map(l => { const [a, b = '', c = ''] = l.split('|'); return [a.trim(), b.trim(), img(c)]; }).slice(0, 9);
+  const hero = img(s.HeroImage), aboutImg = img(s.AboutImage), credit = ini(s.PhotoCredit);
   const highlights = lines(s.Highlights).map(l => { const [a, ...b] = l.split('|'); return [a.trim(), b.join('|').trim()]; }).slice(0, 4);
   const areas = String(s.ServiceAreas || '').split(',').map(x => x.trim()).filter(Boolean).slice(0, 10);
   const steps = lines(s.Steps).map(l => { const [a, ...b] = l.split('|'); return [a.trim(), b.join('|').trim()]; }).slice(0, 4);
@@ -161,8 +168,12 @@ function render(s, opts = {}) {
   const logoHtml = logo(s.LogoShape, s.LogoText || name.slice(0, 2).toUpperCase(), layout === 'bold' ? A : P, layout === 'bold' ? P : A);
   const ill = illustration(pick(s.Illustration, ILLUSTRATIONS, 'plumbing-home'), P, A, BG);
   const note = ini(s.DisclosureNote) ? `<p class="disclosure">${e(s.DisclosureNote)}</p>` : '';
-  const svcCards = services.map(([h, d], i) => `<article class="svc">${layout === 'bold' ? `<span class="num">${String(i + 1).padStart(2, '0')}</span>` : ''}<span class="si">${svg(iconFor(h), 26)}</span><h3>${e(h)}</h3><p>${e(d)}</p></article>`).join('');
-  const hl = highlights.map(([h, d]) => `<div class="hl"><span class="hi">${svg(iconFor(h + ' ' + d), 22)}</span><div><h3>${e(h)}</h3>${d ? `<p>${e(d)}</p>` : ''}</div></div>`).join('');
+  const svcCards = services.map(([h, d, im], i) => im
+    ? `<article class="svc ph"><div class="sp" style="background-image:url('${e(sized(im, 700))}')" role="img" aria-label="${e(h)}"></div><div class="sb"><span class="si">${svg(iconFor(h), 26)}</span><h3>${e(h)}</h3><p>${e(d)}</p></div></article>`
+    : `<article class="svc">${layout === 'bold' ? `<span class="num">${String(i + 1).padStart(2, '0')}</span>` : ''}<span class="si">${svg(iconFor(h), 26)}</span><h3>${e(h)}</h3><p>${e(d)}</p></article>`).join('');
+  const quick = services.map(([h]) => `<li>${svg(iconFor(h), 20)}<span>${e(h)}</span></li>`).join('');
+  const aboutHtml = aboutImg ? `<section class="about"><div class="w ab"><div class="aimg" style="background-image:url('${e(sized(aboutImg, 1000))}')" role="img" aria-label="${e(name)} at work"></div><div><span class="eyebrow">About ${e(name)}</span><h2 class="h2">${e(s.Tagline || '')}</h2><p class="lead">${e(s.About)}</p><ul class="ticks">${highlights.map(([h, d]) => `<li>${svg('check', 20, 2.4)}<div><b>${e(h)}</b>${d ? ` <span>${e(d)}</span>` : ''}</div></li>`).join('')}</ul>${callBtn('btn pri', s.CallToAction || 'Call us')}</div></div></section>` : '';
+  const hl = highlights.map(([h, d]) => `<div class="hl"><span class="hi">${svg(iconFor(h) !== 'check' ? iconFor(h) : iconFor(d), 22)}</span><div><h3>${e(h)}</h3>${d ? `<p>${e(d)}</p>` : ''}</div></div>`).join('');
   const stepHtml = stepsList.map(([h, d], i) => `<li><span class="sn">${i + 1}</span><h3>${e(h)}</h3><p>${e(d)}</p></li>`).join('');
   const chips = areas.map(a => `<span>${e(a)}</span>`).join('');
   const contactRows = [
@@ -205,7 +216,14 @@ footer{padding:36px 0 96px;font-size:14px}footer .w{display:flex;flex-wrap:wrap;
 .callbar{display:none}
 @media(max-width:900px){.links{display:none}.svcs,.steps,.area{grid-template-columns:1fr}section{padding:64px 0}.nav .btn span{display:none}.nav .btn{padding:12px}
  .callbar{display:flex;position:fixed;left:14px;right:14px;bottom:14px;z-index:30;justify-content:center;box-shadow:0 10px 30px -8px rgba(0,0,0,.45)}}
-@media(min-width:901px) and (max-width:1100px){.svcs{grid-template-columns:repeat(2,1fr)}}`;
+@media(min-width:901px) and (max-width:1100px){.svcs{grid-template-columns:repeat(2,1fr)}}
+.svc.ph{padding:0;overflow:hidden}.svc .sp{height:190px;background:var(--pl) center/cover no-repeat}
+.svc.ph .sb{position:relative;padding:34px 26px 26px}.svc.ph .si{position:absolute;top:-28px;left:22px;width:56px;height:56px;border-radius:16px;background:var(--a);color:#fff;box-shadow:0 10px 20px -8px ${A}aa;margin:0}
+.about{background:#fff}.ab{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.aimg{min-height:440px;border-radius:26px;background:var(--pl) center/cover no-repeat;box-shadow:0 40px 70px -40px ${P}aa}
+.ticks{list-style:none;padding:0;margin:26px 0 30px;display:grid;gap:14px}.ticks li{display:flex;gap:12px}.ticks svg{flex:none;color:var(--a);margin-top:2px}.ticks span{color:var(--mut)}
+.credit{font-size:12px;opacity:.7}
+@media(max-width:900px){.ab{grid-template-columns:1fr}.aimg{min-height:280px}}`;
 
   let css = '', body = '';
   if (layout === 'split') {
@@ -229,6 +247,29 @@ footer{background:var(--p);color:rgba(255,255,255,.75)}footer a{color:#fff}
 .callbar{background:var(--a);color:#fff}
 @media(max-width:900px){.hero .w{grid-template-columns:1fr}.hls .w{grid-template-columns:1fr}.hl{border-left:0;border-top:1px solid rgba(255,255,255,.12)}}`;
     const words = ini(s.Headline).split(' '); const hl1 = words.slice(0, -2).join(' '), hl2 = words.slice(-2).join(' ');
+    if (hero) {
+      css += `
+.hero.photo{position:relative;padding:110px 0 120px;color:#fff;background:linear-gradient(100deg,${P}f2 0%,${P}d9 38%,${P}66 70%,${P}26 100%),url('${e(sized(hero, 1800))}') center/cover no-repeat}
+.hero.photo h1{color:#fff;text-shadow:0 2px 24px rgba(0,0,0,.25)}.hero.photo h1 em{color:${mix(A, .15)}}.hero.photo p{color:rgba(255,255,255,.88)}
+.hero.photo .tag{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.25);color:#fff;backdrop-filter:blur(6px)}
+.hero.photo .btn.sec{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.4)}
+.qc{background:rgba(255,255,255,.96);color:var(--ink);border-radius:24px;padding:26px 26px 18px;box-shadow:0 30px 60px -30px rgba(0,0,0,.6)}
+.qc h3{font-size:18px;color:var(--p);margin-bottom:10px}.qc ul{list-style:none;margin:0;padding:0}
+.qc li{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-weight:600}.qc li:last-child{border:0}
+.qc li svg{flex:none;width:38px;height:38px;padding:8px;border-radius:10px;background:var(--al);color:var(--p)}
+@media(max-width:900px){.hero.photo{padding:64px 0 70px;background:linear-gradient(180deg,${P}e6,${P}b3),url('${e(sized(hero, 1000))}') center/cover no-repeat}}`;
+      body = `
+<section class="hero photo"><div class="w">
+  <div><span class="tag"><i></i>${e(s.Tagline || '')}</span>
+  <h1>${e(hl1)} <em>${e(hl2)}</em></h1><p>${e(s.Subheadline)}</p>
+  <div class="cta">${callBtn('btn pri', cta)}<a class="btn sec" href="#services">Our services ${svg('arrow', 18)}</a></div></div>
+  <div class="qc"><h3>What we fix</h3><ul>${quick}</ul></div>
+</div></section>
+${hl ? `<section class="hls"><div class="w">${hl}</div></section>` : ''}
+<section id="services"><div class="w"><span class="eyebrow">Services</span><h2 class="h2">Plumbing services for your home and business</h2><p class="lead">Pick the job you need help with, then give us a call.</p><div class="svcs">${svcCards}</div></div></section>
+${aboutHtml}
+<section class="how" id="how"><div class="w"><span class="eyebrow">How it works</span><h2 class="h2">Simple from the first call</h2><ol class="steps">${stepHtml}</ol></div></section>`;
+    } else
     body = `
 <section class="hero"><div class="w">
   <div><span class="tag"><i></i>${e(s.Tagline || '')}</span>
@@ -326,7 +367,7 @@ ${preview ? '<meta name="robots" content="noindex, nofollow">\n' : ''}<title>${e
 <style>${base}${css}</style>
 </head>
 <body>
-${preview ? `<div class="pv"><div class="w"><b>Website preview.</b> A free sample website made by SkyTech Solutions for ${nd} Not published and not yet approved by ${nd} Details come from public listings; the logo, artwork and text are a starting concept we will replace with yours. <a href="https://skytechsolutions.us">skytechsolutions.us</a></div></div>` : ''}
+${preview ? `<div class="pv"><div class="w"><b>Website preview.</b> A free sample website made by SkyTech Solutions for ${nd} Not published and not yet approved by ${nd} Details come from public listings; the logo, photos and text are a starting concept we will replace with yours. <a href="https://skytechsolutions.us">skytechsolutions.us</a></div></div>` : ''}
 <header class="nav"><div class="w">
   <a class="brand" href="#top">${logoHtml}<span><b>${e(name)}</b><small>${e(s.Tagline || '')}</small></span></a>
   <nav class="links"><a href="#services">Services</a><a href="#how">How it works</a><a href="#contact">Contact</a></nav>
@@ -340,7 +381,7 @@ ${preview ? `<div class="pv"><div class="w"><b>Website preview.</b> A free sampl
   <div class="card"><h3>Contact ${e(name)}</h3>${contactRows}${callBtn('btn pri', cta)}${note}</div>
 </div></section>
 </main>
-<footer><div class="w"><div>&copy; ${new Date().getFullYear()} ${e(name)} &middot; ${e(city)}, Maryland</div><div>Website ${preview ? 'preview ' : ''}by <a href="https://skytechsolutions.us">SkyTech Solutions</a></div></div></footer>
+<footer><div class="w"><div>&copy; ${new Date().getFullYear()} ${e(name)} &middot; ${e(city)}, Maryland</div><div>${credit ? `<span class="credit">${e(credit)}</span> &middot; ` : ''}Website ${preview ? 'preview ' : ''}by <a href="https://skytechsolutions.us">SkyTech Solutions</a></div></div></footer>
 ${callBtn('btn callbar', 'Call ' + phone)}
 </body>
 </html>
@@ -350,4 +391,4 @@ ${callBtn('btn callbar', 'Call ' + phone)}
 
 module.exports = { render, TEMPLATE_VERSION, LAYOUTS, LOGO_SHAPES, ILLUSTRATIONS, FONTS, STATUSES };
 
-// Version: V1.0 (2026-10-05) — admin-site/src/demo/render.js — V1.0
+// Version: V1.1 (2026-10-05) — admin-site/src/demo/render.js — V1.1

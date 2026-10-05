@@ -16,7 +16,7 @@ A private admin website for SkyTech Solutions LLC. Sign in, see dashboards that 
 | Companies | Full CRUD; name + ZIP duplicates are refused |
 | Web presence | Website / Facebook / Google profile per company |
 | Activities | Calls, emails, posts and notes per lead |
-| Demo sites | One row per business demo website (table `DemoSites`). Edit the layout, colours, fonts, concept logo, artwork, headline, services, highlights, steps, areas and status; **Open live preview** shows the page built from the saved fields; **Download HTML** or **Save to demo-sites folder** writes the finished page. Status runs Draft → ReadyForReview → Approved → Sent → Published (the preview banner and "noindex" are removed only at Published) |
+| Demo sites | One row per business demo website (table `DemoSites`). Edit the layout, colours, fonts, concept logo, artwork, photos (banner, About, one per service; free-licence Pexels/Unsplash links only), headline, services, highlights, steps, areas and status; **Open live preview** shows the page built from the saved fields; **Download HTML** or **Save to demo-sites folder** writes the finished page. Status runs Draft → ReadyForReview → Approved → Sent → Published (the preview banner and "noindex" are removed only at Published) |
 | Imports | Every import run with rows in, new, updated, skipped |
 | Possible duplicates | **Live check of every table**, refreshed every 30 seconds (plus a **Check now** button). The menu shows a red count of duplicates found right now (green 0 when clean), and the Dashboard shows an alert bar. What it finds is listed in the table below. Click a row to compare side by side and fix it. Every decision is in the Audit log |
 | Audit log | Who changed what, when (before → after) |
@@ -40,9 +40,9 @@ Each pair shows only its strongest reason. After the last extra lead or web row 
 
 1. **Install Node.js** (free): download the **LTS** version from https://nodejs.org and install with default options.
 2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (all are safe to re-run):
-   1. `sql\01_create_skytechcrm.sql` (V2.1 adds the `DemoSites` table)
+   1. `sql\01_create_skytechcrm.sql` (V2.2: `DemoSites` table with photo columns)
    2. `data\samples\SkyTech_Leads_Sample100_import.sql` (the 100-lead sample)
-   3. `sql\04_admin_site.sql` (V1.3: duplicate check + demo sites view)
+   3. `sql\04_admin_site.sql` (V1.4: duplicate check + demo sites view)
    4. `sql\05_demo_sites_built.sql` (loads the demo websites into `DemoSites`; edits you make in the Admin site are never overwritten)
 3. **Settings:** in this `admin-site` folder, copy `.env.example` to a new file named `.env` and edit:
    - `DB_SERVER` = the server name you use in SSMS (e.g. `localhost` or `localhost\SQL2014`)
@@ -104,4 +104,4 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | `.env.example` | Settings template (copy to `.env`) |
 
 ---
-Version: V1.3 (2026-10-05) — admin-site/README.md — V1.3
+Version: V1.4 (2026-10-05) — admin-site/README.md — V1.4

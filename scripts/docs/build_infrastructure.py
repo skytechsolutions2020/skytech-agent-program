@@ -1,11 +1,11 @@
-"""Version: V1.3 (2026-10-05) — scripts/docs/build_infrastructure.py — V1.3
+"""Version: V1.4 (2026-10-05) — scripts/docs/build_infrastructure.py — V1.4
 Builds docs/architecture/SkyTech_Infrastructure.html (diagram + roles + versions).
 Edit the DATA section and re-run to publish a new version."""
 import html, sys, os
 OUT = sys.argv[1] if len(sys.argv) > 1 else "docs/architecture/SkyTech_Infrastructure.html"
 
 # ============================ DATA (edit here) ============================
-DOC_VERSION = "V1.3"; DOC_DATE = "2026-10-05"; RELEASE = "R3.2"
+DOC_VERSION = "V1.4"; DOC_DATE = "2026-10-05"; RELEASE = "R3.3"
 AGENTS = [  # name, status, role, inputs, outputs, control
  ("SkyTech_Manager", "Active", "Runs the program: assigns work, collects agent reports, summarizes to the owner, keeps files/versions/GitHub in order", "Owner requests, agent reports", "Daily summary, task assignments, project files", "Claude in this project; asks owner before actions"),
  ("SkyTech_BackOffice", "Active", "Pulls free leads, verifies \"no website\" by alternative search routes, prepares duplicate-safe SQL imports", "Overture & other free sources, web search", "Verified lead CSV, import SQL, verification report", "agents/SkyTech_BackOffice.md + saved skill (owner-editable)"),
@@ -18,11 +18,11 @@ COMPONENTS = [  # component, where, version, purpose
  ("90-Day Plan (living doc)", "claude.ai artifact + docs/90-day-plan.md", "V2.2", "Plan, guardrails, free lead sources, pricing, timeline"),
  ("Project instructions", "claude.ai Project + config/project-instructions.md", "V1.4", "Standing rules for every session"),
  ("Version register / INDEX", "config/version-register.md, INDEX.md", "V2.0 / V1.6", "What each file and release contains"),
- ("SkyTechCRM database", "SQL Server 2014 Developer (owner's laptop)", "setup V2.1, admin objects V1.3, demo load V2.0", "Companies, WebPresence, Leads, Activities, DemoSites; duplicate-safe imports; audit"),
- ("Admin site", "admin-site/ (Node.js) at http://127.0.0.1:3030", "V1.3", "Login, dashboards, drill-down, CRUD, live duplicate check, Demo sites (edit, live preview, save), audit log"),
+ ("SkyTechCRM database", "SQL Server 2014 Developer (owner's laptop)", "setup V2.2, admin objects V1.4, demo load V2.1", "Companies, WebPresence, Leads, Activities, DemoSites; duplicate-safe imports; audit"),
+ ("Admin site", "admin-site/ (Node.js) at http://127.0.0.1:3030", "V1.4", "Login, dashboards, drill-down, CRUD, live duplicate check, Demo sites (edit, live preview, save), audit log"),
  ("Lead scripts", "scripts/leads/", "extract V1.0, build V1.2", "Overture extraction, sample + import SQL generation"),
  ("Lead sample", "data/samples/", "CSV V1.1, SQL V1.2", "100 leads, 36 verified potential clients"),
- ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R3.2", "Full history of every artifact, tagged releases"),
+ ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R3.3", "Full history of every artifact, tagged releases"),
  ("Company website", "skytechsolutions.us (Hostinger, Node.js)", "live", "Needs robots.txt, sitemap, pricing page"),
 ]
 FLOWS = [  # number, text
@@ -33,7 +33,7 @@ FLOWS = [  # number, text
  ("5", "Admin site — owner signs in, reviews dashboards, drills down, edits records, fixes any duplicates the live check finds; every change is audited."),
  ("6", "Backup & history — GitHub Desktop pushes the local folder and release tags to the private GitHub repository."),
  ("7", "Reporting — agents report to SkyTech_Manager; the Manager summarizes to the owner and asks approval before actions."),
- ("8", "Demo sites — WebsiteDeveloper builds demos into the local folder (demo-sites/); after owner approval they are published to free hosting (Netlify, planned) for the marketing agents."),
+ ("8", "Demo sites — WebsiteDeveloper builds demos into the local folder (demo-sites/) with free-licence photos (Pexels); after owner approval they are published to free hosting (Netlify, planned) for the marketing agents."),
  ("9", "Outreach — owner calls and emails prospects (approved scripts); outcomes are logged as Activities in the Admin site."),
 ]
 RULES = [
@@ -48,7 +48,8 @@ STATUSES = ["New", "Checked", "NoSite", "DemoBuilt", "Contacted", "Interested", 
 CHANGELOG = [("V1.0", "2026-10-02", "First version: infrastructure and data-flow diagram, agents and roles, components and versions, rules, lead lifecycle."),
              ("V1.1", "2026-10-02", "Admin site V1.2 and admin objects V1.2: live duplicate check across Companies, Leads, Web presence and Activities."),
              ("V1.2", "2026-10-02", "SkyTech_WebsiteDeveloper active: demo-site generator, first 3 demos, sql/05 marks leads DemoBuilt."),
-             ("V1.3", "2026-10-05", "Demo sites stored in dbo.DemoSites and edited in the Admin site; unique designs per business (template V2.0).")]
+             ("V1.3", "2026-10-05", "Demo sites stored in dbo.DemoSites and edited in the Admin site; unique designs per business (template V2.0)."),
+             ("V1.4", "2026-10-05", "Free-licence photos (Pexels) in demo sites; DemoSites photo columns; Admin site V1.4.")]
 # ==========================================================================
 
 E = html.escape
@@ -108,12 +109,12 @@ box(740, 220, 374, 214, "SQL Server 2014 Developer — SkyTechCRM", [
     "usp_FixDuplicateWebPresence",
     "AdminUsers (bcrypt) · AuditLog",
     "DemoSites (one per company) · vw_DemoSiteDetail",
-    "setup V2.1 · admin objects V1.3"], "accent")
-box(740, 492, 374, 70, "Admin site V1.3 (Node.js) · 127.0.0.1:3030", ["dashboards · drill-down · CRUD · duplicate check", "Demo sites: edit · live preview · save · audit"], "normal")
+    "setup V2.2 · admin objects V1.4"], "accent")
+box(740, 492, 374, 70, "Admin site V1.4 (Node.js) · 127.0.0.1:3030", ["dashboards · drill-down · CRUD · duplicate check", "Demo sites: edit · live preview · save · audit"], "normal")
 box(740, 586, 178, 54, "SSMS", ["runs SQL scripts"], "normal")
 box(936, 586, 178, 54, "GitHub Desktop + Git", ["push commits + tags"], "normal")
 # internet
-box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R3.2"], "store")
+box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R3.3"], "store")
 box(1166, 186, 204, 70, "Hostinger", ["skytechsolutions.us (live)", "future: admin site + MySQL"], "normal")
 box(1166, 272, 204, 54, "Netlify / Google Drive", ["demo sites (planned)"], "planned")
 box(1166, 342, 204, 54, "Gmail / Brevo free", ["owner-approved email (planned)"], "planned")

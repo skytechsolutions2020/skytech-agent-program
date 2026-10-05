@@ -24,5 +24,8 @@
   "DisclosureNote": "Maryland Home Improvement Commission (MHIC) license number will be shown here (required on home improvement advertising).",
   "Status": "ReadyForReview",
   "Notes": "Concept logo and artwork; replace with the owner's logo and project photos after sign-up.",
-  "Version": "V1.0 (2026-10-05)"
+  "Version": "V1.0 (2026-10-05)",
+  "HeroImage": "",
+  "AboutImage": "",
+  "PhotoCredit": ""
 }
