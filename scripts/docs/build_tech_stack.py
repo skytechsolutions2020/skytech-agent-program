@@ -1,4 +1,4 @@
-"""Version: V1.3 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.3
+"""Version: V1.4 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.4
 Builds docs/architecture/SkyTech_Technology_Stack_Use.html (and a .md copy for the Claude project and GitHub): the "Technology Stack Use" document.
 It explains, for a non-technical reader, every tool and technology the SkyTech program uses, and merges
 them with the architecture diagram (taken from build_infrastructure.py, so both documents always match).
@@ -16,7 +16,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "docs/architecture/SkyTech_Technolog
 E = html.escape
 
 # ============================ DATA (edit here) ============================
-DOC_VERSION = "V1.2"; DOC_DATE = "2026-10-10"; RELEASE = INFRA["RELEASE"]
+DOC_VERSION = "V1.3"; DOC_DATE = "2026-10-10"; RELEASE = INFRA["RELEASE"]
 
 # The journey a lead takes, in plain words, with the tools used at each step (one-minute picture).
 JOURNEY = [
@@ -26,7 +26,7 @@ JOURNEY = [
      ["Web search", "SQL Server 2014", "SSMS"]),
     ("Build a free website", "Claude designs a one-page website for each business: its name, services, phone, a concept logo and free-licence photos.",
      ["Claude WebsiteDeveloper", "HTML / CSS", "Pexels photos"]),
-    ("You review", "You sign in to your own Admin website to see dashboards, edit any record or demo site, and approve before anything is sent.",
+    ("You review", "You (and anyone you give a login with the right role) sign in to your own Admin website to see dashboards, edit records or demo sites, and approve before anything is sent.",
      ["Admin site", "Node.js", "Chart.js"]),
     ("Reach out", "You call the business owner and follow up by email or social media, using scripts SkyTech_Manager prepares for you.",
      ["Phone (you)", "Email (free)", "Facebook"]),
@@ -103,7 +103,8 @@ GLOSSARY = [
 ]
 CHANGELOG = [("V1.0", "2026-10-10", "First version: one-minute journey picture, architecture diagram, technology stack in plain words, costs, glossary."),
              ("V1.1", "2026-10-10", "R4.0: security layer, logging and error codes, doctor, secret scan and verified database backups added; diagram V1.6."),
-             ("V1.2", "2026-10-10", "R4.2: Admin site manages its own logins (create, edit, disable, reset password); diagram V1.7.")]
+             ("V1.2", "2026-10-10", "R4.2: Admin site manages its own logins (create, edit, disable, reset password); diagram V1.7."),
+             ("V1.3", "2026-10-10", "R4.3: five Admin site roles (admin, manager, sales, web developer, viewer); diagram V1.8.")]
 # ==========================================================================
 
 def journey_svg():

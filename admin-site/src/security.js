@@ -1,4 +1,4 @@
-// Version: V1.0 (2026-10-10) — admin-site/src/security.js — V1.0
+// Version: V1.1 (2026-10-10) — admin-site/src/security.js — V1.1
 /**
  * @file Security controls for the Admin site (one place to review them all).
  * Purpose: implements the controls described in docs/architecture/SkyTech_Security_Architecture:
@@ -9,7 +9,7 @@
  *   5. originCheck    — blocks state-changing requests sent from other websites.
  *   6. csrf           — per-session anti-forgery token required on every POST/PUT/DELETE.
  *   7. sessionTimeout — signs users out after SESSION_IDLE_MIN of inactivity and after SESSION_MAX_HOURS.
- *   8. loginGuard     — locks a username or computer for 15 minutes after 5 wrong passwords.
+ *   8. loginGuard     — locks a username after 5 wrong passwords (a computer after 20) for 15 minutes; admins can unlock.
  *   9. passwordPolicy — rules for new passwords (used by scripts/create-admin.js).
  * Inputs:  environment settings (see .env.example); logger; AppError.
  * Errors:  SKY-CFG-002/003 at start; SKY-SEC-001/002/007 and SKY-AUTH-002/003 at run time.
@@ -145,17 +145,27 @@ function sessionTimeout() {
 }
 
 /**
- * loginGuard — counts wrong passwords per username and per IP; 5 failures within 15 minutes lock that key.
- * check(user, ip) → AppError | null;  fail(user, ip);  ok(user, ip).
+ * loginGuard — counts wrong passwords per username (5) and per computer/IP (20) within 15 minutes; reaching the limit locks that key.
+ * check(user, ip) → AppError | null;  fail(user, ip);  ok(user, ip);
+ * status(user) → { FailedAttempts, LockedUntil } for the Logins screen;  unlock(user) clears a username lock.
  */
 function loginGuard() {
-  const LIMIT = 5, WINDOW = 15 * 60000, fails = new Map();
-  const locked = k => { const a = fails.get(k); return a && a.n >= LIMIT && Date.now() - a.t < WINDOW; };
-  const bump = k => { const a = fails.get(k); const fresh = !a || Date.now() - a.t >= WINDOW; const n = fresh ? 1 : a.n + 1; fails.set(k, { n, t: Date.now() }); return n; };
+  // 5 wrong passwords lock that username; 20 from one computer lock that computer (all usernames). On a single PC every
+  // user shares 127.0.0.1, so the computer limit is higher, and an admin's Unlock clears both kinds of lock.
+  const LIMIT = 5, LIMIT_IP = 20, WINDOW = 15 * 60000, fails = new Map();
+  const limitOf = k => (k.startsWith('ip:') ? LIMIT_IP : LIMIT);
+  const locked = k => { const a = fails.get(k); return a && a.n >= limitOf(k) && Date.now() - a.t < WINDOW; };
+  const bump = k => { const a = fails.get(k); const fresh = !a || Date.now() - a.t >= WINDOW; const n = fresh ? 1 : a.n + 1; fails.set(k, { n, t: Date.now() }); return n >= limitOf(k); };
   return {
     check: (user, ip) => (locked('u:' + String(user).toLowerCase()) || locked('ip:' + ip) ? new AppError('SKY-AUTH-002') : null),
-    fail: (user, ip) => { const n = Math.max(bump('u:' + String(user).toLowerCase()), bump('ip:' + ip)); return n >= LIMIT; },
-    ok: (user, ip) => { fails.delete('u:' + String(user).toLowerCase()); fails.delete('ip:' + ip); }
+    fail: (user, ip) => { const u = bump('u:' + String(user).toLowerCase()), c = bump('ip:' + ip); return u || c; },
+    ok: (user, ip) => { fails.delete('u:' + String(user).toLowerCase()); fails.delete('ip:' + ip); },
+    status: user => {
+      const a = fails.get('u:' + String(user).toLowerCase());
+      if (!a || Date.now() - a.t >= WINDOW) return { FailedAttempts: 0, LockedUntil: null };
+      return { FailedAttempts: a.n, LockedUntil: a.n >= LIMIT ? new Date(a.t + WINDOW).toISOString() : null };
+    },
+    unlock: user => { fails.delete('u:' + String(user).toLowerCase()); for (const k of [...fails.keys()]) if (k.startsWith('ip:')) fails.delete(k); }
   };
 }
 
@@ -176,4 +186,4 @@ function passwordPolicy(pw, username = '') {
 
 module.exports = { checkConfig, cookieName, headers, requestId, rateLimit, originCheck, issueCsrf, csrf, sessionTimeout, loginGuard, passwordPolicy, APP_CSP };
 
-// Version: V1.0 (2026-10-10) — admin-site/src/security.js — V1.0
+// Version: V1.1 (2026-10-10) — admin-site/src/security.js — V1.1

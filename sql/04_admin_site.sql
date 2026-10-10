@@ -1,4 +1,4 @@
--- Version: V1.5 (2026-10-10) — sql/04_admin_site.sql — V1.5 (procedures write failures to dbo.ErrorLog)
+-- Version: V1.6 (2026-10-10) — sql/04_admin_site.sql — V1.6 (login audit columns + five project roles)
 -- Purpose : objects used by the SkyTech Admin site: sign-in users, audit log, detail views for the screens,
 --           the live duplicate check and the three duplicate-repair procedures. SQL Server 2014 Developer (SSMS).
 -- Run     : AFTER sql/01_create_skytechcrm.sql (V2.3+, which creates dbo.usp_LogError). SAFE TO RE-RUN; never deletes data.
@@ -9,17 +9,32 @@ GO
 SET ANSI_NULLS ON; SET QUOTED_IDENTIFIER ON;
 GO
 -- dbo.AdminUsers: Admin site sign-ins. Passwords are stored only as bcrypt hashes (cost 12), never in plain text.
--- Role: admin = full access, viewer = read only. Create users with: npm run create-admin
+-- Role: admin, manager, sales, webdev or viewer (see V1.6 below). Manage logins on the Admin site Logins screen
+-- (or with npm run create-admin when no admin can sign in).
 IF OBJECT_ID(N'dbo.AdminUsers', N'U') IS NULL
 CREATE TABLE dbo.AdminUsers (
   UserID       INT IDENTITY PRIMARY KEY,
   Username     NVARCHAR(50)  NOT NULL CONSTRAINT UQ_AdminUsers_Username UNIQUE,
   PasswordHash NVARCHAR(100) NOT NULL,          -- bcrypt hash, never the password
-  Role         VARCHAR(10)   NOT NULL DEFAULT 'admin',   -- admin = read/write, viewer = read only
+  Role         VARCHAR(10)   NOT NULL DEFAULT 'admin',   -- admin | manager | sales | webdev | viewer (CK_AdminUsers_Role)
   IsActive     BIT           NOT NULL DEFAULT 1,
   CreatedOn    DATETIME      NOT NULL DEFAULT GETDATE(),
   LastLoginOn  DATETIME      NULL
 );
+-- V1.6: who created / last changed each login (shown on the Admin site "Logins" screen) and the five project roles:
+--   admin (everything), manager (all data), sales (leads + activities), webdev (demo sites + web presence), viewer (read only).
+--   Permissions per role live in admin-site/src/roles.js; this rule only stops unknown role names.
+IF COL_LENGTH(N'dbo.AdminUsers', N'CreatedBy') IS NULL ALTER TABLE dbo.AdminUsers ADD CreatedBy NVARCHAR(50) NULL;
+IF COL_LENGTH(N'dbo.AdminUsers', N'UpdatedOn') IS NULL ALTER TABLE dbo.AdminUsers ADD UpdatedOn DATETIME NULL;
+IF COL_LENGTH(N'dbo.AdminUsers', N'UpdatedBy') IS NULL ALTER TABLE dbo.AdminUsers ADD UpdatedBy NVARCHAR(50) NULL;
+GO
+IF OBJECT_ID(N'dbo.CK_AdminUsers_Role', N'C') IS NULL
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM dbo.AdminUsers WHERE Role NOT IN ('admin', 'manager', 'sales', 'webdev', 'viewer'))
+    ALTER TABLE dbo.AdminUsers ADD CONSTRAINT CK_AdminUsers_Role CHECK (Role IN ('admin', 'manager', 'sales', 'webdev', 'viewer'));
+  ELSE PRINT N'WARNING [SKY-DATA-002]: some AdminUsers rows have an unknown Role - fix them on the Logins screen, then run this script again.';
+END
+GO
 -- dbo.AuditLog: who changed what and when (sign-ins, creates, edits, deletes, merges). Made read-only by sql/06 (SKY-SEC-006).
 IF OBJECT_ID(N'dbo.AuditLog', N'U') IS NULL
 CREATE TABLE dbo.AuditLog (
@@ -344,4 +359,4 @@ GO
 SELECT N'Admin site objects ready' AS Result,
        (SELECT COUNT(*) FROM dbo.AdminUsers) AS AdminUsers;
 GO
--- Version: V1.5 (2026-10-10) — sql/04_admin_site.sql — V1.5
+-- Version: V1.6 (2026-10-10) — sql/04_admin_site.sql — V1.6

@@ -1,5 +1,12 @@
 # Changelog
 
+## R4.3 — 2026-10-10
+- Admin site V2.2: **five project roles** — Admin (everything incl. Logins and System log), Manager (all data), Sales (leads + activities), Web developer (demo sites + web presence), Viewer (read only). Defined in the new `admin-site/src/roles.js`; every request is checked on the server and the screens hide what a role cannot use (SKY-AUTH-005 now says which action the role lacks).
+- **Logins screen** shows every account: role, status (Active / Disabled / Locked), failed sign-ins, created by, last change by, last sign-in; search and role filter; counts per role; **Unlock** for logins locked by wrong passwords.
+- Lockout refined: 5 wrong passwords lock a username, 20 lock the computer (on one PC every user shares 127.0.0.1); Unlock clears both.
+- `sql/04_admin_site.sql` V1.6: AdminUsers CreatedBy / UpdatedOn / UpdatedBy and the role rule CK_AdminUsers_Role (re-run in SSMS). `npm run create-admin` accepts all five roles; doctor V1.1 checks the new columns.
+- Error catalog V1.3; Security Architecture, Troubleshooting Guide, Code Documentation V1.2; diagram V1.8; Technology Stack Use V1.3; admin README V2.2; register V4.1, INDEX V2.9, README V3.0, Day-10 prompts V1.6 (10.08), log V1.5.
+
 ## R4.2 — 2026-10-10
 - Admin site V2.1: **Logins** screen for admins to manage who can sign in, plus **Change my password** for every user.
   - Create logins (admin or viewer), change role, disable/enable, reset password. Password hashes never leave the server.
@@ -132,4 +139,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.8 (2026-10-10) — CHANGELOG.md — V2.8
+Version: V2.9 (2026-10-10) — CHANGELOG.md — V2.9

@@ -1,8 +1,8 @@
-// Version: V2.2 (2026-10-10) — admin-site/public/app.js — V2.2 (comments)
+// Version: V2.3 (2026-10-10) — admin-site/public/app.js — V2.3 (role permissions, Logins screen)
 /**
  * @file SkyTech Admin site front end (plain JavaScript, no framework). Routes: #dashboard, #syslog, #users, #<entity>?search=&f_Col=val
  * Security: no inline scripts (strict CSP); every value shown is escaped (esc); every change sends the CSRF token
- *           (X-CSRF-Token) received at sign-in; write buttons appear only for admins (server checks again).
+ *           (X-CSRF-Token) received at sign-in; buttons appear only for what the role may do (PERMS from /api/me; the server checks again).
  * Errors:   server errors arrive as { error, code, requestId, hint } and are shown as "message (CODE, ref ID)";
  *           the ref ID finds the matching line in logs/runtime/admin-<date>.log and the System log screen.
  */
@@ -10,7 +10,7 @@
   const $ = s => document.querySelector(s);
   // esc — HTML-escape text before inserting it into the page (prevents script injection).
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  let META = null, ME = null, charts = [], CSRF = '';
+  let META = null, ME = null, PERMS = null, charts = [], CSRF = '';   // PERMS = what this role may do (src/roles.js)
 
   /**
    * api — calls the Admin site API. Sends the anti-forgery token (X-CSRF-Token) on every change.
@@ -74,10 +74,10 @@
 
   // start — after sign-in: loads /api/me (user, role, CSRF token, version) and the screen metadata, then routes.
   async function start() {
-    const me = await api('GET', '/api/me'); ME = me.user; CSRF = me.csrf || CSRF;
+    const me = await api('GET', '/api/me'); ME = me.user; PERMS = me.perms || { write: [] }; CSRF = me.csrf || CSRF;
     META = await api('GET', '/api/meta');
-    $('#who').textContent = `${ME.name} (${ME.role})`; $('#mode').textContent = `${me.mode} · v${me.version || ''}`;
-    document.querySelectorAll('[data-admin]').forEach(a => a.classList.toggle('hidden', ME.role !== 'admin'));
+    $('#who').textContent = `${ME.name} (${PERMS.label || ME.role})`; $('#mode').textContent = `${me.mode} · v${me.version || ''}`;
+    document.querySelectorAll('[data-perm]').forEach(a => a.classList.toggle('hidden', !PERMS[a.dataset.perm]));
     $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
     route(); watchDuplicates();
   }
@@ -103,8 +103,8 @@
       else if (view === 'dashboard' && DUP && before !== DUP.total && !drawerOpen) route();
     }, 30000);
   }
-  // canWrite — true for admins on writable screens (the server enforces the same rule: SKY-AUTH-005).
-  const canWrite = e => ME && ME.role === 'admin' && META.entities[e].writable;
+  // canWrite — true when this role may change records of the screen (the server enforces the same rule: SKY-AUTH-005).
+  const canWrite = e => !!PERMS && META.entities[e].writable && (PERMS.write === '*' || PERMS.write.includes(e));
 
   // ---------- routing
   function parseHash() {
@@ -280,7 +280,7 @@
       ${!isNew && entity === 'demosites' ? '<div id="related" class="related-top"></div>' : ''}
       <form id="recForm" class="form">${cols.map(([n, c]) => field(n, c, rec[n], editableName(n, c))).join('')}</form>
       <div class="actions">
-        ${!isNew && writable ? '<button class="btn danger" id="del">Delete</button>' : ''}
+        ${!isNew && writable && PERMS.remove ? '<button class="btn danger" id="del">Delete</button>' : ''}
         <span style="flex:1"></span>
         ${writable ? `<button class="btn primary" id="save">${isNew ? 'Create' : 'Save changes'}</button>` : '<span class="muted">Read-only</span>'}
       </div>
@@ -317,7 +317,7 @@
         <p class="muted">Preview shows the page exactly as the business will see it, built from the saved fields. Save changes first, then preview.</p>
         <div class="actions wrap"><a class="btn primary" href="/demo/${encodeURIComponent(rec.DemoID)}/preview" target="_blank" rel="noopener">Open live preview</a>
         <a class="btn" href="/api/demosites/${encodeURIComponent(rec.DemoID)}/download">Download HTML</a>
-        ${ME.role === 'admin' ? '<button class="btn" id="saveFolder">Save to demo-sites folder</button>' : ''}</div>
+        ${PERMS.demoSave ? '<button class="btn" id="saveFolder">Save to demo-sites folder</button>' : ''}</div>
         <h3 class="section-title">Company</h3><p><a id="toCompany">Open company #${esc(rec.CompanyID)}</a>${rec.LeadID ? ` · <a id="toLead">Lead #${esc(rec.LeadID)} (${esc(rec.LeadStatus || '')})</a>` : ''}</p>`;
       $('#toCompany').addEventListener('click', () => openRecord('companies', rec.CompanyID));
       if ($('#toLead')) $('#toLead').addEventListener('click', () => openRecord('leads', rec.LeadID));
@@ -412,7 +412,7 @@
     }
     const cols = d.cols || ['a', 'b'];
     const head = d.cols ? d.cols.map(i => i === 0 ? 'Newest (kept)' : `Extra ${i}`) : ['A', 'B'];
-    const admin = ME.role === 'admin';
+    const admin = !!PERMS.duplicates;   // may resolve duplicates (admin, manager)
     $('#drawerTitle').textContent = cat === 'WebPresence' ? `Web-presence rows: ${d.title || ''}` : `Compare duplicate ${cat === 'Companies' ? 'companies' : cat.toLowerCase()}`;
     $('#drawerBody').innerHTML = `
       <div class="table-wrap"><table class="compare"><thead><tr><th></th>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>
@@ -459,30 +459,42 @@
     });
     $('#uform input').focus();
   }
-  /** renderUsers — the Logins screen: every login with role, status, created and last sign-in. */
+  /** renderUsers — the Logins screen: every login with role, status, lock state, created/changed by and last sign-in. */
   async function renderUsers() {
     $('#title').textContent = 'Logins'; $('#crumbs').textContent = '';
     $('#view').innerHTML = '<p class="muted">Loading…</p>';
     let d; try { d = await api('GET', '/api/users'); } catch (err) { $('#view').innerHTML = `<div class="card">${esc(err.message)}</div>`; return; }
+    const roleLabel = k => (d.roles.find(r => r.key === k) || { label: k }).label;
+    const roleOpts = sel => d.roles.map(r => `<option value="${esc(r.key)}" ${r.key === sel ? 'selected' : ''}>${esc(r.label)} — ${esc(r.about)}</option>`).join('');
+    const status = u => !u.IsActive ? '<span class="pill Lost">Disabled</span>' : u.LockedUntil ? `<span class="pill NoSite" title="Locked until ${esc(fmtDT(u.LockedUntil))}">Locked</span>` : '<span class="pill Won">Active</span>';
+    const count = k => d.rows.filter(u => u.Role === k && u.IsActive).length;
     $('#view').innerHTML = `
-      <div class="card note">People who can sign in to this Admin site. <b>admin</b> = full access including this screen; <b>viewer</b> = read only. Every change asks for your own password, is recorded in the Audit log, and signs the changed login out. Passwords are stored scrambled (bcrypt) and can be reset but never shown.</div>
-      <div class="toolbar"><span class="muted">${d.rows.length} login(s) · ${d.rows.filter(u => u.Role === 'admin' && u.IsActive).length} active admin(s)</span><span style="flex:1"></span><button class="btn primary" id="newUser">+ New login</button></div>
-      <div class="table-wrap"><table><thead><tr><th>Username</th><th>Role</th><th>Status</th><th>Created</th><th>Last sign-in</th><th></th></tr></thead><tbody>
-      ${d.rows.map(u => `<tr><td><b>${esc(u.Username)}</b>${u.UserID === d.me ? ' <span class="pill">you</span>' : ''}</td><td>${esc(u.Role)}</td>
-        <td>${u.IsActive ? '<span class="pill Won">Active</span>' : '<span class="pill Lost">Disabled</span>'}</td><td>${esc(fmtDate(u.CreatedOn))}</td><td>${esc(u.LastLoginOn ? fmtDT(u.LastLoginOn) : 'never')}</td>
-        <td class="actions wrap"><button class="btn small" data-edit="${u.UserID}">Edit</button><button class="btn small" data-reset="${u.UserID}">Reset password</button></td></tr>`).join('')}
+      <div class="kpis">${d.roles.map(r => `<div class="card kpi" title="${esc(r.about)}"><div class="v">${count(r.key)}</div><div class="l">${esc(r.label)} (active)</div></div>`).join('')}</div>
+      <div class="card note"><b>Roles:</b> ${d.roles.map(r => `<b>${esc(r.label)}</b> — ${esc(r.about)}`).join(' · ')}.<br>Every change asks for your own password, is recorded in the Audit log, and signs the changed login out. Passwords are stored scrambled (bcrypt) and can be reset but never shown.</div>
+      <div class="toolbar"><input type="search" id="ufind" placeholder="Search logins…"><select id="urole"><option value="">All roles</option>${d.roles.map(r => `<option value="${esc(r.key)}">${esc(r.label)}</option>`).join('')}</select>
+        <span class="muted">${d.rows.length} login(s)</span><span style="flex:1"></span><button class="btn primary" id="newUser">+ New login</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Username</th><th>Role</th><th>Status</th><th>Failed sign-ins</th><th>Created</th><th>Last change</th><th>Last sign-in</th><th></th></tr></thead><tbody id="urows">
+      ${d.rows.map(u => `<tr data-name="${esc(u.Username.toLowerCase())}" data-role="${esc(u.Role)}"><td><b>${esc(u.Username)}</b>${u.UserID === d.me ? ' <span class="pill">you</span>' : ''}</td><td>${esc(roleLabel(u.Role))}</td>
+        <td>${status(u)}</td><td>${u.FailedAttempts ? esc(u.FailedAttempts) : ''}</td>
+        <td>${esc(fmtDate(u.CreatedOn))}${u.CreatedBy ? ` <span class="muted">by ${esc(u.CreatedBy)}</span>` : ''}</td>
+        <td>${u.UpdatedOn ? esc(fmtDate(u.UpdatedOn)) + (u.UpdatedBy ? ` <span class="muted">by ${esc(u.UpdatedBy)}</span>` : '') : ''}</td>
+        <td>${esc(u.LastLoginOn ? fmtDT(u.LastLoginOn) : 'never')}</td>
+        <td class="actions wrap"><button class="btn small" data-edit="${u.UserID}">Edit</button><button class="btn small" data-reset="${u.UserID}">Reset password</button>${u.LockedUntil ? `<button class="btn small" data-unlock="${u.UserID}">Unlock</button>` : ''}</td></tr>`).join('')}
       </tbody></table></div>`;
+    const filter = () => { const q = $('#ufind').value.trim().toLowerCase(), r = $('#urole').value;
+      document.querySelectorAll('#urows tr').forEach(tr => tr.classList.toggle('hidden', (q && !tr.dataset.name.includes(q)) || (r && tr.dataset.role !== r))); };
+    $('#ufind').addEventListener('input', filter); $('#urole').addEventListener('change', filter);
     const byId = id => d.rows.find(u => u.UserID === parseInt(id, 10));
     $('#newUser').addEventListener('click', () => openForm('New login', `
         <label>Username<input name="username" maxlength="50" required pattern="[A-Za-z0-9._\\-]{3,50}" title="3-50 letters, numbers, dot, dash or underscore"></label>
-        <label>Role<select name="role"><option value="viewer">viewer (read only)</option><option value="admin">admin (full access)</option></select></label>
+        <label>Role<select name="role">${roleOpts('viewer')}</select></label>
         ${pwRow('password', 'Password', 'new-password')}${pwRow('password2', 'Repeat password', 'new-password')}<p class="fhint full">${esc(POLICY)}</p>
         ${pwRow('myPassword', 'Your password (to confirm)', 'current-password')}`, 'Create login',
       async v => { await api('POST', '/api/users', { username: v.username, role: v.role, password: v.password, myPassword: v.myPassword }); closeDrawer(); toast(`Login ${v.username} created`); renderUsers(); }));
     document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
       const u = byId(b.dataset.edit), self = u.UserID === d.me;
       openForm(`Edit login: ${u.Username}`, `
-        <label>Role<select name="role" ${self ? 'disabled' : ''}><option value="viewer" ${u.Role === 'viewer' ? 'selected' : ''}>viewer (read only)</option><option value="admin" ${u.Role === 'admin' ? 'selected' : ''}>admin (full access)</option></select></label>
+        <label class="full">Role<select name="role" ${self ? 'disabled' : ''}>${roleOpts(u.Role)}</select></label>
         <label>Status<select name="isActive" ${self ? 'disabled' : ''}><option value="1" ${u.IsActive ? 'selected' : ''}>Active (can sign in)</option><option value="0" ${u.IsActive ? '' : 'selected'}>Disabled (cannot sign in)</option></select></label>
         ${self ? '<p class="fhint full">This is your own login: you cannot remove your admin role or disable yourself.</p>' : ''}
         ${pwRow('myPassword', 'Your password (to confirm)', 'current-password')}`, 'Save changes',
@@ -493,6 +505,9 @@
       openForm(`Reset password: ${u.Username}`, `${pwRow('password', 'New password', 'new-password')}${pwRow('password2', 'Repeat new password', 'new-password')}<p class="fhint full">${esc(POLICY)} Tell the person the new password in person or by phone, not by email.</p>
         ${pwRow('myPassword', 'Your password (to confirm)', 'current-password')}`, 'Set new password',
         async v => { await api('POST', `/api/users/${u.UserID}/password`, { password: v.password, myPassword: v.myPassword }); closeDrawer(); toast(`Password for ${u.Username} changed`); renderUsers(); });
+    }));
+    document.querySelectorAll('[data-unlock]').forEach(b => b.addEventListener('click', async () => {
+      try { await api('POST', `/api/users/${b.dataset.unlock}/unlock`); toast('Sign-in lock cleared'); renderUsers(); } catch (err) { toast(err.message, 6000); }
     }));
   }
   /** Change my password — available to every signed-in user (sidebar button). */
@@ -534,4 +549,4 @@
   start().catch(() => showLogin());
 })();
 
-// Version: V2.2 (2026-10-10) — admin-site/public/app.js — V2.2
+// Version: V2.3 (2026-10-10) — admin-site/public/app.js — V2.3

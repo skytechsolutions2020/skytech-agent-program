@@ -42,7 +42,7 @@ Each pair shows only its strongest reason. After the last extra lead or web row 
 2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (all are safe to re-run):
    1. `sql\01_create_skytechcrm.sql` (V2.3: adds `ErrorLog` and `usp_LogError`)
    2. `data\samples\SkyTech_Leads_Sample100_import.sql` (the 100-lead sample)
-   3. `sql\04_admin_site.sql` (V1.5: duplicate check, demo sites view, error logging)
+   3. `sql\04_admin_site.sql` (V1.6: duplicate check, demo sites view, error logging, login roles)
    4. `sql\05_demo_sites_built.sql` (loads the demo websites into `DemoSites`; edits you make in the Admin site are never overwritten)
    5. `sql\06_security_and_logging.sql` (V1.0: least-privilege role, append-only audit log, backup procedure)
 3. **Settings:** in this `admin-site` folder, copy `.env.example` to a new file named `.env` and edit:
@@ -58,7 +58,7 @@ Each pair shows only its strongest reason. After the last extra lead or web row 
    ```
    npm run create-admin
    ```
-   Enter a username, a password that meets the policy (12+ characters, upper and lower case, a number, not your username, not a common password), and the role `admin`.
+   Enter a username, a password that meets the policy (12+ characters, upper and lower case, a number, not your username, not a common password), and the role `admin` (other roles: manager, sales, webdev, viewer — or create them later on the Logins screen).
 6. **Check everything:** `npm run doctor` — every line should show ✔ (a ⚠ for "no backup yet" is expected until you run the first backup).
 
 ## Daily use
@@ -67,7 +67,19 @@ Double-click **`start-admin.bat`**: it runs the doctor, stops with a code and a 
 
 **Security you will notice:** you are signed out after 30 minutes without activity (and after 8 hours in any case); 5 wrong passwords lock that username for 15 minutes; viewers cannot change anything; admins see a **System log** screen with every warning and error.
 
-**Manage logins (admins):** menu **Logins**. Create a login (admin or viewer), change its role, disable it (that person can no longer sign in), or reset its password. Every change asks for **your own password** again, is written to the Audit log, and signs the changed login out straight away. You cannot disable or demote yourself, and there is always at least one active admin. Everyone can use **Change my password** at the bottom of the menu. If no admin can sign in at all, `npm run create-admin` still works as a fallback.
+**Roles:**
+
+| Role | Can do |
+| --- | --- |
+| Admin | Everything, including **Logins** and **System log** |
+| Manager | All data: create, edit, delete, resolve duplicates, save demo pages |
+| Sales | Edit leads and log activities (calls, emails, social follow-ups); read everything else |
+| Web developer | Edit demo sites and web presence, save demo pages; read everything else |
+| Viewer | Read only |
+
+The permissions live in `src/roles.js`. In demo mode there is one login per role (`admin`, `manager`, `sales`, `webdev`, `viewer`, all with password `demo1234`).
+
+**Manage logins (admins):** menu **Logins** lists every account with role, status, failed sign-ins and lock, who created and last changed it, and last sign-in; search and filter by role. Create a login with any role, change its role, disable it (that person can no longer sign in), or reset its password, and **Unlock** a login locked by wrong passwords. Every change asks for **your own password** again, is written to the Audit log, and signs the changed login out straight away. You cannot disable or demote yourself, and there is always at least one active admin. Everyone can use **Change my password** at the bottom of the menu. If no admin can sign in at all, `npm run create-admin` still works as a fallback.
 
 **Weekly backup:** in SSMS run `EXEC SkyTechCRM.dbo.usp_BackupSkyTechCRM;` and copy `C:\SkyTechBackups` to a USB drive or cloud folder.
 
@@ -111,6 +123,7 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | Path | Purpose |
 | --- | --- |
 | `server.js` | Web server: login, permissions, API, audit, central error handler |
+| `src/roles.js` | The five roles and what each may do |
 | `src/security.js` | Security controls: config check, headers/CSP, CSRF, Origin check, rate limit, session timeout, login lockout, password policy |
 | `src/logger.js` | JSON logs in `logs/runtime/` (redacted, 30-day retention) |
 | `src/errors.js` | SkyTech error codes from `config/error-codes.json`; SQL error → code mapping |
@@ -126,4 +139,4 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | `.env.example` | Settings template (copy to `.env`) |
 
 ---
-Version: V2.1 (2026-10-10) — admin-site/README.md — V2.1
+Version: V2.2 (2026-10-10) — admin-site/README.md — V2.2

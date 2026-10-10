@@ -1,5 +1,5 @@
 {
- "version": "V1.2",
+ "version": "V1.3",
  "date": "2026-10-10",
  "format": "SKY-<AREA>-<NNN>",
  "severities": [
@@ -407,18 +407,20 @@
    "code": "SKY-AUTH-005",
    "area": "Sign-in",
    "severity": "warn",
-   "title": "Read-only account",
-   "where": "Create, edit, delete, merge actions",
+   "title": "Action not allowed for your role",
+   "where": "Create, edit, delete, duplicates, demo save, Logins, System log",
    "causes": [
-    "A viewer account tried to change data"
+    "Your login's role does not include this action (roles: admin, manager, sales, webdev, viewer — see admin-site/src/roles.js)",
+    "A viewer tried to change data"
    ],
    "fix": [
-    "Sign in with an admin account, or have an admin make the change"
+    "Ask an admin to change your role on the Logins screen",
+    "Or sign in with a login that has the right role"
    ],
    "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
    "predicted": false,
    "http": 403,
-   "user": "Read-only account"
+   "user": "Your role cannot do this. Ask an admin to change your role on the Logins screen."
   },
   {
    "code": "SKY-AUTH-006",

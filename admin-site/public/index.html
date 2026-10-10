@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Version: V2.1 (2026-10-10) — admin-site/public/index.html — V2.1 (Logins menu item, Change my password) -->
+<!-- Version: V2.2 (2026-10-10) — admin-site/public/index.html — V2.2 (menu items shown by role permission) -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -35,8 +35,8 @@
       <a data-view="imports">Imports</a>
       <a data-view="duplicates">Possible duplicates <span id="dupBadge" class="nav-count hidden" title="Duplicates found right now"></span></a>
       <a data-view="audit">Audit log</a>
-      <a data-view="syslog" data-admin class="hidden">System log</a>
-      <a data-view="users" data-admin class="hidden">Logins</a>
+      <a data-view="syslog" data-perm="syslog" class="hidden">System log</a>
+      <a data-view="users" data-perm="users" class="hidden">Logins</a>
     </nav>
     <div class="sidebar-foot">
       <div id="who" class="muted"></div>
@@ -61,4 +61,4 @@
 <script src="app.js"></script>
 </body>
 </html>
-<!-- Version: V2.1 (2026-10-10) — admin-site/public/index.html — V2.1 -->
+<!-- Version: V2.2 (2026-10-10) — admin-site/public/index.html — V2.2 -->

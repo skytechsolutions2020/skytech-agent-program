@@ -14,18 +14,18 @@ Client acquisition program for **SkyTech Solutions LLC** (Maryland): free one-pa
 
 | Document | Current version | Where |
 | --- | --- | --- |
-| **Technology Stack Use**: every tool in plain words, merged with the architecture diagram | V1.2 | `docs/architecture/SkyTech_Technology_Stack_Use` (.html / .pdf / .md, journey .png) |
-| **Security Architecture**: threats, controls (OWASP ASVS / NIST CSF / CIS), secrets, backup, incident response | V1.1 | `docs/architecture/SkyTech_Security_Architecture` (.html / .pdf / .md) |
-| **Troubleshooting Guide**: every SKY error code with causes and fixes, logging, first aid | V1.1 | `docs/architecture/SkyTech_Troubleshooting_Guide` (.html / .pdf / .md) |
-| **Code Documentation**: the comments of every program file in one reference | V1.1 | `docs/architecture/SkyTech_Code_Documentation` (.html / .pdf / .md) |
-| Error catalog | V1.2 | `config/error-codes.json` |
-| Infrastructure and data-flow diagram | V1.7 | `docs/architecture/SkyTech_Infrastructure` (.html / .pdf / .png) |
+| **Technology Stack Use**: every tool in plain words, merged with the architecture diagram | V1.3 | `docs/architecture/SkyTech_Technology_Stack_Use` (.html / .pdf / .md, journey .png) |
+| **Security Architecture**: threats, controls (OWASP ASVS / NIST CSF / CIS), secrets, backup, incident response | V1.2 | `docs/architecture/SkyTech_Security_Architecture` (.html / .pdf / .md) |
+| **Troubleshooting Guide**: every SKY error code with causes and fixes, logging, first aid | V1.2 | `docs/architecture/SkyTech_Troubleshooting_Guide` (.html / .pdf / .md) |
+| **Code Documentation**: the comments of every program file in one reference | V1.2 | `docs/architecture/SkyTech_Code_Documentation` (.html / .pdf / .md) |
+| Error catalog | V1.3 | `config/error-codes.json` |
+| Infrastructure and data-flow diagram | V1.8 | `docs/architecture/SkyTech_Infrastructure` (.html / .pdf / .png) |
 | 90-Day Plan | V2.2 | living doc (link above) + `docs/90-day-plan.md` |
 | Project instructions | V1.9 | `config/project-instructions.md` |
-| Version register | V4.0 | `config/version-register.md` (copy in the Claude project) |
+| Version register | V4.1 | `config/version-register.md` (copy in the Claude project) |
 | Prompt Book | V2.0 | `prompts/SkyTech_Prompts_V2.0_2026-10-02.pdf` + daily prompt files |
-| Admin site | V2.1 | `admin-site/` (Logins screen to manage sign-ins; health check: `npm run doctor`) |
-| SkyTechCRM database scripts | 01 V2.3 · 04 V1.5 · 05 V2.2 · 06 V1.1 | `sql/` |
+| Admin site | V2.2 | `admin-site/` (Logins screen with 5 roles: admin, manager, sales, webdev, viewer; health check: `npm run doctor`) |
+| SkyTechCRM database scripts | 01 V2.3 · 04 V1.6 · 05 V2.2 · 06 V1.1 | `sql/` |
 | Demo websites | template V2.1 | `demo-sites/` |
 | Agent role files | BackOffice V1.1 · WebsiteDeveloper V1.2 | `agents/` |
 
@@ -82,4 +82,4 @@ git push -u origin main --tags
 - Keep this repository private: it holds business contact data.
 
 ---
-Version: V2.9 (2026-10-10) — README.md — V2.9
+Version: V3.0 (2026-10-10) — README.md — V3.0

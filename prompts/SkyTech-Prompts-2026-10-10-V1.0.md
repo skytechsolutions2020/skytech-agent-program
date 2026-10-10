@@ -58,8 +58,17 @@ TASK: Add a screen in the Admin site where an admin can create logins (admin or 
 RULES (standing): Apply the security architecture: re-enter your own password to confirm each change, password policy, never show or send password hashes, keep at least one active admin, sign out a changed login immediately, audit every change, give each refusal a SKY code, and update the documents and versions.
 RESULT: Admin site V2.1 with the Logins screen and Change my password; error codes SKY-AUTH-007/008; Security Architecture, Troubleshooting Guide and Code Documentation V1.1; diagram V1.7; Technology Stack Use V1.2; release R4.2.
 
+### 10.08 All accounts and project roles on the Logins screen — V1.0
+As written: "admin site login will show all the applications accounts exists and options to manage them also to create new accounts as needed with admin and other roles as applicable to the project"
+Clarified with the owner: five project roles; the screen covers Admin site logins only (no inventory of external accounts).
+Engineered:
+ROLE: SkyTech_Manager.
+TASK: Show every Admin site account on the Logins screen with its role, status, lock state, failed sign-ins, who created and last changed it, and last sign-in, with search, role filter and an Unlock action. Add roles that match the project's agents: Admin (everything), Manager (all data), Sales (leads and activities: PhoneMarketing / SocialMediaMarketing work), Web developer (demo sites and web presence), Viewer (read only). Enforce them on the server and hide unavailable actions on screen.
+RULES (standing): Keep the R4.2 safeguards (own password to confirm, policy, one active admin, sign-out on change, audit); keep the database rule and documents in step; version and release.
+RESULT: Admin site V2.2 with src/roles.js, the extended Logins screen and Unlock; lockout 5 per username / 20 per computer; sql/04 V1.6; doctor V1.1; error catalog V1.3; operations documents V1.2; diagram V1.8; Technology Stack Use V1.3; release R4.3.
+
 ### Carry-over from Day 5 (still pending)
 Owner: run `push-to-github.bat`; set up the database in SSMS (01 → sample import → 04 → 05 → 06), then `npm run doctor`; review the 3 demos in the Admin site; choose free hosting for demo links (Netlify recommended).
 
 ---
-Version: V1.5 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.5
+Version: V1.6 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.6

@@ -24,7 +24,7 @@ OUT_DIR = os.path.join(ROOT, "docs", "architecture")
 INFRA = runpy.run_path(os.path.join(os.path.dirname(os.path.abspath(__file__)), "build_infrastructure.py"), run_name="skytech_lib")
 E = html.escape
 DATE, RELEASE = "2026-10-10", "R4.0"
-VERSIONS = {"guide": "V1.1", "security": "V1.1", "code": "V1.1"}
+VERSIONS = {"guide": "V1.2", "security": "V1.2", "code": "V1.2"}
 
 # ============================ shared page helpers ============================
 CSS = INFRA["DIAGRAM_CSS"] + """
@@ -234,7 +234,7 @@ BOUNDARIES = [
     ("B5 Demo pages ↔ the public", "Static demo pages copied from the local folder to hosting after approval", "No forms, no scripts from third parties, photos only from allowed free-licence hosts, noindex until approved"),
 ]
 STRIDE = [
-    ("Spoofing", "Someone signs in as the owner (guessing or stolen password)", "bcrypt hashes; password policy (12+ chars, mixed case, digit, not common); 5-try lockout per user and per computer; timing-safe check with dummy hash (no user enumeration); session regenerated at sign-in", "SKY-AUTH-001/002/006"),
+    ("Spoofing", "Someone signs in as the owner (guessing or stolen password)", "bcrypt hashes; password policy (12+ chars, mixed case, digit, not common); lockout after 5 wrong passwords per username and 20 per computer (admins can unlock on the Logins screen); timing-safe check with dummy hash (no user enumeration); session regenerated at sign-in", "SKY-AUTH-001/002/006"),
     ("Tampering", "A malicious web page makes the browser change data (CSRF); SQL injection", "CSRF token on every change; Origin/Referer check; SameSite=Strict cookies; parameterised SQL; table/column allow-list (schema.js); input checks (slug, colours, photo hosts)", "SKY-SEC-001/007/005, SKY-DATA-006"),
     ("Repudiation", "A change cannot be traced to a person", "dbo.AuditLog for every sign-in and change, protected by trigger (append-only); request IDs in logs", "SKY-SEC-006"),
     ("Information disclosure", "Leads or secrets leak (logs, GitHub, error pages, other sites)", "Loopback binding; no stack traces to the browser; redaction in logs; secret scan; git-ignore; no-store cache on API; strict CSP; Referrer-Policy same-origin", "SKY-SEC-004, SKY-CFG-003"),
@@ -248,7 +248,7 @@ CONTROLS = [  # control, implementation, OWASP ASVS 4.0.3, NIST CSF 2.0, CIS v8
     ("Brute-force protection", "security.loginGuard: 5 failures / 15 min per user and IP", "V2.2.1", "PR.AA-03", "6.x"),
     ("No user enumeration", "Same message and timing for unknown user (dummy bcrypt hash)", "V2.2.3", "PR.AA-03", "—"),
     ("Session management", "express-session, HttpOnly + SameSite=Strict (+Secure/__Host- on HTTPS), regenerate at sign-in, 30 min idle / 8 h absolute", "V3.2, V3.3, V3.4", "PR.AA-05", "6.2"),
-    ("Access control", "auth + adminOnly middleware; viewer read-only; schema allow-list", "V4.1, V4.2", "PR.AA-05", "6.8"),
+    ("Access control (roles)", "Five roles in src/roles.js — admin (everything), manager (all data), sales (leads, activities), webdev (demo sites, web presence), viewer (read only); every request checked on the server (need / mayWrite), screens hide what a role cannot use; schema allow-list; CK_AdminUsers_Role in the database", "V4.1, V4.2", "PR.AA-05", "6.8"),
     ("Account management", "Logins screen (admins): create, change role, disable, reset password; your own password re-entered for every change; at least one active admin; changed logins signed out at once; every change audited; Change my password for all users", "V2.5, V3.3.1, V4.3.1", "PR.AA-01, PR.AA-05", "5.1, 5.3, 6.1, 6.2"),
     ("CSRF protection", "Per-session token in X-CSRF-Token + Origin check", "V4.2.2", "PR.PS-06", "16.x"),
     ("Injection prevention", "Typed SQL parameters (mssql); identifiers only from schema.js; HTML escaping in app.js and render.js", "V5.3.4, V5.3.3", "PR.PS-06", "16.x"),
@@ -347,7 +347,7 @@ def build_security():
 
 # ============================ 3. Code Documentation ============================
 CODE_FILES = [  # (group, path) — every program file in the repository, in reading order
-    ("Admin site — server", "admin-site/server.js"), ("Admin site — server", "admin-site/src/security.js"), ("Admin site — server", "admin-site/src/errors.js"),
+    ("Admin site — server", "admin-site/server.js"), ("Admin site — server", "admin-site/src/security.js"), ("Admin site — server", "admin-site/src/roles.js"), ("Admin site — server", "admin-site/src/errors.js"),
     ("Admin site — server", "admin-site/src/logger.js"), ("Admin site — server", "admin-site/src/schema.js"), ("Admin site — server", "admin-site/src/db/mssql.js"),
     ("Admin site — server", "admin-site/src/db/memory.js"), ("Admin site — server", "admin-site/src/demo/render.js"),
     ("Admin site — screens", "admin-site/public/app.js"), ("Admin site — screens", "admin-site/public/style.css"), ("Admin site — screens", "admin-site/public/index.html"),

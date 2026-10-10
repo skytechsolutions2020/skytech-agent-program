@@ -1,6 +1,6 @@
 # SkyTech Technology Stack Use
 
-Version V1.2 · 2026-10-10 · release R4.2 · architecture diagram V1.7 · maintained by SkyTech_Manager
+Version V1.3 · 2026-10-10 · release R4.3 · architecture diagram V1.8 · maintained by SkyTech_Manager
 
 Plain-language list of every tool and technology the SkyTech program uses. The full document with the six-step picture and the architecture diagram is `docs/architecture/SkyTech_Technology_Stack_Use.pdf` (and .html).
 
@@ -11,7 +11,7 @@ Plain-language list of every tool and technology the SkyTech program uses. The f
 1. **Find businesses**: Free public map data lists local plumbers, electricians, contractors and real estate offices, and shows which ones list a website. _Tools: Overture Maps, Claude BackOffice, Desktop browser._
 2. **Check & store**: Claude double-checks each business really has no website, then the list is saved in our own database, with duplicates blocked. _Tools: Web search, SQL Server 2014, SSMS._
 3. **Build a free website**: Claude designs a one-page website for each business: its name, services, phone, a concept logo and free-licence photos. _Tools: Claude WebsiteDeveloper, HTML / CSS, Pexels photos._
-4. **You review**: You sign in to your own Admin website to see dashboards, edit any record or demo site, and approve before anything is sent. _Tools: Admin site, Node.js, Chart.js._
+4. **You review**: You (and anyone you give a login with the right role) sign in to your own Admin website to see dashboards, edit records or demo sites, and approve before anything is sent. _Tools: Admin site, Node.js, Chart.js._
 5. **Reach out**: You call the business owner and follow up by email or social media, using scripts SkyTech_Manager prepares for you. _Tools: Phone (you), Email (free), Facebook._
 6. **Win & host**: When a business says yes, the site goes live on free or low-cost hosting and they pay a setup fee plus a monthly plan. _Tools: Netlify (free), Hostinger, Monthly plan._
 
@@ -130,6 +130,7 @@ Always running in the background: SkyTech_Manager (Claude) coordinates and repor
 | V1.0 | 2026-10-10 | First version: one-minute journey picture, architecture diagram, technology stack in plain words, costs, glossary. |
 | V1.1 | 2026-10-10 | R4.0: security layer, logging and error codes, doctor, secret scan and verified database backups added; diagram V1.6. |
 | V1.2 | 2026-10-10 | R4.2: Admin site manages its own logins (create, edit, disable, reset password); diagram V1.7. |
+| V1.3 | 2026-10-10 | R4.3: five Admin site roles (admin, manager, sales, web developer, viewer); diagram V1.8. |
 
 ---
-Version: V1.2 (2026-10-10) — SkyTech_Technology_Stack_Use.md — V1.2
+Version: V1.3 (2026-10-10) — SkyTech_Technology_Stack_Use.md — V1.3

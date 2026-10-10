@@ -1,6 +1,6 @@
 # SkyTech Code Documentation
 
-Version V1.1 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
+Version V1.2 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 
 ## 1. How the code is commented
 
@@ -17,7 +17,7 @@ Version V1.1 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 
 | Group | Files | Documented items |
 | --- | --- | --- |
-| Admin site — server | 8 | 99 |
+| Admin site — server | 9 | 107 |
 | Admin site — screens | 3 | 23 |
 | Admin site — tools | 5 | 11 |
 | Database (SQL Server 2014) | 5 | 29 |
@@ -28,7 +28,7 @@ Version V1.1 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 
 ### Admin site — server
 
-#### admin-site/server.js (V2.1)
+#### admin-site/server.js (V2.2)
 
 ```text
 @file SkyTech Admin site web server.
@@ -51,7 +51,9 @@ Errors:  every failure is answered as { error, code, requestId, hint } using Sky
 | wrap | lets async route handlers pass errors to the central error handler. |
 | auth | the request must come from a signed-in user (SKY-AUTH-004, or SKY-AUTH-003 if the session just expired). |
 | EPOCH | per-login change counter; bumping it ends that login's open sessions (see auth). |
-| adminOnly | the user must have the admin role; viewers are read-only (SKY-AUTH-005). |
+| refuse | logs and returns SKY-AUTH-005 when the signed-in role lacks a permission (see src/roles.js). |
+| need | the role must have an extra right: users / syslog / duplicates / demoSave / remove (src/roles.js). |
+| mayWrite | the role may create/edit records of :entity (runs after entity). |
 | entity | resolves :entity against the whitelist in src/schema.js (SKY-DATA-006 if unknown). |
 | checkDemo | field rules for demo sites before saving: slug format, colours, free-licence photo hosts. |
 | DUMMY_HASH | real bcrypt hash of a random value, compared when the username is unknown (equal timing). |
@@ -63,7 +65,7 @@ Errors:  every failure is answered as { error, code, requestId, hint } using Sky
 | checkNewPassword | applies the password policy (SKY-AUTH-006 lists what is missing). |
 | activeAdminsAfter | how many active admins remain if login id gets role/isActive. |
 
-#### admin-site/src/security.js (V1.0)
+#### admin-site/src/security.js (V1.1)
 
 ```text
 @file Security controls for the Admin site (one place to review them all).
@@ -75,7 +77,7 @@ Purpose: implements the controls described in docs/architecture/SkyTech_Security
   5. originCheck    — blocks state-changing requests sent from other websites.
   6. csrf           — per-session anti-forgery token required on every POST/PUT/DELETE.
   7. sessionTimeout — signs users out after SESSION_IDLE_MIN of inactivity and after SESSION_MAX_HOURS.
-  8. loginGuard     — locks a username or computer for 15 minutes after 5 wrong passwords.
+  8. loginGuard     — locks a username after 5 wrong passwords (a computer after 20) for 15 minutes; admins can unlock.
   9. passwordPolicy — rules for new passwords (used by scripts/create-admin.js).
 Inputs:  environment settings (see .env.example); logger; AppError.
 Errors:  SKY-CFG-002/003 at start; SKY-SEC-001/002/007 and SKY-AUTH-002/003 at run time.
@@ -93,8 +95,31 @@ Errors:  SKY-CFG-002/003 at start; SKY-SEC-001/002/007 and SKY-AUTH-002/003 at r
 | issueCsrf | creates (once per session) and returns the anti-forgery token. |
 | csrf | requires header X-CSRF-Token = session token on POST/PUT/DELETE (login is exempt; it has no session yet). |
 | sessionTimeout | idle timeout (SESSION_IDLE_MIN, default 30) and absolute lifetime (SESSION_MAX_HOURS, default 8). Expired sessions are destroyed and the request continues as "not signed in" (SKY-AUTH-003 on protected routes). |
-| loginGuard | counts wrong passwords per username and per IP; 5 failures within 15 minutes lock that key. check(user, ip) → AppError / null;  fail(user, ip);  ok(user, ip). |
+| loginGuard | counts wrong passwords per username (5) and per computer/IP (20) within 15 minutes; reaching the limit locks that key. check(user, ip) → AppError / null;  fail(user, ip);  ok(user, ip); status(user) → { FailedAttempts, LockedUntil } for the Logins screen;  unlock(user) clears a username lock. |
 | passwordPolicy | returns a list of problems (empty = acceptable). Rules: 12+ characters, upper and lower case, a digit, not containing the username, not a common password. |
+
+#### admin-site/src/roles.js (V1.0)
+
+```text
+@file Roles and permissions for the SkyTech Admin site (one place to read and change them).
+Purpose: decides what each role may do. The server checks every request against this table (SKY-AUTH-005 when
+         refused) and sends the signed-in user's permissions to the screens, which hide what they cannot use.
+Roles (match the SkyTech agents' work):
+  admin    — everything, including Logins and System log (owner).
+  manager  — all data: create, edit, delete, resolve duplicates, save demo sites; no Logins or System log.
+  sales    — PhoneMarketing / SocialMediaMarketing work: edit leads, log activities; read everything else.
+  webdev   — WebsiteDeveloper work: edit demo sites and web presence, save demo pages; read everything else.
+  viewer   — read only.
+Change a role here, then update docs (Security Architecture "Access control") and the version.
+```
+
+| Function / object | What it does |
+| --- | --- |
+| ROLES | key → label, short description, writable screens, and extra rights. |
+| canWrite | may this role create/edit records of this screen (entity key)? |
+| can | may this role use an extra right: remove / duplicates / demoSave / users / syslog? |
+| permsFor | the permissions sent to the screens for the signed-in user. |
+| list | role keys, labels and descriptions for the Logins screen. |
 
 #### admin-site/src/errors.js (V1.1)
 
@@ -157,7 +182,7 @@ label, required/readonly/options, and whether the screen is writable.
 | AGENTS | SkyTech agent names offered in drop-downs. |
 | editableColumns | the columns a create/update may write (not readonly, not view-only). |
 
-#### admin-site/src/db/mssql.js (V2.1)
+#### admin-site/src/db/mssql.js (V2.2)
 
 ```text
 @file SQL Server adapter (SkyTechCRM on SQL Server 2014+). Same functions as src/db/memory.js (demo mode).
@@ -181,6 +206,7 @@ Errors:   every driver/SQL error is converted by fromDbError() (src/errors.js) i
 | touchLogin | records the time of the last successful sign-in. |
 | createUser | adds or resets a login (bcrypt hash only) — used by scripts/create-admin.js. |
 | listUsers | all logins without password hashes, admins first. |
+| _userCols | true once sql/04 V1.6 added the CreatedBy/UpdatedBy columns (checked once, then cached). |
 | getUserById | one login including its hash (used for checks on the server only). |
 | addUser | creates a new login; an existing username → SKY-DUP-001 (unique rule UQ_AdminUsers_Username). |
 | updateUser | changes role and/or active flag of a login. |
@@ -203,7 +229,7 @@ Errors:   every driver/SQL error is converted by fromDbError() (src/errors.js) i
 | dismissDuplicate | records "not a duplicate" so the pair is hidden from the check. |
 | remove | deletes a record; linked records block it (SQL 547 → SKY-DATA-003). |
 
-#### admin-site/src/db/memory.js (V2.1)
+#### admin-site/src/db/memory.js (V2.2)
 
 ```text
 @file DEMO adapter: no database needed (npm run demo). Loads the 100-lead sample CSV into memory so the site can be
@@ -257,12 +283,12 @@ Security: every text value is HTML-escaped (e); colours must be #RRGGBB (hex); f
 
 ### Admin site — screens
 
-#### admin-site/public/app.js (V2.2)
+#### admin-site/public/app.js (V2.3)
 
 ```text
 @file SkyTech Admin site front end (plain JavaScript, no framework). Routes: #dashboard, #syslog, #users, #<entity>?search=&f_Col=val
 Security: no inline scripts (strict CSP); every value shown is escaped (esc); every change sends the CSRF token
-          (X-CSRF-Token) received at sign-in; write buttons appear only for admins (server checks again).
+          (X-CSRF-Token) received at sign-in; buttons appear only for what the role may do (PERMS from /api/me; the server checks again).
 Errors:   server errors arrive as { error, code, requestId, hint } and are shown as "message (CODE, ref ID)";
           the ref ID finds the matching line in logs/runtime/admin-<date>.log and the System log screen.
 ```
@@ -277,7 +303,7 @@ Errors:   server errors arrive as { error, code, requestId, hint } and are shown
 | start | after sign-in: loads /api/me (user, role, CSRF token, version) and the screen metadata, then routes. |
 | checkDuplicates | refreshes the live duplicate badge from /api/duplicates/summary. |
 | watchDuplicates | re-checks duplicates every minute and after each change. |
-| canWrite | true for admins on writable screens (the server enforces the same rule: SKY-AUTH-005). |
+| canWrite | true when this role may change records of the screen (the server enforces the same rule: SKY-AUTH-005). |
 | go | navigates to a screen with filters. |
 | route | draws the screen for the current #route. |
 | miniTable | small clickable table used on the dashboard. |
@@ -289,7 +315,7 @@ Errors:   server errors arrive as { error, code, requestId, hint } and are shown
 | POLICY | shown under every new-password box (the server enforces the same rules, SKY-AUTH-006). |
 | pwRow | a password input with a show/hide toggle. |
 | openForm | shows a small form in the drawer; onSave(values) runs on submit, errors stay in the form. |
-| renderUsers | the Logins screen: every login with role, status, created and last sign-in. |
+| renderUsers | the Logins screen: every login with role, status, lock state, created/changed by and last sign-in. |
 | renderSyslog | shows /api/health and /api/logs; level filter; each code opens its guide entry. |
 | closeDrawer | hides the side panel (record editor / compare view). |
 
@@ -302,7 +328,7 @@ Styles for the SkyTech Admin site. Colours are variables in :root (change them o
    Loaded from the site itself only (Content-Security-Policy style-src 'self').
 ```
 
-#### admin-site/public/index.html (V2.1)
+#### admin-site/public/index.html (V2.2)
 
 ```text
 Admin site page shell: sign-in form, sidebar menu (Dashboard, tables, Possible duplicates, Demo sites, System log for admins), record drawer and toast. Loads style.css, vendor Chart.js and app.js only (no inline script, CSP).
@@ -310,7 +336,7 @@ Admin site page shell: sign-in form, sidebar menu (Dashboard, tables, Possible d
 
 ### Admin site — tools
 
-#### admin-site/scripts/doctor.js (V1.0)
+#### admin-site/scripts/doctor.js (V1.1)
 
 ```text
 @file Health check ("doctor") for the SkyTech Admin site, database and repository.
@@ -334,7 +360,7 @@ Checks:  Node version, packages, .env and secrets, network exposure, git hygiene
 | REQUIRED | database objects the Admin site and scripts rely on (type U=table, V=view, P=procedure, FN=function). |
 | checkDatabase | connects to SkyTechCRM and checks objects, rules, logins, errors, role and backups. |
 
-#### admin-site/scripts/create-admin.js (V2.0)
+#### admin-site/scripts/create-admin.js (V2.1)
 
 ```text
 @file Create or reset an Admin site login.
@@ -450,7 +476,7 @@ Purpose : creates the SkyTechCRM database: lead tables, duplicate protection, th
 BackOffice agent: 20 unchecked companies in one industry and city
 ```
 
-#### sql/04_admin_site.sql (V1.5)
+#### sql/04_admin_site.sql (V1.6)
 
 ```text
 Purpose : objects used by the SkyTech Admin site: sign-in users, audit log, detail views for the screens,
@@ -462,7 +488,7 @@ Purpose : objects used by the SkyTech Admin site: sign-in users, audit log, deta
 
 | Function / object | What it does |
 | --- | --- |
-| TABLE dbo.AdminUsers | dbo.AdminUsers: Admin site sign-ins. Passwords are stored only as bcrypt hashes (cost 12), never in plain text. Role: admin = full access, viewer = read only. Create users with: npm run create-admin |
+| TABLE dbo.AdminUsers | dbo.AdminUsers: Admin site sign-ins. Passwords are stored only as bcrypt hashes (cost 12), never in plain text. Role: admin, manager, sales, webdev or viewer (see V1.6 below). Manage logins on the Admin site Logins screen (or with npm run create-admin when no admin can sign in). |
 | TABLE dbo.AuditLog | dbo.AuditLog: who changed what and when (sign-ins, creates, edits, deletes, merges). Made read-only by sql/06 (SKY-SEC-006). |
 | VIEW dbo.vw_LeadDetail | — |
 | VIEW dbo.vw_WebPresenceDetail | — |
@@ -596,10 +622,10 @@ For each area: grab(name, lat, lon). Results collect in window.__sky; then build
 Note: tiles load only while the map is visible on screen.
 ```
 
-#### scripts/docs/build_infrastructure.py (V1.7)
+#### scripts/docs/build_infrastructure.py (V1.8)
 
 ```text
-Version: V1.7 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.7
+Version: V1.8 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.8
 Builds docs/architecture/SkyTech_Infrastructure.html (diagram + roles + versions).
 Edit the DATA section and re-run to publish a new version.
 Also imported by build_tech_stack.py, which reuses SVG and CSS so both documents always show the same diagram.
@@ -614,10 +640,10 @@ Errors : SKY-DOC-001 missing Python package, SKY-DOC-002 file problem; log: logs
 | arrow | Draws an arrow along the points, with optional label, step number and dashed style for planned flows. |
 | table | HTML table helper for the roles/components/versions sections. |
 
-#### scripts/docs/build_tech_stack.py (V1.3)
+#### scripts/docs/build_tech_stack.py (V1.4)
 
 ```text
-Version: V1.3 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.3
+Version: V1.4 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.4
 Builds docs/architecture/SkyTech_Technology_Stack_Use.html (and a .md copy for the Claude project and GitHub): the "Technology Stack Use" document.
 It explains, for a non-technical reader, every tool and technology the SkyTech program uses, and merges
 them with the architecture diagram (taken from build_infrastructure.py, so both documents always match).
@@ -737,11 +763,11 @@ Runtime logs (may contain user names and IP addresses; kept 30 days on this comp
 Temporary transfer files
 ```
 
-#### config/error-codes.json (V1.2)
+#### config/error-codes.json (V1.3)
 
 ```text
-Error catalog V1.2: 67 codes, format SKY-<AREA>-<NNN>. Fields per code: code, area, severity, title, where, causes, fix, log, predicted, http, user.
+Error catalog V1.3: 67 codes, format SKY-<AREA>-<NNN>. Fields per code: code, area, severity, title, where, causes, fix, log, predicted, http, user.
 ```
 
 ---
-Version: V1.1 (2026-10-10) — SkyTech_Code_Documentation.md — V1.1
+Version: V1.2 (2026-10-10) — SkyTech_Code_Documentation.md — V1.2

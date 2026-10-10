@@ -1,6 +1,6 @@
 {
   "name": "skytech-admin-site",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "SkyTech Solutions admin site: dashboards, drill-down and CRUD on SkyTechCRM",
   "private": true,
   "main": "server.js",

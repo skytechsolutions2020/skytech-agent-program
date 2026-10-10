@@ -1,6 +1,6 @@
 # SkyTech Troubleshooting Guide
 
-Version V1.1 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
+Version V1.2 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 
 ## 1. First aid in five steps
 
@@ -254,14 +254,15 @@ Causes: The browser has no session (new tab, cookies cleared, site restarted).
 Fix:
 1. Sign in again
 
-#### SKY-AUTH-005 — Read-only account (warn)
+#### SKY-AUTH-005 — Action not allowed for your role (warn)
 
-Where: Create, edit, delete, merge actions. Logged in: logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number).
+Where: Create, edit, delete, duplicates, demo save, Logins, System log. Logged in: logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number).
 
-Causes: A viewer account tried to change data.
+Causes: Your login's role does not include this action (roles: admin, manager, sales, webdev, viewer — see admin-site/src/roles.js); A viewer tried to change data.
 
 Fix:
-1. Sign in with an admin account, or have an admin make the change
+1. Ask an admin to change your role on the Logins screen
+2. Or sign in with a login that has the right role
 
 #### SKY-AUTH-006 — Password does not meet the policy (warn)
 
@@ -809,4 +810,4 @@ EXEC SkyTechCRM.dbo.usp_PurgeErrorLog @KeepDays = 90;
 | Moving to a second computer or to hosting | Copy the repository, run npm install, create a new .env (new SESSION_SECRET), keep HOST=127.0.0.1 unless the site is behind HTTPS with COOKIE_SECURE=1 and TRUST_PROXY=1, use the SkyTechApp least-privilege login (sql/06), run the doctor. |
 
 ---
-Version: V1.1 (2026-10-10) — SkyTech_Troubleshooting_Guide.md — V1.1
+Version: V1.2 (2026-10-10) — SkyTech_Troubleshooting_Guide.md — V1.2

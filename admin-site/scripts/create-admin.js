@@ -1,4 +1,4 @@
-// Version: V2.0 (2026-10-10) — admin-site/scripts/create-admin.js — V2.0
+// Version: V2.1 (2026-10-10) — admin-site/scripts/create-admin.js — V2.1
 /**
  * @file Create or reset an Admin site login.
  * Purpose: asks for a username, password (typed hidden) and role, checks the password policy
@@ -36,8 +36,9 @@ function ask(question, hidden) {
     if (problems.length) throw new AppError('SKY-AUTH-006', 'Password needs: ' + problems.join(', ') + '.');
     const p2 = await ask('Repeat password: ', true);
     if (p1 !== p2) throw new AppError('SKY-AUTH-006', 'Passwords do not match.');
-    const role = ((await ask('Role (admin/viewer) [admin]: ')) || 'admin').toLowerCase();
-    if (!['admin', 'viewer'].includes(role)) throw new AppError('SKY-DATA-002', 'Role must be admin or viewer.');
+    const { ROLE_KEYS } = require('../src/roles');
+    const role = ((await ask(`Role (${ROLE_KEYS.join('/')}) [admin]: `)) || 'admin').toLowerCase();
+    if (!ROLE_KEYS.includes(role)) throw new AppError('SKY-DATA-002', 'Role must be one of: ' + ROLE_KEYS.join(', ') + '.');
     await db.createUser(username, await bcrypt.hash(p1, 12), role);
     await db.audit(username, 'session', 'CREATE', username, { role, by: 'create-admin script' });
     log.security('Login created or reset', { user: username, role }, 'info');
@@ -51,4 +52,4 @@ function ask(question, hidden) {
   }
 })();
 
-// Version: V2.0 (2026-10-10) — admin-site/scripts/create-admin.js — V2.0
+// Version: V2.1 (2026-10-10) — admin-site/scripts/create-admin.js — V2.1

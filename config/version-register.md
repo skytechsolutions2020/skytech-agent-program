@@ -17,9 +17,9 @@
 |---|---|---|---|
 | 90-Day Plan living doc (claude.ai artifact) + `docs/90-day-plan.md` | V2.2 | 2026-10-02 | V2.0 free lead sources; V2.1 niche and area chosen |
 | Project instructions (claude.ai field + `config/project-instructions.md`) | V1.9 | 2026-10-10 | Free lead sources; pasted into Project Instructions by owner. Unchanged 2026-10-03 through 2026-10-09; V1.7–V1.8 on 2026-10-10 add the Technology Stack Use rule; V1.9 adds the comments, error-code, logging and security rules (repo copy; paste into the claude.ai field) |
-| Version register (claude.ai project + `config/version-register.md`) | V4.0 | 2026-10-10 | This register (claude.ai and repo copies kept in step) |
+| Version register (claude.ai project + `config/version-register.md`) | V4.1 | 2026-10-10 | This register (claude.ai and repo copies kept in step) |
 | SkyTech-90-Day-Plan-link.md (claude.ai project) | V1.3 | 2026-10-02 | Plan notes and next steps |
-| SkyTech-Prompts-2026-10-10-V1.0.md | V1.5 | 2026-10-10 | Day-10 prompts 10.01–10.07 |
+| SkyTech-Prompts-2026-10-10-V1.0.md | V1.6 | 2026-10-10 | Day-10 prompts 10.01–10.08 |
 | SkyTech-Prompts-2026-10-09-V1.0.md | V1.0 | 2026-10-09 | Day-9 prompts 9.01 |
 | SkyTech-Prompts-2026-10-08-V1.0.md | V1.0 | 2026-10-08 | Day-8 prompts 8.01 |
 | SkyTech-Prompts-2026-10-07-V1.0.md | V1.0 | 2026-10-07 | Day-7 prompts 7.01 |
@@ -41,22 +41,22 @@
 | `data/verification/2026-10-02_backoffice_results.txt` | V1.0 | 2026-10-02 | 100-lead website verification |
 | `data/samples/SkyTech_Leads_Sample100.csv` V1.1 + `_import.sql` V1.2 | 2026-10-02 | First 100-lead sample |
 | `sql/01_create_skytechcrm.sql` | V2.3 | 2026-10-10 | Duplicate-proof setup + import procedure; dbo.DemoSites; dbo.ErrorLog + usp_LogError (re-runnable) |
-| `admin-site/` | V2.1 | 2026-10-10 | V2.1: Logins screen (create, edit role, disable, reset password) and Change my password; Admin website; live duplicate check; Demo sites tab; security layer, error codes, JSON logs, System log, doctor (package 2.0.0) |
-| `sql/04_admin_site.sql` | V1.5 | 2026-10-10 | Admin site tables, views, duplicate check, vw_DemoSiteDetail; procedures log to dbo.ErrorLog |
-| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) + `scripts/docs/build_infrastructure.py` | V1.7 | 2026-10-10 | Infrastructure, data flow, agents, roles, versions; security and logging layer added |
-| `docs/architecture/SkyTech_Technology_Stack_Use` (.html/.pdf/.md + journey .png) | V1.2 | 2026-10-10 | Technology Stack Use: every tool in plain words, merged with the architecture diagram; security, logging, doctor, secret scan, backups added (generator V1.2) |
-| SkyTech-Technology-Stack-Use.md (claude.ai project) | V1.2 | 2026-10-10 | Copy of the Technology Stack Use document, refreshed with every release |
-| `README.md` | V2.9 | 2026-10-10 | Key documents list with current versions (security, troubleshooting, code docs added) |
+| `admin-site/` | V2.2 | 2026-10-10 | V2.2: five roles (src/roles.js), Logins screen shows lock/failed sign-ins/created-by/changed-by with Unlock; V2.1: Logins screen (create, edit role, disable, reset password) and Change my password; Admin website; live duplicate check; Demo sites tab; security layer, error codes, JSON logs, System log, doctor (package 2.0.0) |
+| `sql/04_admin_site.sql` | V1.6 | 2026-10-10 | V1.6: AdminUsers CreatedBy/UpdatedOn/UpdatedBy + CK_AdminUsers_Role (five roles);  Admin site tables, views, duplicate check, vw_DemoSiteDetail; procedures log to dbo.ErrorLog |
+| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) + `scripts/docs/build_infrastructure.py` | V1.8 | 2026-10-10 | Infrastructure, data flow, agents, roles, versions; security and logging layer added |
+| `docs/architecture/SkyTech_Technology_Stack_Use` (.html/.pdf/.md + journey .png) | V1.3 | 2026-10-10 | Technology Stack Use: every tool in plain words, merged with the architecture diagram; security, logging, doctor, secret scan, backups added (generator V1.2) |
+| SkyTech-Technology-Stack-Use.md (claude.ai project) | V1.3 | 2026-10-10 | Copy of the Technology Stack Use document, refreshed with every release |
+| `README.md` | V3.0 | 2026-10-10 | Key documents list with current versions (security, troubleshooting, code docs added) |
 | `push-to-github.bat` | V2.0 | 2026-10-10 | One-click upload of commits + tags; lock-file check and secret scan first |
-| `config/error-codes.json` | V1.2 | 2026-10-10 | 67 SKY-<AREA>-<NNN> codes (causes, fixes, where logged, predicted) |
-| `admin-site/src/security.js` V1.0 · `logger.js` V1.1 · `errors.js` V1.1 · `scripts/doctor.js` V1.0 · `create-admin.js` V2.0 | 2026-10-10 | Security controls, JSON logging, error codes, health check, password policy |
+| `config/error-codes.json` | V1.3 | 2026-10-10 | 67 SKY-<AREA>-<NNN> codes (causes, fixes, where logged, predicted) |
+| `admin-site/src/security.js` V1.1 · `roles.js` V1.0 · `logger.js` V1.1 · `errors.js` V1.1 · `scripts/doctor.js` V1.1 · `create-admin.js` V2.1 | 2026-10-10 | Security controls, JSON logging, error codes, health check, password policy |
 | `scripts/security/scan-secrets.js` · `scripts/common/skylog.py` · `scripts/docs/build_ops_docs.py` | V1.0 | 2026-10-10 | Secret scan; Python error codes + logging; operations document builder |
 | `sql/06_security_and_logging.sql` | V1.1 | 2026-10-10 | V1.1: DENY on usp_BackupSkyTechCRM moved after its CREATE (Msg 15151 fix); SkyTechApp least-privilege role, append-only AuditLog, usp_BackupSkyTechCRM, usp_PurgeErrorLog, optional SQL Audit |
-| `docs/architecture/SkyTech_Security_Architecture` (.html/.pdf/.md + trust-boundary .png) | V1.1 | 2026-10-10 | Threat model, data classes, controls mapped to OWASP ASVS / NIST CSF 2.0 / CIS v8, secrets, backup, incident response, checklist |
-| `docs/architecture/SkyTech_Troubleshooting_Guide` (.html/.pdf/.md) | V1.1 | 2026-10-10 | Every error code with causes and fixes, predicted errors, logging, first aid, SQL queries, recovery recipes |
-| `docs/architecture/SkyTech_Code_Documentation` (.html/.pdf/.md) | V1.1 | 2026-10-10 | Comments of every program file collected: purpose blocks + one line per function/object |
+| `docs/architecture/SkyTech_Security_Architecture` (.html/.pdf/.md + trust-boundary .png) | V1.2 | 2026-10-10 | Threat model, data classes, controls mapped to OWASP ASVS / NIST CSF 2.0 / CIS v8, secrets, backup, incident response, checklist |
+| `docs/architecture/SkyTech_Troubleshooting_Guide` (.html/.pdf/.md) | V1.2 | 2026-10-10 | Every error code with causes and fixes, predicted errors, logging, first aid, SQL queries, recovery recipes |
+| `docs/architecture/SkyTech_Code_Documentation` (.html/.pdf/.md) | V1.2 | 2026-10-10 | Comments of every program file collected: purpose blocks + one line per function/object |
 | `.gitignore` | V1.1 | 2026-10-10 | Adds node_modules, logs/runtime, .env.*, key files, *.tar.gz |
-| GitHub repository `skytech-agent-program` | R4.2 | 2026-10-10 | See `INDEX.md` |
+| GitHub repository `skytech-agent-program` | R4.3 | 2026-10-10 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -90,6 +90,7 @@
 - 2026-10-10 R4.0: enterprise security, error codes and logging across the project (Admin site V2.0, error catalog V1.1, doctor, secret scan, sql/01 V2.3, 04 V1.5, 05 V2.2, new 06 V1.0, Python skylog); comments in every file; new documents Security Architecture, Troubleshooting Guide, Code Documentation V1.0; diagram V1.6; Technology Stack Use V1.1; instructions V1.9; rule 10; Day-10 prompts V1.3 (10.04); log V1.2. Register → V3.8.
 - 2026-10-10 R4.1: sql/06 V1.1 fixes Msg 15151 (DENY moved after the backup procedure is created); README V2.8, INDEX V2.7, Day-10 prompts V1.4, log V1.3. Register → V3.9.
 - 2026-10-10 R4.2: Admin site V2.1 Logins screen + Change my password; error catalog V1.2; Security Architecture, Troubleshooting Guide, Code Documentation V1.1; diagram V1.7; Technology Stack Use V1.2; README V2.9, INDEX V2.8, Day-10 prompts V1.5, log V1.4. Register → V4.0.
+- 2026-10-10 R4.3: Admin site V2.2 five project roles (src/roles.js V1.0), Logins screen with lock status, change history and Unlock; security.js V1.1 lockout limits; sql/04 V1.6; doctor V1.1; create-admin V2.1; error catalog V1.3; operations documents V1.2; diagram V1.8; Technology Stack Use V1.3; README V3.0, INDEX V2.9, Day-10 prompts V1.6, log V1.5. Register → V4.1.
 
 ---
-Version: V4.0 (2026-10-10) — SkyTech-Version-Register.md — V4.0
+Version: V4.1 (2026-10-10) — SkyTech-Version-Register.md — V4.1

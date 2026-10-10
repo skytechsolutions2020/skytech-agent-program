@@ -1,4 +1,4 @@
-// Version: V1.0 (2026-10-10) — admin-site/scripts/doctor.js — V1.0
+// Version: V1.1 (2026-10-10) — admin-site/scripts/doctor.js — V1.1
 /**
  * @file Health check ("doctor") for the SkyTech Admin site, database and repository.
  * Purpose: finds the problems listed in the Troubleshooting Guide before they bite, and prints each one with its
@@ -109,6 +109,8 @@ async function checkDatabase() {
   try {
     const rows = await q(`SELECT name, type FROM (VALUES ${REQUIRED.map(([n, t]) => `(N'${n}', '${t}')`).join(',')}) r(name, type) WHERE OBJECT_ID(name) IS NULL`);
     rows.length ? add('fail', 'Database', 'Missing objects: ' + rows.map(r => r.name).join(', '), 'SKY-DB-005', 'Run the SQL scripts in order: 01 → sample import → 04 → 05 → 06') : add('ok', 'Database', `All ${REQUIRED.length} required objects present`);
+    const [uc] = await q("SELECT COL_LENGTH('dbo.AdminUsers', 'UpdatedBy') AS c, OBJECT_ID('dbo.CK_AdminUsers_Role') AS ck");
+    uc.c && uc.ck ? add('ok', 'Logins', 'Login roles and change history ready (sql/04 V1.6)') : add('warn', 'Logins', 'AdminUsers is missing the role rule or CreatedBy/UpdatedBy columns', 'SKY-DB-005', 'Run sql/04_admin_site.sql (V1.6) in SSMS');
     const ux = await q(`SELECT name FROM (VALUES ('UX_Companies_SourceRecordID'),('UX_Companies_NormName_Zip'),('UX_Leads_CompanyID'),('UX_WebPresence_CompanyID'),('UX_DemoSites_CompanyID')) i(name) WHERE NOT EXISTS (SELECT 1 FROM sys.indexes x WHERE x.name = i.name)`);
     ux.length ? add('warn', 'Duplicates', 'Unique rules missing: ' + ux.map(r => r.name).join(', '), 'SKY-DUP-004', 'Fix Exact duplicates in the Admin site, then re-run sql/01') : add('ok', 'Duplicates', 'All unique (no-duplicate) rules active');
     const [u] = await q('SELECT COUNT(*) AS n FROM dbo.AdminUsers WHERE IsActive = 1');
@@ -142,4 +144,4 @@ async function checkDatabase() {
   process.exit(f ? 1 : 0);
 })();
 
-// Version: V1.0 (2026-10-10) — admin-site/scripts/doctor.js — V1.0
+// Version: V1.1 (2026-10-10) — admin-site/scripts/doctor.js — V1.1
