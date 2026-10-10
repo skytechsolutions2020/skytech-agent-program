@@ -1,11 +1,12 @@
-"""Version: V1.4 (2026-10-05) — scripts/docs/build_infrastructure.py — V1.4
+"""Version: V1.5 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.5
 Builds docs/architecture/SkyTech_Infrastructure.html (diagram + roles + versions).
-Edit the DATA section and re-run to publish a new version."""
+Edit the DATA section and re-run to publish a new version.
+Also imported by build_tech_stack.py, which reuses SVG and CSS so both documents always show the same diagram."""
 import html, sys, os
-OUT = sys.argv[1] if len(sys.argv) > 1 else "docs/architecture/SkyTech_Infrastructure.html"
+OUT = sys.argv[1] if len(sys.argv) > 1 and __name__ == "__main__" else "docs/architecture/SkyTech_Infrastructure.html"
 
 # ============================ DATA (edit here) ============================
-DOC_VERSION = "V1.4"; DOC_DATE = "2026-10-05"; RELEASE = "R3.3"
+DOC_VERSION = "V1.5"; DOC_DATE = "2026-10-10"; RELEASE = "R3.4"
 AGENTS = [  # name, status, role, inputs, outputs, control
  ("SkyTech_Manager", "Active", "Runs the program: assigns work, collects agent reports, summarizes to the owner, keeps files/versions/GitHub in order", "Owner requests, agent reports", "Daily summary, task assignments, project files", "Claude in this project; asks owner before actions"),
  ("SkyTech_BackOffice", "Active", "Pulls free leads, verifies \"no website\" by alternative search routes, prepares duplicate-safe SQL imports", "Overture & other free sources, web search", "Verified lead CSV, import SQL, verification report", "agents/SkyTech_BackOffice.md + saved skill (owner-editable)"),
@@ -16,13 +17,13 @@ AGENTS = [  # name, status, role, inputs, outputs, control
 ]
 COMPONENTS = [  # component, where, version, purpose
  ("90-Day Plan (living doc)", "claude.ai artifact + docs/90-day-plan.md", "V2.2", "Plan, guardrails, free lead sources, pricing, timeline"),
- ("Project instructions", "claude.ai Project + config/project-instructions.md", "V1.4", "Standing rules for every session"),
- ("Version register / INDEX", "config/version-register.md, INDEX.md", "V2.0 / V1.6", "What each file and release contains"),
+ ("Project instructions", "claude.ai Project + config/project-instructions.md", "V1.6", "Standing rules for every session"),
+ ("Version register / INDEX", "config/version-register.md, INDEX.md", "V3.6 / V2.4", "What each file and release contains"),
  ("SkyTechCRM database", "SQL Server 2014 Developer (owner's laptop)", "setup V2.2, admin objects V1.4, demo load V2.1", "Companies, WebPresence, Leads, Activities, DemoSites; duplicate-safe imports; audit"),
  ("Admin site", "admin-site/ (Node.js) at http://127.0.0.1:3030", "V1.4", "Login, dashboards, drill-down, CRUD, live duplicate check, Demo sites (edit, live preview, save), audit log"),
  ("Lead scripts", "scripts/leads/", "extract V1.0, build V1.2", "Overture extraction, sample + import SQL generation"),
  ("Lead sample", "data/samples/", "CSV V1.1, SQL V1.2", "100 leads, 36 verified potential clients"),
- ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R3.3", "Full history of every artifact, tagged releases"),
+ ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R3.4", "Full history of every artifact, tagged releases"),
  ("Company website", "skytechsolutions.us (Hostinger, Node.js)", "live", "Needs robots.txt, sitemap, pricing page"),
 ]
 FLOWS = [  # number, text
@@ -49,7 +50,8 @@ CHANGELOG = [("V1.0", "2026-10-02", "First version: infrastructure and data-flow
              ("V1.1", "2026-10-02", "Admin site V1.2 and admin objects V1.2: live duplicate check across Companies, Leads, Web presence and Activities."),
              ("V1.2", "2026-10-02", "SkyTech_WebsiteDeveloper active: demo-site generator, first 3 demos, sql/05 marks leads DemoBuilt."),
              ("V1.3", "2026-10-05", "Demo sites stored in dbo.DemoSites and edited in the Admin site; unique designs per business (template V2.0)."),
-             ("V1.4", "2026-10-05", "Free-licence photos (Pexels) in demo sites; DemoSites photo columns; Admin site V1.4.")]
+             ("V1.4", "2026-10-05", "Free-licence photos (Pexels) in demo sites; DemoSites photo columns; Admin site V1.4."),
+             ("V1.5", "2026-10-10", "Diagram shared with the new Technology Stack Use document; version labels refreshed.")]
 # ==========================================================================
 
 E = html.escape
@@ -114,7 +116,7 @@ box(740, 492, 374, 70, "Admin site V1.4 (Node.js) · 127.0.0.1:3030", ["dashboar
 box(740, 586, 178, 54, "SSMS", ["runs SQL scripts"], "normal")
 box(936, 586, 178, 54, "GitHub Desktop + Git", ["push commits + tags"], "normal")
 # internet
-box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R3.3"], "store")
+box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R3.4"], "store")
 box(1166, 186, 204, 70, "Hostinger", ["skytechsolutions.us (live)", "future: admin site + MySQL"], "normal")
 box(1166, 272, 204, 54, "Netlify / Google Drive", ["demo sites (planned)"], "planned")
 box(1166, 342, 204, 54, "Gmail / Brevo free", ["owner-approved email (planned)"], "planned")
@@ -164,42 +166,44 @@ def table(head, rows):
     return "<table><thead><tr>" + "".join(f"<th>{E(h)}</th>" for h in head) + "</tr></thead><tbody>" + "".join(
         "<tr>" + "".join(f"<td>{E(c)}</td>" for c in r) + "</tr>" for r in rows) + "</tbody></table>"
 
+DIAGRAM_CSS = ''':root { --bg:#f5f7fa; --panel:#fff; --ink:#1c2430; --muted:#5f6b7a; --line:#c9d1dc; --zone:#eef2f7; --acc:#1f5fbf; --accbg:#e6efff; --plan:#8a94a3; --store:#f3f0e6; --person:#e8f5ec; }
+@media (prefers-color-scheme: dark) { :root { --bg:#11151c; --panel:#1a202a; --ink:#e6e9ee; --muted:#9aa4b2; --line:#3a4454; --zone:#161c25; --acc:#6aa0ff; --accbg:#1d2a40; --plan:#7d8796; --store:#2a2619; --person:#1c2b22; } }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+main { max-width:1440px; margin:0 auto; padding:20px 16px 40px; }
+h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:17px; margin:28px 0 8px; }
+.meta { color:var(--muted); margin-bottom:14px; }
+.diagram { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px; overflow-x:auto; }
+.diagram svg { width:100%; min-width:1000px; height:auto; display:block; }
+svg text { fill:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+svg .h { font-size:19px; font-weight:700; } svg .sub { font-size:12px; fill:var(--muted); }
+.zone rect { fill:var(--zone); stroke:var(--line); } .zone text { font-size:13px; font-weight:700; fill:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+.bx rect { fill:var(--panel); stroke:var(--line); stroke-width:1.2; }
+.bx.acc rect { fill:var(--accbg); stroke:var(--acc); stroke-width:2; }
+.bx.plan rect { fill:var(--panel); stroke:var(--plan); stroke-dasharray:5 4; }
+.bx.plan text { fill:var(--muted); }
+.bx.store rect { fill:var(--store); } .bx.person rect { fill:var(--person); }
+.bx .t { font-size:13px; font-weight:600; } .bx .s { font-size:11.5px; fill:var(--muted); }
+.ar { fill:none; stroke:var(--acc); stroke-width:1.6; } .ar.plan { stroke:var(--plan); stroke-dasharray:6 5; }
+.mk { fill:var(--acc); } .mkp { fill:var(--plan); }
+.al { font-size:11.5px; fill:var(--muted); }
+.num circle { fill:var(--acc); } .num text { fill:#fff; font-size:11px; font-weight:700; }
+.legend text { font-size:12px; fill:var(--muted); }
+table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-size:12px; color:var(--muted); }
+.wrap { overflow-x:auto; }
+ol,ul { padding-left:20px; } .pills span { display:inline-block; padding:3px 10px; margin:2px; border-radius:999px; background:var(--accbg); }
+.pills span+span::before { content:""; }
+footer { color:var(--muted); margin-top:28px; font-size:12px; }
+@media print { body { background:#fff; } .diagram svg { min-width:0; } }
+'''
+
 page = f'''<!doctype html>
 <!-- Version: {DOC_VERSION} ({DOC_DATE}) — docs/architecture/SkyTech_Infrastructure.html — {DOC_VERSION} -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SkyTech Infrastructure</title>
 <style>
-:root {{ --bg:#f5f7fa; --panel:#fff; --ink:#1c2430; --muted:#5f6b7a; --line:#c9d1dc; --zone:#eef2f7; --acc:#1f5fbf; --accbg:#e6efff; --plan:#8a94a3; --store:#f3f0e6; --person:#e8f5ec; }}
-@media (prefers-color-scheme: dark) {{ :root {{ --bg:#11151c; --panel:#1a202a; --ink:#e6e9ee; --muted:#9aa4b2; --line:#3a4454; --zone:#161c25; --acc:#6aa0ff; --accbg:#1d2a40; --plan:#7d8796; --store:#2a2619; --person:#1c2b22; }} }}
-body {{ margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }}
-main {{ max-width:1440px; margin:0 auto; padding:20px 16px 40px; }}
-h1 {{ font-size:22px; margin:0 0 4px; }} h2 {{ font-size:17px; margin:28px 0 8px; }}
-.meta {{ color:var(--muted); margin-bottom:14px; }}
-.diagram {{ background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px; overflow-x:auto; }}
-.diagram svg {{ width:100%; min-width:1000px; height:auto; display:block; }}
-svg text {{ fill:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }}
-svg .h {{ font-size:19px; font-weight:700; }} svg .sub {{ font-size:12px; fill:var(--muted); }}
-.zone rect {{ fill:var(--zone); stroke:var(--line); }} .zone text {{ font-size:13px; font-weight:700; fill:var(--muted); text-transform:uppercase; letter-spacing:.04em; }}
-.bx rect {{ fill:var(--panel); stroke:var(--line); stroke-width:1.2; }}
-.bx.acc rect {{ fill:var(--accbg); stroke:var(--acc); stroke-width:2; }}
-.bx.plan rect {{ fill:var(--panel); stroke:var(--plan); stroke-dasharray:5 4; }}
-.bx.plan text {{ fill:var(--muted); }}
-.bx.store rect {{ fill:var(--store); }} .bx.person rect {{ fill:var(--person); }}
-.bx .t {{ font-size:13px; font-weight:600; }} .bx .s {{ font-size:11.5px; fill:var(--muted); }}
-.ar {{ fill:none; stroke:var(--acc); stroke-width:1.6; }} .ar.plan {{ stroke:var(--plan); stroke-dasharray:6 5; }}
-.mk {{ fill:var(--acc); }} .mkp {{ fill:var(--plan); }}
-.al {{ font-size:11.5px; fill:var(--muted); }}
-.num circle {{ fill:var(--acc); }} .num text {{ fill:#fff; font-size:11px; font-weight:700; }}
-.legend text {{ font-size:12px; fill:var(--muted); }}
-table {{ width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }}
-th,td {{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }}
-th {{ font-size:12px; color:var(--muted); }}
-.wrap {{ overflow-x:auto; }}
-ol,ul {{ padding-left:20px; }} .pills span {{ display:inline-block; padding:3px 10px; margin:2px; border-radius:999px; background:var(--accbg); }}
-.pills span+span::before {{ content:""; }}
-footer {{ color:var(--muted); margin-top:28px; font-size:12px; }}
-@media print {{ body {{ background:#fff; }} .diagram svg {{ min-width:0; }} }}
-</style></head><body><main>
+{DIAGRAM_CSS}</style></head><body><main>
 <h1>SkyTech Agent Program — Infrastructure</h1>
 <div class="meta">Version {DOC_VERSION} · {DOC_DATE} · matches repository release {RELEASE} · maintained by SkyTech_Manager</div>
 <div class="diagram">{SVG}</div>
@@ -211,6 +215,7 @@ footer {{ color:var(--muted); margin-top:28px; font-size:12px; }}
 <h2>Change log</h2><div class="wrap">{table(["Version", "Date", "Change"], CHANGELOG)}</div>
 <footer>Version: {DOC_VERSION} ({DOC_DATE}) — docs/architecture/SkyTech_Infrastructure.html — {DOC_VERSION}. Rebuild with: python scripts/docs/build_infrastructure.py</footer>
 </main></body></html>'''
-os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
-open(OUT, "w", encoding="utf-8").write(page)
-print("wrote", OUT)
+if __name__ == "__main__":
+    os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
+    open(OUT, "w", encoding="utf-8").write(page)
+    print("wrote", OUT)

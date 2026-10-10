@@ -5,18 +5,23 @@
 2. Minor edits (typos, small additions, status updates) bump the minor number: V1.0 → V1.1 → V1.2.
 3. Major changes (restructured plan, new agents, new pricing, new process) bump the major number: V1.x → V2.0.
 4. Project instructions carry a version that matches the highest-impact change; the register below shows which file versions belong to which instructions version.
-5. Prompts downloaded at end of day are saved as `SkyTech-Prompts-<YYYY-MM-DD>-Vx.y.md`, numbered by day (2.01, 3.01, 4.01, 5.01 …), each with its own version tag.
+5. Prompts downloaded at end of day are saved as `SkyTech-Prompts-<YYYY-MM-DD>-Vx.y.md`, numbered by day (2.01, 3.01, 4.01, 5.01, 6.01, 7.01, 8.01, 9.01, 10.01 …), each with its own version tag.
 6. Older versions are not overwritten silently: the change is logged below with date and reason.
 7. Existing files are edited in place; the file name stays the same and the version footer changes.
 8. GitHub releases are tagged R<major>.<minor>; `INDEX.md` lists what each release contains.
 
-## Register (as of 2026-10-05)
+## Register (as of 2026-10-10)
 | File | Version | Date | Notes |
 |---|---|---|---|
 | 90-Day Plan living doc (claude.ai artifact) + `docs/90-day-plan.md` | V2.2 | 2026-10-02 | V2.0 free lead sources; V2.1 niche and area chosen |
-| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.6 | 2026-10-02 | Free lead sources; pasted into Project Instructions by owner. Unchanged 2026-10-03, 2026-10-04 and 2026-10-05 |
-| Version register (claude.ai project + `config/version-register.md`) | V3.0 | 2026-10-05 | This register (claude.ai and repo copies kept in step) |
+| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.7 | 2026-10-10 | Free lead sources; pasted into Project Instructions by owner. Unchanged 2026-10-03 through 2026-10-09; V1.7 on 2026-10-10 adds the Technology Stack Use rule (repo copy; paste into the claude.ai field) |
+| Version register (claude.ai project + `config/version-register.md`) | V3.6 | 2026-10-10 | This register (claude.ai and repo copies kept in step) |
 | SkyTech-90-Day-Plan-link.md (claude.ai project) | V1.3 | 2026-10-02 | Plan notes and next steps |
+| SkyTech-Prompts-2026-10-10-V1.0.md | V1.1 | 2026-10-10 | Day-10 prompts 10.01–10.02 |
+| SkyTech-Prompts-2026-10-09-V1.0.md | V1.0 | 2026-10-09 | Day-9 prompts 9.01 |
+| SkyTech-Prompts-2026-10-08-V1.0.md | V1.0 | 2026-10-08 | Day-8 prompts 8.01 |
+| SkyTech-Prompts-2026-10-07-V1.0.md | V1.0 | 2026-10-07 | Day-7 prompts 7.01 |
+| SkyTech-Prompts-2026-10-06-V1.0.md | V1.0 | 2026-10-06 | Day-6 prompts 6.01 |
 | SkyTech-Prompts-2026-10-05-V1.0.md | V1.2 | 2026-10-05 | Day-5 prompts 5.01–5.03 (file name kept; edited in place) |
 | SkyTech-Prompts-2026-10-04-V1.0.md | V1.0 | 2026-10-04 | Day-4 prompts 4.01 |
 | SkyTech-Prompts-2026-10-03-V1.0.md | V1.0 | 2026-10-03 | Day-3 prompts 3.01 |
@@ -36,9 +41,10 @@
 | `sql/01_create_skytechcrm.sql` | V2.2 | 2026-10-05 | Duplicate-proof setup + import procedure; dbo.DemoSites with photo columns (re-runnable) |
 | `admin-site/` | V1.4 | 2026-10-05 | Admin website; live duplicate check; Demo sites tab (edit incl. photos, live preview, download, save) |
 | `sql/04_admin_site.sql` | V1.4 | 2026-10-05 | Admin site tables, views, duplicate check, vw_DemoSiteDetail |
-| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) | V1.4 | 2026-10-05 | Infrastructure, data flow, agents, roles, versions |
+| `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) + `scripts/docs/build_infrastructure.py` | V1.5 | 2026-10-10 | Infrastructure, data flow, agents, roles, versions (diagram shared with Technology Stack Use) |
+| `docs/architecture/SkyTech_Technology_Stack_Use` (.html/.pdf + journey .png) + `scripts/docs/build_tech_stack.py` | V1.0 | 2026-10-10 | Technology Stack Use: every tool in plain words, merged with the architecture diagram |
 | `push-to-github.bat` | V1.0 | 2026-10-02 | One-click upload of commits + tags |
-| GitHub repository `skytech-agent-program` | R3.3 | 2026-10-05 | See `INDEX.md` |
+| GitHub repository `skytech-agent-program` | R3.4 | 2026-10-10 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -62,6 +68,12 @@
 - 2026-10-05 Scheduled versioning run (program start day): Day-5 prompt file `SkyTech-Prompts-2026-10-05-V1.0.md` created (prompt 5.01); rule 5 example extended to 5.01; instructions confirmed at V1.6 (no content change). Register → V2.8.
 - 2026-10-05 R3.2: three unique demo websites (layouts split / bold / classic, concept logos, original illustrations); new dbo.DemoSites table (sql/01 V2.1, sql/04 V1.3, sql/05 V2.0); Admin site V1.3 Demo sites tab; WebsiteDeveloper V1.1; old Python generator retired; diagram V1.3; Day-5 prompts V1.1 (5.02). Claude project and repo registers merged. Register → V2.9.
 - 2026-10-05 R3.3: C&A Plumbing demo with free-licence Pexels photos (banner, one per service, About), drop-and-wrench concept logo, "What we fix" card (template V2.1, render/build V1.1); DemoSites photo columns (sql/01 V2.2, sql/04 V1.4, sql/05 V2.1); Admin site V1.4; WebsiteDeveloper V1.2; diagram V1.4; Day-5 prompts V1.2 (5.03). Register → V3.0.
+- 2026-10-06 Scheduled versioning run: Day-6 prompt file `SkyTech-Prompts-2026-10-06-V1.0.md` created (prompt 6.01); rule 5 example extended to 6.01; instructions confirmed at V1.6 (no content change). Register → V3.1.
+- 2026-10-07 Scheduled versioning run: Day-7 prompt file `SkyTech-Prompts-2026-10-07-V1.0.md` created (prompt 7.01); rule 5 example extended to 7.01; instructions confirmed at V1.6 (no content change). Register → V3.2.
+- 2026-10-08 Scheduled versioning run: Day-8 prompt file `SkyTech-Prompts-2026-10-08-V1.0.md` created (prompt 8.01); rule 5 example extended to 8.01; instructions confirmed at V1.6 (no content change). Register → V3.3.
+- 2026-10-09 Scheduled versioning run: Day-9 prompt file `SkyTech-Prompts-2026-10-09-V1.0.md` created (prompt 9.01); rule 5 example extended to 9.01; instructions confirmed at V1.6 (no content change). Register → V3.4.
+- 2026-10-10 Scheduled versioning run: Day-10 prompt file `SkyTech-Prompts-2026-10-10-V1.0.md` created (prompt 10.01); rule 5 example extended to 10.01; instructions confirmed at V1.6 (no content change). Register → V3.5.
+- 2026-10-10 R3.4: new document Technology Stack Use V1.0 (one-minute journey picture, architecture diagram, 42 tools in plain words with cost and status, glossary), generated with the architecture diagram V1.5 from shared source; project instructions V1.7 (keep it updated); Day 6–10 prompt files added to the repo; Day-10 prompts V1.1 (10.02); log 2026-10-10. Register → V3.6.
 
 ---
-Version: V3.0 (2026-10-05) — SkyTech-Version-Register.md — V3.0
+Version: V3.6 (2026-10-10) — SkyTech-Version-Register.md — V3.6

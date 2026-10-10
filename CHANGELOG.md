@@ -1,5 +1,14 @@
 # Changelog
 
+## R3.4 — 2026-10-10
+- New document **SkyTech Technology Stack Use** V1.0 (`docs/architecture/SkyTech_Technology_Stack_Use.html` / `.pdf` + `SkyTech_Technology_Stack_Journey.png`), written for non-technical readers:
+  - one-minute picture of the six steps, with the tools used at each;
+  - the architecture diagram and data flow;
+  - 42 tools in 8 groups, each with what it is, what we use it for, cost, where it runs and status;
+  - the $0 new-spend summary, a glossary and a change log.
+- `scripts/docs/build_tech_stack.py` V1.0; `build_infrastructure.py` V1.5 is now importable, so both documents share one diagram. Infrastructure document V1.5 (version labels refreshed).
+- Project instructions V1.7: keep the Technology Stack Use document updated and versioned. Register V3.6; Day 6–10 prompt files added; log 2026-10-10.
+
 ## R3.3 — 2026-10-05
 - C&A Plumbing demo made more customer-appealing (template V2.1):
   - Full-width photo banner with a "What we fix" card listing every service.
@@ -90,4 +99,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.3 (2026-10-05) — CHANGELOG.md — V2.3
+Version: V2.4 (2026-10-10) — CHANGELOG.md — V2.4
