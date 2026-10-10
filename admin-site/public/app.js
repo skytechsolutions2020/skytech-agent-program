@@ -1,21 +1,49 @@
-// Version: V1.3 (2026-10-05) — admin-site/public/app.js — V1.3 (demo sites: edit, live preview, download, save)
-// SkyTech Admin site front end (no framework). Routes: #dashboard, #<entity>?search=&f_Col=val
+// Version: V2.1 (2026-10-10) — admin-site/public/app.js — V2.1 (comments)
+/**
+ * @file SkyTech Admin site front end (plain JavaScript, no framework). Routes: #dashboard, #syslog, #<entity>?search=&f_Col=val
+ * Security: no inline scripts (strict CSP); every value shown is escaped (esc); every change sends the CSRF token
+ *           (X-CSRF-Token) received at sign-in; write buttons appear only for admins (server checks again).
+ * Errors:   server errors arrive as { error, code, requestId, hint } and are shown as "message (CODE, ref ID)";
+ *           the ref ID finds the matching line in logs/runtime/admin-<date>.log and the System log screen.
+ */
 (() => {
   const $ = s => document.querySelector(s);
+  // esc — HTML-escape text before inserting it into the page (prevents script injection).
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  let META = null, ME = null, charts = [];
+  let META = null, ME = null, charts = [], CSRF = '';
 
-  async function api(method, url, body) {
-    const r = await fetch(url, { method, headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin' });
+  /**
+   * api — calls the Admin site API. Sends the anti-forgery token (X-CSRF-Token) on every change.
+   * On failure throws an Error whose message ends with the SkyTech code and reference, e.g.
+   * "Wrong username or password. (SKY-AUTH-001, ref 3fa2…)" — look the code up in the Troubleshooting Guide.
+   * If the token is stale (SKY-SEC-001) it refreshes it once and retries automatically.
+   */
+  async function api(method, url, body, retried) {
+    const headers = {};
+    if (body) headers['Content-Type'] = 'application/json';
+    if (method !== 'GET' && CSRF) headers['X-CSRF-Token'] = CSRF;
+    let r;
+    try { r = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin' }); }
+    catch (e) { const err = new Error('The Admin site is not reachable. Is the black server window still open? (SKY-SYS-001)'); err.code = 'SKY-SYS-001'; throw err; }
     const data = await r.json().catch(() => ({}));
-    if (r.status === 401 && url !== '/api/login') { showLogin(); throw new Error('Please log in.'); }
-    if (!r.ok) throw new Error(data.error || r.statusText);
+    if (data.code === 'SKY-SEC-001' && !retried) {
+      const me = await fetch('/api/me', { credentials: 'same-origin' }).then(x => x.json()).catch(() => ({}));
+      if (me.csrf) { CSRF = me.csrf; return api(method, url, body, true); }
+    }
+    if (r.status === 401 && url !== '/api/login') { showLogin(data.code === 'SKY-AUTH-003' ? 'Your session expired. Please sign in again.' : ''); const err = new Error('Please sign in. (' + (data.code || 'SKY-AUTH-004') + ')'); err.code = data.code; throw err; }
+    if (!r.ok) {
+      const err = new Error(`${data.error || r.statusText}${data.code ? ` (${data.code}${data.requestId ? ', ref ' + data.requestId : ''})` : ''}`);
+      err.code = data.code; err.ref = data.requestId; throw err;
+    }
     return data;
   }
+  // toast — short message at the bottom of the screen.
   function toast(msg, ms = 2600) { const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.add('hidden'), ms); }
+  // Formatting helpers: date, date+time, money.
   const fmtDate = v => v ? String(v).slice(0, 10) : '';
   const fmtDT = v => v ? new Date(v).toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
   const money = v => '$' + Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+  // cell — formats one table cell by column type (status badge, money, date, link, yes/no).
   function cell(def, v, col) {
     if (v === null || v === undefined || v === '') return '<span class="muted">—</span>';
     if (col === 'Status') return `<span class="pill ${esc(v)}">${esc(v)}</span>`;
@@ -25,37 +53,45 @@
     if (def && def.type === 'date') return esc(fmtDate(v));
     if (def && def.type === 'datetime') return esc(fmtDT(v));
     if (def && def.type === 'money') return esc(money(v));
-    if (/URL$/.test(col) && /^https?:\/\//i.test(v)) return `<a href="${esc(v)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${esc(v)}</a>`;
+    if (/URL$/.test(col) && /^https?:\/\//i.test(v)) return `<a class="ext" href="${esc(v)}" target="_blank" rel="noopener noreferrer">${esc(v)}</a>`;
     return esc(v);
   }
 
+  // links inside table rows open in a new tab without also opening the row (no inline handlers: CSP blocks them)
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('a.ext')) e.stopPropagation(); }, true);
+
   // ---------- auth
-  function showLogin() { $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); }
+  /** showLogin — shows the sign-in form (optionally with a message, e.g. session expired). */
+  function showLogin(msg) { $('#app').classList.add('hidden'); $('#login').classList.remove('hidden'); if (msg) $('#loginError').textContent = msg; }
   $('#loginForm').addEventListener('submit', async e => {
     e.preventDefault(); $('#loginError').textContent = '';
     const f = new FormData(e.target);
-    try { await api('POST', '/api/login', { username: f.get('username'), password: f.get('password') }); e.target.reset(); await start(); }
+    try { const r = await api('POST', '/api/login', { username: f.get('username'), password: f.get('password') }); CSRF = r.csrf || ''; e.target.reset(); await start(); }
     catch (err) { $('#loginError').textContent = err.message; }
   });
-  $('#logout').addEventListener('click', async () => { clearInterval(dupTimer); await api('POST', '/api/logout'); showLogin(); });
+  $('#logout').addEventListener('click', async () => { clearInterval(dupTimer); await api('POST', '/api/logout').catch(() => {}); CSRF = ''; showLogin(); });
   $('#menu').addEventListener('click', () => $('.sidebar').classList.toggle('open'));
 
+  // start — after sign-in: loads /api/me (user, role, CSRF token, version) and the screen metadata, then routes.
   async function start() {
-    const me = await api('GET', '/api/me'); ME = me.user;
+    const me = await api('GET', '/api/me'); ME = me.user; CSRF = me.csrf || CSRF;
     META = await api('GET', '/api/meta');
-    $('#who').textContent = `${ME.name} (${ME.role})`; $('#mode').textContent = me.mode;
+    $('#who').textContent = `${ME.name} (${ME.role})`; $('#mode').textContent = `${me.mode} · v${me.version || ''}`;
+    document.querySelectorAll('[data-admin]').forEach(a => a.classList.toggle('hidden', ME.role !== 'admin'));
     $('#login').classList.add('hidden'); $('#app').classList.remove('hidden');
     route(); watchDuplicates();
   }
 
   // ---------- live duplicate watch: nav badge refreshed every 30 s; open Duplicates tab re-checks itself
   let DUP = null, dupTimer = null;
+  // checkDuplicates — refreshes the live duplicate badge from /api/duplicates/summary.
   async function checkDuplicates() {
     try { DUP = await api('GET', '/api/duplicates/summary'); } catch (e) { return null; }
     const b = $('#dupBadge'); b.textContent = DUP.total; b.classList.toggle('hidden', false); b.classList.toggle('ok', DUP.total === 0);
     b.title = DUP.total ? `${DUP.total} duplicate${DUP.total === 1 ? '' : 's'} found right now` : 'No duplicates found';
     return DUP;
   }
+  // watchDuplicates — re-checks duplicates every minute and after each change.
   function watchDuplicates() {
     clearInterval(dupTimer);
     checkDuplicates();
@@ -67,6 +103,7 @@
       else if (view === 'dashboard' && DUP && before !== DUP.total && !drawerOpen) route();
     }, 30000);
   }
+  // canWrite — true for admins on writable screens (the server enforces the same rule: SKY-AUTH-005).
   const canWrite = e => ME && ME.role === 'admin' && META.entities[e].writable;
 
   // ---------- routing
@@ -74,6 +111,7 @@
     const [v, qs] = (location.hash.slice(1) || 'dashboard').split('?');
     return { view: v, params: Object.fromEntries(new URLSearchParams(qs || '')) };
   }
+  // go — navigates to a screen with filters.
   function go(view, params = {}) {
     const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== '' && v != null)).toString();
     location.hash = view + (qs ? '?' + qs : '');
@@ -81,12 +119,14 @@
   window.addEventListener('hashchange', route);
   document.querySelectorAll('#nav a').forEach(a => a.addEventListener('click', () => { $('.sidebar').classList.remove('open'); go(a.dataset.view); }));
 
+  // route — draws the screen for the current #route.
   function route() {
     if (!META) return;
     const { view, params } = parseHash();
     document.querySelectorAll('#nav a').forEach(a => a.classList.toggle('active', a.dataset.view === view));
     charts.forEach(c => c.destroy()); charts = [];
     if (view === 'dashboard') return renderDashboard();
+    if (view === 'syslog') return renderSyslog();
     if (META.entities[view]) return renderTable(view, params);
     go('dashboard');
   }
@@ -150,6 +190,7 @@
         onClick: (e, els) => { if (els.length) go('leads', { ...keys[els[0].index], ...(els[0].datasetIndex === 0 ? { f_Status: 'NoSite' } : {}) }); } } });
     charts.push(sc, ac);
   }
+  // miniTable — small clickable table used on the dashboard.
   function miniTable(rows, cols, entity, key, empty) {
     if (!rows || !rows.length) return `<p class="muted">${esc(empty)}</p>`;
     const defs = Object.assign({}, ...Object.values(META.entities).map(e => e.columns));
@@ -225,6 +266,7 @@
     return `<label class="${full}">${esc(name)}${def.required ? ' *' : ''}${input}${def.hint ? `<span class="fhint">${esc(def.hint)}</span>` : ''}</label>`;
   }
 
+  // openRecord — opens the record drawer: view/edit/create/delete, plus related records.
   async function openRecord(entity, key, preset = {}) {
     const e = META.entities[entity];
     const isNew = key == null;
@@ -266,6 +308,7 @@
     b.dataset.armed = '1'; b.textContent = 'Click again to delete'; setTimeout(() => { if (b) { delete b.dataset.armed; b.textContent = 'Delete'; } }, 4000);
     return false;
   }
+  // renderRelated — lists linked records (company → lead, web presence, activities, demo site).
   async function renderRelated(entity, rec) {
     const box = $('#related');
     if (entity === 'demosites') {
@@ -315,6 +358,7 @@
     WebPresence: 'A company should have one web-presence row. Fix keeps the most recently checked row, fills its blanks and carries over the notes from the others, then removes the extra rows.',
     Activities: 'The same call, email or note was logged twice on the same day for the same lead. Remove the extra one, or mark them as not a duplicate.'
   };
+  // dupPanel — the Possible duplicates panel: counts by category and severity.
   function dupPanel(params) {
     const cats = ['Companies', 'Leads', 'WebPresence', 'Activities'];
     const n = c => DUP ? DUP.byCategory.filter(x => x.Category === c).reduce((t, x) => t + x.N, 0) : '…';
@@ -330,10 +374,12 @@
       <div class="muted"><b>Exact</b> = breaks a no-duplicates rule (same source ID, same name + ZIP, two leads or two web rows for one company). <b>Likely</b> = same phone, email or website, or an activity logged twice. <b>Possible</b> = same name in another ZIP. Click a row to compare and fix it.</div>
     </div>`;
   }
+  // wireDupPanel — click handlers for the duplicate panel buttons.
   function wireDupPanel(entity, params) {
     document.querySelectorAll('.dup-tile').forEach(t => t.addEventListener('click', () => go(entity, { ...params, f_Category: t.dataset.cat, page: 1 })));
     $('#dupNow').addEventListener('click', async () => { await checkDuplicates(); route(); toast(DUP && DUP.total ? `${DUP.total} duplicate${DUP.total === 1 ? '' : 's'} found.` : 'No duplicates found.'); });
   }
+  // openCompare — side-by-side compare with Merge / Fix / Not a duplicate actions.
   async function openCompare(cat, a, b) {
     let d;
     try { d = await api('GET', `/api/duplicates/compare?cat=${encodeURIComponent(cat)}&a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`); }
@@ -392,6 +438,32 @@
     }));
   }
 
+  // ---------- system log (admin): health check + newest log entries, codes link to the Troubleshooting Guide
+  /** renderSyslog — shows /api/health and /api/logs; level filter; each code opens its guide entry. */
+  async function renderSyslog() {
+    $('#title').textContent = 'System log'; $('#crumbs').textContent = '';
+    const level = parseHash().params.level || 'info';
+    $('#view').innerHTML = '<p class="muted">Loading…</p>';
+    let h, l;
+    try { [h, l] = await Promise.all([api('GET', '/api/health'), api('GET', '/api/logs?level=' + encodeURIComponent(level))]); }
+    catch (err) { $('#view').innerHTML = `<div class="card">${esc(err.message)}</div>`; return; }
+    const guide = c => c ? `<a class="ext" target="_blank" rel="noopener" href="/docs/SkyTech_Troubleshooting_Guide.html#${encodeURIComponent(c)}">${esc(c)}</a>` : '';
+    $('#view').innerHTML = `
+      <div class="kpis">
+        <div class="card kpi ${h.ok ? '' : 'alert'}"><div class="v">${h.ok ? 'OK' : esc(h.db)}</div><div class="l">Database · ${esc(h.mode)} · ${esc(h.dbMs)} ms</div></div>
+        <div class="card kpi"><div class="v">v${esc(h.version)}</div><div class="l">Admin site · Node ${esc(h.node)}</div></div>
+        <div class="card kpi"><div class="v">${l.rows.filter(r => r.level === 'error').length}</div><div class="l">Errors in view</div></div>
+      </div>
+      <div class="card note">Log files: <code>${esc(h.logDir)}</code>. Each problem on screen shows a code and a reference (ref); find the same ref here. Codes link to the <a class="ext" target="_blank" rel="noopener" href="/docs/SkyTech_Troubleshooting_Guide.html">Troubleshooting Guide</a>.</div>
+      <div class="toolbar"><select id="lvl">${['info', 'warn', 'error'].map(v => `<option value="${v}" ${v === level ? 'selected' : ''}>Level: ${v} and above</option>`).join('')}</select><span style="flex:1"></span><button class="btn" id="relog">Refresh</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Time</th><th>Level</th><th>Category</th><th>Code</th><th>Ref</th><th>User</th><th>Message</th></tr></thead><tbody>
+      ${l.rows.map(r => `<tr class="lg-${esc(r.level)}"><td>${esc(fmtDT(r.ts))}</td><td>${esc(r.level)}</td><td>${esc(r.category)}</td><td>${guide(r.code)}</td><td>${esc(r.reqId || '')}</td><td>${esc(r.user || '')}</td><td title="${esc(JSON.stringify(r.details || ''))}">${esc(r.msg)}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No entries at this level.</td></tr>'}
+      </tbody></table></div>`;
+    $('#lvl').addEventListener('change', ev => go('syslog', { level: ev.target.value }));
+    $('#relog').addEventListener('click', () => route());
+  }
+
+  /** closeDrawer — hides the side panel (record editor / compare view). */
   function closeDrawer() { $('#drawer').classList.add('hidden'); }
   $('#drawerClose').addEventListener('click', closeDrawer);
   $('#drawer').addEventListener('click', ev => { if (ev.target.id === 'drawer') closeDrawer(); });
@@ -399,3 +471,5 @@
 
   start().catch(() => showLogin());
 })();
+
+// Version: V2.1 (2026-10-10) — admin-site/public/app.js — V2.1

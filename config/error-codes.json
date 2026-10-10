@@ -1,0 +1,1190 @@
+{
+ "version": "V1.1",
+ "date": "2026-10-10",
+ "format": "SKY-<AREA>-<NNN>",
+ "severities": [
+  "info",
+  "warn",
+  "error",
+  "critical"
+ ],
+ "codes": [
+  {
+   "code": "SKY-CFG-001",
+   "area": "Configuration",
+   "severity": "critical",
+   "title": "Settings file .env is missing",
+   "where": "Admin site start (npm start / start-admin.bat)",
+   "causes": [
+    "The admin-site\\.env file was never created",
+    "It was renamed or deleted"
+   ],
+   "fix": [
+    "In the admin-site folder copy .env.example to a new file named .env",
+    "Fill in DB_SERVER, DB_AUTH, DB_DRIVER and SESSION_SECRET (see admin-site README)",
+    "Run npm run doctor to confirm, then start the site again"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); screen",
+   "predicted": false,
+   "http": null,
+   "user": "Settings file .env is missing"
+  },
+  {
+   "code": "SKY-CFG-002",
+   "area": "Configuration",
+   "severity": "critical",
+   "title": "SESSION_SECRET is missing or too weak",
+   "where": "Admin site start",
+   "causes": [
+    "SESSION_SECRET is empty, still 'change-this…', or shorter than 32 characters"
+   ],
+   "fix": [
+    "Open admin-site\\.env",
+    "Set SESSION_SECRET to a random phrase of at least 32 characters (npm run doctor -- --new-secret prints one)",
+    "Save and start the site again; everyone must sign in again"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); screen",
+   "predicted": false,
+   "http": null,
+   "user": "SESSION_SECRET is missing or too weak"
+  },
+  {
+   "code": "SKY-CFG-003",
+   "area": "Configuration",
+   "severity": "critical",
+   "title": "Site opened to the network without HTTPS cookies",
+   "where": "Admin site start",
+   "causes": [
+    "HOST is not 127.0.0.1/localhost but COOKIE_SECURE is not 1"
+   ],
+   "fix": [
+    "Keep HOST=127.0.0.1 for local use (recommended)",
+    "Only when hosting behind HTTPS: set COOKIE_SECURE=1 and TRUST_PROXY=1"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); screen",
+   "predicted": false,
+   "http": null,
+   "user": "Site opened to the network without HTTPS cookies"
+  },
+  {
+   "code": "SKY-CFG-004",
+   "area": "Configuration",
+   "severity": "error",
+   "title": "Node.js version is too old",
+   "where": "Admin site start, doctor",
+   "causes": [
+    "Node.js older than version 18 is installed"
+   ],
+   "fix": [
+    "Download the LTS version from https://nodejs.org and install it",
+    "Close and reopen the command window, then run node --version"
+   ],
+   "log": "logs/runtime/doctor-YYYY-MM-DD.log and the doctor screen",
+   "predicted": false,
+   "http": null,
+   "user": "Node.js version is too old"
+  },
+  {
+   "code": "SKY-CFG-005",
+   "area": "Configuration",
+   "severity": "warn",
+   "title": "demo-sites folder not found",
+   "where": "Admin site: Save to demo-sites folder",
+   "causes": [
+    "admin-site was moved away from the repository folder",
+    "DEMO_SITES_DIR points to a folder that does not exist"
+   ],
+   "fix": [
+    "Keep admin-site inside skytech-agent-program next to demo-sites",
+    "Or set DEMO_SITES_DIR in .env to the full path of the demo-sites folder"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 500,
+   "user": "demo-sites folder not found"
+  },
+  {
+   "code": "SKY-CFG-006",
+   "area": "Configuration",
+   "severity": "error",
+   "title": "Port already in use",
+   "where": "Admin site start",
+   "causes": [
+    "The Admin site is already running in another window",
+    "Another program uses port 3030"
+   ],
+   "fix": [
+    "Close the other black Admin site window, or",
+    "Set PORT=3031 in .env and open http://127.0.0.1:3031"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); screen",
+   "predicted": true,
+   "http": null,
+   "user": "Port already in use"
+  },
+  {
+   "code": "SKY-CFG-007",
+   "area": "Configuration",
+   "severity": "error",
+   "title": "Required package missing",
+   "where": "Admin site start, doctor, build-demos",
+   "causes": [
+    "npm install was not run, or node_modules was deleted"
+   ],
+   "fix": [
+    "Open a Command Prompt in admin-site and run npm install",
+    "Run npm run doctor"
+   ],
+   "log": "logs/runtime/doctor-YYYY-MM-DD.log and the doctor screen",
+   "predicted": false,
+   "http": null,
+   "user": "Required package missing"
+  },
+  {
+   "code": "SKY-DB-001",
+   "area": "Database",
+   "severity": "critical",
+   "title": "Cannot connect to SQL Server",
+   "where": "Admin site start, create-admin, doctor",
+   "causes": [
+    "The SQL Server service is stopped",
+    "DB_SERVER does not match the server name used in SSMS",
+    "Firewall or instance name wrong (e.g. localhost\\SQL2014)"
+   ],
+   "fix": [
+    "Press Windows key → Services → 'SQL Server (…)' → Start",
+    "Open SSMS, copy the exact Server name into DB_SERVER in .env",
+    "Run npm run doctor; if it still fails, try npm run demo to confirm the site itself works"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); logs/runtime/doctor-YYYY-MM-DD.log and the doctor screen",
+   "predicted": false,
+   "http": null,
+   "user": "Cannot connect to SQL Server"
+  },
+  {
+   "code": "SKY-DB-002",
+   "area": "Database",
+   "severity": "critical",
+   "title": "Windows login needs the msnodesqlv8 package",
+   "where": "Admin site start (DB_AUTH=windows)",
+   "causes": [
+    "msnodesqlv8 failed to install (it only installs on Windows)"
+   ],
+   "fix": [
+    "On the Windows PC run npm install in admin-site",
+    "If it still fails, install 'Visual C++ Redistributable', or use DB_AUTH=sql with a SQL login (see sql/06)"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": null,
+   "user": "Windows login needs the msnodesqlv8 package"
+  },
+  {
+   "code": "SKY-DB-003",
+   "area": "Database",
+   "severity": "critical",
+   "title": "ODBC driver not found",
+   "where": "Admin site start (DB_AUTH=windows)",
+   "causes": [
+    "DB_DRIVER names a driver that is not installed"
+   ],
+   "fix": [
+    "Windows key → 'ODBC Data Sources (64-bit)' → Drivers tab",
+    "Copy an installed name (e.g. 'SQL Server Native Client 11.0' or 'ODBC Driver 17 for SQL Server') into DB_DRIVER"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": null,
+   "user": "ODBC driver not found"
+  },
+  {
+   "code": "SKY-DB-004",
+   "area": "Database",
+   "severity": "critical",
+   "title": "Database SkyTechCRM does not exist",
+   "where": "Admin site start, doctor",
+   "causes": [
+    "sql/01_create_skytechcrm.sql has not been run",
+    "DB_DATABASE has a different name"
+   ],
+   "fix": [
+    "In SSMS open and run sql/01_create_skytechcrm.sql, then the sample import, sql/04, sql/05 and sql/06",
+    "Check DB_DATABASE=SkyTechCRM in .env"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); logs/runtime/doctor-YYYY-MM-DD.log and the doctor screen",
+   "predicted": false,
+   "http": null,
+   "user": "Database SkyTechCRM does not exist"
+  },
+  {
+   "code": "SKY-DB-005",
+   "area": "Database",
+   "severity": "error",
+   "title": "A database table, view or procedure is missing",
+   "where": "Any Admin site screen",
+   "causes": [
+    "A newer script version was not run in SSMS (e.g. sql/04 or sql/06)"
+   ],
+   "fix": [
+    "Run npm run doctor to see which object is missing",
+    "Run the SQL scripts again in order: 01 → sample import → 04 → 05 → 06 (all are safe to re-run)"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); logs/runtime/doctor-YYYY-MM-DD.log and the doctor screen",
+   "predicted": false,
+   "http": 500,
+   "user": "A database table, view or procedure is missing"
+  },
+  {
+   "code": "SKY-DB-006",
+   "area": "Database",
+   "severity": "critical",
+   "title": "SQL login failed",
+   "where": "Admin site start (DB_AUTH=sql)",
+   "causes": [
+    "DB_USER or DB_PASSWORD wrong",
+    "SQL Server authentication (mixed mode) is turned off",
+    "The login is disabled or its password expired"
+   ],
+   "fix": [
+    "Check DB_USER / DB_PASSWORD in .env",
+    "In SSMS: server Properties → Security → 'SQL Server and Windows Authentication mode', restart the service",
+    "Or switch to DB_AUTH=windows"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": null,
+   "user": "SQL login failed"
+  },
+  {
+   "code": "SKY-DB-007",
+   "area": "Database",
+   "severity": "error",
+   "title": "Database request timed out",
+   "where": "Any Admin site screen",
+   "causes": [
+    "SQL Server is busy or a long query is blocking",
+    "Very large table without index"
+   ],
+   "fix": [
+    "Wait and retry",
+    "In SSMS run: EXEC sp_who2 to look for blocking sessions",
+    "Restart the SQL Server service if it stays stuck"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": true,
+   "http": 503,
+   "user": "Database request timed out"
+  },
+  {
+   "code": "SKY-DB-008",
+   "area": "Database",
+   "severity": "error",
+   "title": "Permission denied in the database",
+   "where": "Any Admin site screen",
+   "causes": [
+    "The app connects with a restricted login that lacks a permission",
+    "sql/06 role was created before a new table existed"
+   ],
+   "fix": [
+    "Re-run sql/06_security_and_logging.sql (re-grants all permissions to SkyTechApp)",
+    "Make sure the app's login is a member of the SkyTechApp role"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": true,
+   "http": 500,
+   "user": "Permission denied in the database"
+  },
+  {
+   "code": "SKY-DB-009",
+   "area": "Database",
+   "severity": "error",
+   "title": "Unexpected database error",
+   "where": "Any database action",
+   "causes": [
+    "An error not covered by other codes"
+   ],
+   "fix": [
+    "Note the reference number shown on screen",
+    "Search the admin log for that reference to read the SQL error number and message",
+    "Look the SQL error number up in this guide or send it to SkyTech_Manager"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); dbo.ErrorLog in SkyTechCRM (SELECT TOP 50 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC)",
+   "predicted": false,
+   "http": 500,
+   "user": "Unexpected database error"
+  },
+  {
+   "code": "SKY-DB-010",
+   "area": "Database",
+   "severity": "warn",
+   "title": "Database errors were recorded in dbo.ErrorLog",
+   "where": "npm run doctor; any stored procedure",
+   "causes": [
+    "A stored procedure failed (import, merge, fix, backup) and wrote its error to dbo.ErrorLog before rolling back"
+   ],
+   "fix": [
+    "In SSMS run: SELECT TOP 20 * FROM SkyTechCRM.dbo.ErrorLog ORDER BY ErrorLogID DESC",
+    "Look up the ErrorNumber in the Troubleshooting Guide table \"SQL Server error numbers\"",
+    "After fixing, old rows can be removed with EXEC dbo.usp_PurgeErrorLog @KeepDays = 90"
+   ],
+   "log": "dbo.ErrorLog (database)",
+   "predicted": true,
+   "http": null,
+   "user": null
+  },
+  {
+   "code": "SKY-AUTH-001",
+   "area": "Sign-in",
+   "severity": "info",
+   "title": "Wrong username or password",
+   "where": "Admin site sign-in",
+   "causes": [
+    "Typing error",
+    "Account disabled (IsActive = 0)"
+   ],
+   "fix": [
+    "Check Caps Lock and try again",
+    "Reset with npm run create-admin using the same username"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 401,
+   "user": "Wrong username or password"
+  },
+  {
+   "code": "SKY-AUTH-002",
+   "area": "Sign-in",
+   "severity": "warn",
+   "title": "Too many sign-in attempts — locked for 15 minutes",
+   "where": "Admin site sign-in",
+   "causes": [
+    "5 wrong passwords for this username or from this computer within 15 minutes"
+   ],
+   "fix": [
+    "Wait 15 minutes, or restart the Admin site (clears the lock)",
+    "If you did not cause it, check the security log for LOGIN_FAIL entries"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 429,
+   "user": "Too many sign-in attempts — locked for 15 minutes"
+  },
+  {
+   "code": "SKY-AUTH-003",
+   "area": "Sign-in",
+   "severity": "info",
+   "title": "Session expired",
+   "where": "Any Admin site screen",
+   "causes": [
+    "No activity for 30 minutes (SESSION_IDLE_MIN), or signed in longer than 8 hours"
+   ],
+   "fix": [
+    "Sign in again"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 401,
+   "user": "Session expired"
+  },
+  {
+   "code": "SKY-AUTH-004",
+   "area": "Sign-in",
+   "severity": "info",
+   "title": "Not signed in",
+   "where": "Any Admin site request",
+   "causes": [
+    "The browser has no session (new tab, cookies cleared, site restarted)"
+   ],
+   "fix": [
+    "Sign in again"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 401,
+   "user": "Not signed in"
+  },
+  {
+   "code": "SKY-AUTH-005",
+   "area": "Sign-in",
+   "severity": "warn",
+   "title": "Read-only account",
+   "where": "Create, edit, delete, merge actions",
+   "causes": [
+    "A viewer account tried to change data"
+   ],
+   "fix": [
+    "Sign in with an admin account, or have an admin make the change"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 403,
+   "user": "Read-only account"
+  },
+  {
+   "code": "SKY-AUTH-006",
+   "area": "Sign-in",
+   "severity": "warn",
+   "title": "Password does not meet the policy",
+   "where": "npm run create-admin",
+   "causes": [
+    "Fewer than 12 characters, missing upper/lower case or a digit, contains the username, or is a common password"
+   ],
+   "fix": [
+    "Choose a passphrase of 12+ characters with upper and lower case letters and a number"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": false,
+   "http": null,
+   "user": "Password does not meet the policy"
+  },
+  {
+   "code": "SKY-SEC-001",
+   "area": "Security",
+   "severity": "warn",
+   "title": "Security token missing or invalid (CSRF)",
+   "where": "Any change in the Admin site",
+   "causes": [
+    "The page was open before the site restarted",
+    "Another website tried to send a request on your behalf"
+   ],
+   "fix": [
+    "Reload the page (F5) and repeat the action",
+    "If it happens without reason, check the security log"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 403,
+   "user": "Security token missing or invalid (CSRF)"
+  },
+  {
+   "code": "SKY-SEC-002",
+   "area": "Security",
+   "severity": "warn",
+   "title": "Too many requests — slow down",
+   "where": "Admin site",
+   "causes": [
+    "More than the allowed number of requests per minute from this computer (a stuck script or an attack)"
+   ],
+   "fix": [
+    "Wait one minute and retry",
+    "Close duplicate browser tabs running auto-refresh"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 429,
+   "user": "Too many requests — slow down"
+  },
+  {
+   "code": "SKY-SEC-003",
+   "area": "Security",
+   "severity": "warn",
+   "title": "Request too large",
+   "where": "Admin site save",
+   "causes": [
+    "A field or upload exceeded 200 KB"
+   ],
+   "fix": [
+    "Shorten the text and save again"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 413,
+   "user": "Request too large"
+  },
+  {
+   "code": "SKY-SEC-004",
+   "area": "Security",
+   "severity": "critical",
+   "title": "Possible secret found in files to be uploaded",
+   "where": "push-to-github.bat (secret scan)",
+   "causes": [
+    "A password, token, private key or connection string with a password is in a tracked file"
+   ],
+   "fix": [
+    "Open the file and line shown by the scanner",
+    "Move the secret into admin-site\\.env (never committed) and remove it from the file",
+    "Commit the fix, then run push-to-github.bat again; if a real secret was already pushed, change that password/token"
+   ],
+   "log": "Screen output of the secret scan",
+   "predicted": false,
+   "http": null,
+   "user": "Possible secret found in files to be uploaded"
+  },
+  {
+   "code": "SKY-SEC-005",
+   "area": "Security",
+   "severity": "warn",
+   "title": "Photo link not allowed",
+   "where": "Admin site → Demo sites",
+   "causes": [
+    "A photo URL is not from images.pexels.com or images.unsplash.com"
+   ],
+   "fix": [
+    "Use a free-licence photo link from Pexels or Unsplash"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 400,
+   "user": "Photo link not allowed"
+  },
+  {
+   "code": "SKY-SEC-006",
+   "area": "Security",
+   "severity": "critical",
+   "title": "Audit log is protected and cannot be changed",
+   "where": "Database (dbo.AuditLog)",
+   "causes": [
+    "Someone tried to UPDATE or DELETE audit records"
+   ],
+   "fix": [
+    "Audit records are append-only by design; nothing to fix",
+    "Investigate who tried, using SQL Server logs"
+   ],
+   "log": "dbo.ErrorLog in SkyTechCRM (SELECT TOP 50 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC)",
+   "predicted": true,
+   "http": null,
+   "user": "Audit log is protected and cannot be changed"
+  },
+  {
+   "code": "SKY-SEC-007",
+   "area": "Security",
+   "severity": "warn",
+   "title": "Request from another website blocked",
+   "where": "Admin site",
+   "causes": [
+    "The request's Origin header does not match the Admin site address"
+   ],
+   "fix": [
+    "Use the Admin site only from its own address (http://127.0.0.1:3030)"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 403,
+   "user": "Request from another website blocked"
+  },
+  {
+   "code": "SKY-DATA-001",
+   "area": "Data",
+   "severity": "info",
+   "title": "Required field missing",
+   "where": "Admin site save",
+   "causes": [
+    "A field marked * was left empty"
+   ],
+   "fix": [
+    "Fill in the fields marked * and save again"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 400,
+   "user": "Required field missing"
+  },
+  {
+   "code": "SKY-DATA-002",
+   "area": "Data",
+   "severity": "info",
+   "title": "Value has the wrong format",
+   "where": "Admin site save",
+   "causes": [
+    "Colour not like #1f5fbf, slug with spaces/capitals, bad date or number, or the request was not valid JSON"
+   ],
+   "fix": [
+    "Correct the field shown in the message and save again"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 400,
+   "user": "Value has the wrong format"
+  },
+  {
+   "code": "SKY-DATA-003",
+   "area": "Data",
+   "severity": "warn",
+   "title": "Record is linked to other records",
+   "where": "Admin site delete",
+   "causes": [
+    "Deleting a company that still has a lead, web presence or demo site, or a lead with activities"
+   ],
+   "fix": [
+    "Delete or move the linked records first, or use Possible duplicates → merge"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 409,
+   "user": "Record is linked to other records"
+  },
+  {
+   "code": "SKY-DATA-004",
+   "area": "Data",
+   "severity": "info",
+   "title": "Record not found",
+   "where": "Admin site",
+   "causes": [
+    "It was deleted or merged in another tab"
+   ],
+   "fix": [
+    "Reload the list"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 404,
+   "user": "Record not found"
+  },
+  {
+   "code": "SKY-DATA-005",
+   "area": "Data",
+   "severity": "info",
+   "title": "This view is read-only",
+   "where": "Admin site",
+   "causes": [
+    "Trying to change Imports, Possible duplicates or Audit log directly"
+   ],
+   "fix": [
+    "Change the underlying record instead"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 405,
+   "user": "This view is read-only"
+  },
+  {
+   "code": "SKY-DATA-006",
+   "area": "Data",
+   "severity": "warn",
+   "title": "Unknown table",
+   "where": "Admin site API",
+   "causes": [
+    "A link or bookmark names a table the site does not allow"
+   ],
+   "fix": [
+    "Use the menu"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 404,
+   "user": "Unknown table"
+  },
+  {
+   "code": "SKY-DUP-001",
+   "area": "Duplicates",
+   "severity": "info",
+   "title": "Duplicate record refused",
+   "where": "Admin site save, imports",
+   "causes": [
+    "Same source ID, same name + ZIP, a second lead/web row/demo site for one company"
+   ],
+   "fix": [
+    "Open Possible duplicates and merge, or edit the existing record instead"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 409,
+   "user": "Duplicate record refused"
+  },
+  {
+   "code": "SKY-DUP-002",
+   "area": "Duplicates",
+   "severity": "warn",
+   "title": "Leads cannot be merged",
+   "where": "Possible duplicates → merge leads",
+   "causes": [
+    "The two leads no longer belong to the same company, or one was deleted (SQL 50011/50012)"
+   ],
+   "fix": [
+    "Click Check now to refresh the list",
+    "Merge the companies first if needed"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number); dbo.ErrorLog in SkyTechCRM (SELECT TOP 50 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC)",
+   "predicted": false,
+   "http": 409,
+   "user": "Leads cannot be merged"
+  },
+  {
+   "code": "SKY-DUP-003",
+   "area": "Duplicates",
+   "severity": "info",
+   "title": "Nothing to fix — company has one web-presence row",
+   "where": "Possible duplicates → fix web presence",
+   "causes": [
+    "Already fixed in another tab (SQL 50021)"
+   ],
+   "fix": [
+    "Click Check now"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 409,
+   "user": "Nothing to fix — company has one web-presence row"
+  },
+  {
+   "code": "SKY-DUP-004",
+   "area": "Duplicates",
+   "severity": "warn",
+   "title": "Unique rule could not be created",
+   "where": "sql/01 or sql/04 run in SSMS",
+   "causes": [
+    "Duplicates existed when the script ran, so the unique index was skipped (WARNING in Messages)"
+   ],
+   "fix": [
+    "Open Admin site → Possible duplicates, fix all Exact duplicates",
+    "Run the script again; the index is then created"
+   ],
+   "log": "SSMS Messages tab",
+   "predicted": true,
+   "http": null,
+   "user": "Unique rule could not be created"
+  },
+  {
+   "code": "SKY-DUP-005",
+   "area": "Duplicates",
+   "severity": "warn",
+   "title": "Companies cannot be merged",
+   "where": "Possible duplicates → merge companies (dbo.usp_MergeCompanies)",
+   "causes": [
+    "The same company was chosen twice (SQL error 50001)",
+    "One of the two companies was deleted or merged by someone else (SQL error 50002)"
+   ],
+   "fix": [
+    "Reload the Possible duplicates screen and choose two different companies that still exist"
+   ],
+   "log": "admin log (category http/db); dbo.ErrorLog",
+   "predicted": false,
+   "http": 409,
+   "user": "These two companies cannot be merged. Reload the list and try again."
+  },
+  {
+   "code": "SKY-DEMO-001",
+   "area": "Demo sites",
+   "severity": "error",
+   "title": "Design file is not valid",
+   "where": "npm run build-demos",
+   "causes": [
+    "A comma or quote is missing in demo-sites\\designs\\<name>.json"
+   ],
+   "fix": [
+    "Open the file named in the message; check the line shown",
+    "Paste it into a JSON checker (e.g. jsonlint.com) if unsure, fix and rebuild"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": false,
+   "http": null,
+   "user": "Design file is not valid"
+  },
+  {
+   "code": "SKY-DEMO-002",
+   "area": "Demo sites",
+   "severity": "error",
+   "title": "Design has no matching lead",
+   "where": "npm run build-demos",
+   "causes": [
+    "The OvertureID in the design file is not in data/samples/SkyTech_Leads_Sample100.csv"
+   ],
+   "fix": [
+    "Copy the correct OvertureID from the lead CSV into the design file"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": false,
+   "http": null,
+   "user": "Design has no matching lead"
+  },
+  {
+   "code": "SKY-DEMO-003",
+   "area": "Demo sites",
+   "severity": "error",
+   "title": "Unknown demo name",
+   "where": "npm run build-demos -- <slug>",
+   "causes": [
+    "The slug typed does not match any design file"
+   ],
+   "fix": [
+    "Use the file name without .json, e.g. c-and-a-plumbing-20723"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": false,
+   "http": null,
+   "user": "Unknown demo name"
+  },
+  {
+   "code": "SKY-DEMO-004",
+   "area": "Demo sites",
+   "severity": "warn",
+   "title": "Photos do not appear on a demo",
+   "where": "Demo page in a browser",
+   "causes": [
+    "No internet connection",
+    "Pexels changed or removed the photo",
+    "A firewall blocks images.pexels.com"
+   ],
+   "fix": [
+    "Open the page online; try another photo link in Admin site → Demo sites",
+    "Before going live, download the photos and host them with the site (img/ folder)"
+   ],
+   "log": "Browser developer tools (F12 → Console)",
+   "predicted": true,
+   "http": null,
+   "user": "Photos do not appear on a demo"
+  },
+  {
+   "code": "SKY-DEMO-005",
+   "area": "Demo sites",
+   "severity": "info",
+   "title": "Fonts look plain",
+   "where": "Demo page offline",
+   "causes": [
+    "Google Fonts cannot load offline; a similar system font is used"
+   ],
+   "fix": [
+    "No action needed; fonts load when online"
+   ],
+   "log": "—",
+   "predicted": true,
+   "http": null,
+   "user": "Fonts look plain"
+  },
+  {
+   "code": "SKY-IMP-001",
+   "area": "Imports",
+   "severity": "warn",
+   "title": "Some demos were not loaded into the database",
+   "where": "sql/05 in SSMS",
+   "causes": [
+    "The result grid 'NotFoundInDatabase' lists businesses whose company is not in SkyTechCRM yet"
+   ],
+   "fix": [
+    "Run the lead import first (data/samples/…_import.sql), then sql/05 again"
+   ],
+   "log": "SSMS results grid",
+   "predicted": false,
+   "http": null,
+   "user": "Some demos were not loaded into the database"
+  },
+  {
+   "code": "SKY-IMP-002",
+   "area": "Imports",
+   "severity": "error",
+   "title": "Lead import failed and was rolled back",
+   "where": "usp_ImportStagedLeads (lead import SQL)",
+   "causes": [
+    "Bad data in the staging rows (too long, invalid characters) or a missing object"
+   ],
+   "fix": [
+    "Read the newest row in dbo.ErrorLog for the exact SQL message",
+    "Fix the data or run sql/01 again, then re-run the import (nothing was half-imported)"
+   ],
+   "log": "dbo.ErrorLog in SkyTechCRM (SELECT TOP 50 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC)",
+   "predicted": false,
+   "http": null,
+   "user": "Lead import failed and was rolled back"
+  },
+  {
+   "code": "SKY-IMP-003",
+   "area": "Imports",
+   "severity": "warn",
+   "title": "Staging table not empty",
+   "where": "Lead import",
+   "causes": [
+    "A previous import stopped half-way; dbo.StgLeads still has rows"
+   ],
+   "fix": [
+    "Nothing to do: each import clears staging at the start",
+    "If in doubt: DELETE FROM dbo.StgLeads; then re-run the import"
+   ],
+   "log": "dbo.ErrorLog in SkyTechCRM (SELECT TOP 50 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC)",
+   "predicted": true,
+   "http": null,
+   "user": "Staging table not empty"
+  },
+  {
+   "code": "SKY-LEAD-001",
+   "area": "Lead scripts",
+   "severity": "error",
+   "title": "Lead input file missing or unreadable",
+   "where": "scripts/leads/*.py",
+   "causes": [
+    "Path typed wrong, or the file is open in Excel"
+   ],
+   "fix": [
+    "Check the path in the command",
+    "Close the file in Excel and retry"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": false,
+   "http": null,
+   "user": "Lead input file missing or unreadable"
+  },
+  {
+   "code": "SKY-LEAD-002",
+   "area": "Lead scripts",
+   "severity": "error",
+   "title": "Overture extract is empty",
+   "where": "scripts/leads (browser extract)",
+   "causes": [
+    "Map tiles were not loaded when the extract ran"
+   ],
+   "fix": [
+    "Zoom the Overture Explorer map to the area, wait for points to appear, then run the extract again"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": true,
+   "http": null,
+   "user": "Overture extract is empty"
+  },
+  {
+   "code": "SKY-LEAD-003",
+   "area": "Lead scripts",
+   "severity": "warn",
+   "title": "Data source blocked by the network",
+   "where": "Lead pulls",
+   "causes": [
+    "The Overture download bucket or OpenStreetMap API is blocked by the network policy"
+   ],
+   "fix": [
+    "Use the Overture Explorer in the Claude desktop browser (works)",
+    "Or download files manually and place them in data/raw/"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": true,
+   "http": null,
+   "user": "Data source blocked by the network"
+  },
+  {
+   "code": "SKY-DOC-001",
+   "area": "Documents",
+   "severity": "error",
+   "title": "Document builder needs a missing tool",
+   "where": "scripts/docs/*.py, prompt book",
+   "causes": [
+    "Python package missing (e.g. reportlab for the prompt book)"
+   ],
+   "fix": [
+    "Run: pip install reportlab",
+    "PDF versions of documents are made by SkyTech_Manager; HTML/Markdown build without extra tools"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": false,
+   "http": null,
+   "user": "Document builder needs a missing tool"
+  },
+  {
+   "code": "SKY-DOC-002",
+   "area": "Documents",
+   "severity": "error",
+   "title": "Document source could not be read",
+   "where": "scripts/docs/*.py",
+   "causes": [
+    "A source file (error catalog, diagram data, code file) was moved or has a syntax error"
+   ],
+   "fix": [
+    "Run the builder again and read the file name in the message",
+    "Undo the last edit to that file (GitHub Desktop → History) and rebuild"
+   ],
+   "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
+   "predicted": false,
+   "http": null,
+   "user": "Document source could not be read"
+  },
+  {
+   "code": "SKY-GIT-001",
+   "area": "GitHub",
+   "severity": "error",
+   "title": "GitHub rejected the sign-in",
+   "where": "push-to-github.bat",
+   "causes": [
+    "Saved GitHub password/token expired ('Invalid username or token')"
+   ],
+   "fix": [
+    "Windows key → Credential Manager → Windows Credentials → remove entries starting git:https://github.com",
+    "Run push-to-github.bat again and sign in in the browser window"
+   ],
+   "log": "Screen output of push-to-github.bat or GitHub Desktop",
+   "predicted": false,
+   "http": null,
+   "user": "GitHub rejected the sign-in"
+  },
+  {
+   "code": "SKY-GIT-002",
+   "area": "GitHub",
+   "severity": "error",
+   "title": "Git lock file left behind",
+   "where": "push-to-github.bat, GitHub Desktop",
+   "causes": [
+    "A git command was interrupted ('index.lock' or 'HEAD.lock' … File exists)"
+   ],
+   "fix": [
+    "Make sure GitHub Desktop is closed",
+    "Delete skytech-agent-program\\.git\\index.lock (or HEAD.lock) in File Explorer",
+    "Run the push again; npm run doctor reports leftover locks"
+   ],
+   "log": "Screen output of push-to-github.bat or GitHub Desktop; logs/runtime/doctor-YYYY-MM-DD.log and the doctor screen",
+   "predicted": false,
+   "http": null,
+   "user": "Git lock file left behind"
+  },
+  {
+   "code": "SKY-GIT-003",
+   "area": "GitHub",
+   "severity": "error",
+   "title": "GitHub remote not set",
+   "where": "push-to-github.bat",
+   "causes": [
+    "The folder was copied without its GitHub link"
+   ],
+   "fix": [
+    "In this folder run: git remote add origin https://github.com/skytechsolutions2020/skytech-agent-program.git",
+    "Then run push-to-github.bat"
+   ],
+   "log": "Screen output of push-to-github.bat or GitHub Desktop",
+   "predicted": false,
+   "http": null,
+   "user": "GitHub remote not set"
+  },
+  {
+   "code": "SKY-GIT-004",
+   "area": "GitHub",
+   "severity": "warn",
+   "title": "GitHub has changes this computer does not",
+   "where": "push-to-github.bat",
+   "causes": [
+    "Files were edited directly on github.com ('rejected … fetch first')"
+   ],
+   "fix": [
+    "Open GitHub Desktop → Fetch origin → Pull, then push again",
+    "Do not edit files on github.com; edit in the local folder"
+   ],
+   "log": "Screen output of push-to-github.bat or GitHub Desktop",
+   "predicted": true,
+   "http": null,
+   "user": "GitHub has changes this computer does not"
+  },
+  {
+   "code": "SKY-GIT-005",
+   "area": "GitHub",
+   "severity": "error",
+   "title": "Git is not installed or this is not the repository folder",
+   "where": "push-to-github.bat, scan-secrets, doctor",
+   "causes": [
+    "Git for Windows is not installed or not on PATH",
+    "The script was run outside the skytech-agent-program folder"
+   ],
+   "fix": [
+    "Install Git for Windows (free) and reopen the window",
+    "Run the script from C:\\Users\\AV\\Documents\\SkyTechClaude\\skytech-agent-program"
+   ],
+   "log": "screen",
+   "predicted": true,
+   "http": null,
+   "user": null
+  },
+  {
+   "code": "SKY-BAK-001",
+   "area": "Backup",
+   "severity": "error",
+   "title": "Database backup failed",
+   "where": "usp_BackupSkyTechCRM (sql/06)",
+   "causes": [
+    "Backup folder does not exist or SQL Server's service account cannot write to it",
+    "Disk full"
+   ],
+   "fix": [
+    "Use a folder SQL Server can write to (default C:\\SkyTechBackups, created by the script) or grant the service account access",
+    "Free disk space and run EXEC dbo.usp_BackupSkyTechCRM again"
+   ],
+   "log": "dbo.ErrorLog in SkyTechCRM (SELECT TOP 50 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC)",
+   "predicted": false,
+   "http": null,
+   "user": "Database backup failed"
+  },
+  {
+   "code": "SKY-BAK-002",
+   "area": "Backup",
+   "severity": "critical",
+   "title": "Database damaged or lost — restore needed",
+   "where": "SQL Server",
+   "causes": [
+    "Disk failure, accidental drop, corrupted database"
+   ],
+   "fix": [
+    "Find the newest SkyTechCRM_*.bak in the backup folder",
+    "In SSMS: right-click Databases → Restore Database → Device → choose the .bak → OK",
+    "Run npm run doctor to confirm"
+   ],
+   "log": "dbo.ErrorLog in SkyTechCRM (SELECT TOP 50 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC)",
+   "predicted": true,
+   "http": null,
+   "user": "Database damaged or lost — restore needed"
+  },
+  {
+   "code": "SKY-BAK-003",
+   "area": "Backup",
+   "severity": "warn",
+   "title": "No recent database backup",
+   "where": "npm run doctor",
+   "causes": [
+    "dbo.usp_BackupSkyTechCRM has not been run in the last 7 days (or never)"
+   ],
+   "fix": [
+    "In SSMS run: EXEC SkyTechCRM.dbo.usp_BackupSkyTechCRM;",
+    "Copy C:\\SkyTechBackups to a USB drive or cloud folder once a week"
+   ],
+   "log": "doctor log; msdb.dbo.backupset",
+   "predicted": true,
+   "http": null,
+   "user": null
+  },
+  {
+   "code": "SKY-SYS-001",
+   "area": "System",
+   "severity": "error",
+   "title": "Unexpected error",
+   "where": "Anywhere",
+   "causes": [
+    "A situation the program did not expect"
+   ],
+   "fix": [
+    "Note the reference number on screen",
+    "Open the newest admin log and search for that reference; the code and details are there",
+    "Send the log lines to SkyTech_Manager"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": false,
+   "http": 500,
+   "user": "Unexpected error"
+  },
+  {
+   "code": "SKY-SYS-002",
+   "area": "System",
+   "severity": "critical",
+   "title": "Disk full",
+   "where": "Logs, demo files, backups",
+   "causes": [
+    "The drive has no free space"
+   ],
+   "fix": [
+    "Free disk space (empty Recycle Bin, delete old backups beyond the last 5)",
+    "Restart the Admin site"
+   ],
+   "log": "logs/runtime/admin-YYYY-MM-DD.log (search for the code or the reference number)",
+   "predicted": true,
+   "http": 507,
+   "user": "Disk full"
+  },
+  {
+   "code": "SKY-SYS-003",
+   "area": "System",
+   "severity": "warn",
+   "title": "Log folder cannot be written",
+   "where": "Admin site, scripts",
+   "causes": [
+    "logs/runtime is read-only or blocked by antivirus"
+   ],
+   "fix": [
+    "Make sure logs\\runtime exists and is not read-only",
+    "The site keeps running and logs to the screen only"
+   ],
+   "log": "Screen",
+   "predicted": false,
+   "http": null,
+   "user": "Log folder cannot be written"
+  }
+ ]
+}

@@ -1,4 +1,8 @@
-// Version: V1.0 (2026-10-02) — scripts/leads/overture_browser_extract.js — V1.0
+// Version: V1.1 (2026-10-10) — scripts/leads/overture_browser_extract.js — V1.1 (comments)
+// Purpose: SkyTech_BackOffice helper — reads business places (Overture Maps, free licence) shown on the public explorer map.
+// Inputs : map tiles already loaded in your browser; Outputs: window.__sky rows → save as sample100_extract.json.
+// Errors : empty result = SKY-LEAD-002 (zoom in until the places layer shows, keep the map visible, run grab again).
+// Rules  : manual, owner-run, read-only; no automated scraping of Google Maps, Yelp or Facebook.
 // Run in the browser console on https://explore.overturemaps.org (the page exposes `map`).
 // For each area: grab(name, lat, lon). Results collect in window.__sky; then build the sample.
 // Note: tiles load only while the map is visible on screen.
@@ -30,3 +34,4 @@ window.grab = async (nm, lat, lon) => {
 // Howard: Columbia 39.20,-76.86 | Ellicott City 39.27,-76.80 | N Laurel 39.13,-76.85 | Elkridge 39.21,-76.75
 // Selection (same as scripts/leads/make_sample.py): county by ZIP, drop closed, de-duplicate,
 // no website first, then phone listed, then confidence; round-robin across niche x county to 100.
+// Version: V1.1 (2026-10-10) — scripts/leads/overture_browser_extract.js — V1.1

@@ -1,10 +1,17 @@
-// Version: V1.4 (2026-10-05) — admin-site/src/schema.js — V1.4
-// Whitelist of what the admin site may read and change. Only names listed here
-// ever reach SQL, so the site cannot touch other tables or columns.
+// Version: V1.5 (2026-10-10) — admin-site/src/schema.js — V1.5 (comments)
+/**
+ * @file Whitelist of what the Admin site may read and change (security control: "allow-list").
+ * Only names listed here ever reach SQL, so the site cannot touch other tables or columns, and an unknown table name
+ * in a request is refused (SKY-DATA-006). Each entity: table (writes), source view (reads), key, columns with type,
+ * label, required/readonly/options, and whether the screen is writable.
+ */
 
+// STATUSES — lead pipeline steps, in order (also used to keep the "further along" status when merging).
 const STATUSES = ['New', 'Checked', 'NoSite', 'DemoBuilt', 'Contacted', 'Interested', 'Proposal', 'Won', 'Lost', 'DoNotContact'];
+// ACTIVITY_TYPES — allowed values for Activities.ActivityType.
 const ACTIVITY_TYPES = ['Call', 'Email', 'SocialDM', 'Post', 'Meeting', 'Note'];
 const { LAYOUTS, LOGO_SHAPES, ILLUSTRATIONS, FONTS, STATUSES: DEMO_STATUSES } = require('./demo/render');
+// AGENTS — SkyTech agent names offered in drop-downs.
 const AGENTS = ['SkyTech_Manager', 'SkyTech_BackOffice', 'SkyTech_WebsiteDeveloper', 'SkyTech_PhoneMarketing', 'SkyTech_SocialMediaMarketing', 'SkyTech_ProjectManagement', 'Owner'];
 
 // type: text | longtext | int | money | bit | date | datetime | enum | color
@@ -140,6 +147,7 @@ const ENTITIES = {
   }
 };
 
+// editableColumns — the columns a create/update may write (not readonly, not view-only).
 function editableColumns(entity) {
   const e = ENTITIES[entity];
   return Object.entries(e.columns)
@@ -148,3 +156,5 @@ function editableColumns(entity) {
 }
 
 module.exports = { ENTITIES, STATUSES, ACTIVITY_TYPES, AGENTS, editableColumns };
+
+// Version: V1.5 (2026-10-10) — admin-site/src/schema.js — V1.5

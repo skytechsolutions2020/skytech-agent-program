@@ -1,8 +1,17 @@
-"""Version: V1.1 (2026-10-02) — scripts/leads/build_sample_from_extract.py — V1.2 (merges SkyTech_BackOffice verification; duplicate-safe staging import)
-Turns data/raw/overture/<date>/sample100_extract.json (collected in Overture Explorer)
-into data/samples/SkyTech_Leads_Sample100.csv (for review) and _import.sql (for SkyTechCRM).
-Adds a review flag and priority so the team calls the best leads first."""
+"""Version: V1.3 (2026-10-10) — scripts/leads/build_sample_from_extract.py — V1.3 (error codes + logging)
+SkyTech_BackOffice lead builder.
+Purpose : turns data/raw/overture/<date>/sample100_extract.json (collected in Overture Explorer) into
+          data/samples/SkyTech_Leads_Sample100.csv (for review) and _import.sql (for SkyTechCRM). Adds review flags and
+          an A/B/C priority so the team calls the best leads first, and merges the BackOffice "no website" verification.
+Inputs  : extract JSON (argument 1) — rows of [name, niche, category, address, locality, county, zip, phone, email,
+          website, hasFacebook, confidence, overtureId]; optional data/verification/2026-10-02_backoffice_results.txt.
+Outputs : CSV + import SQL (loads through dbo.StgLeads → dbo.usp_ImportStagedLeads, so re-running never duplicates).
+Run     : python scripts/leads/build_sample_from_extract.py [extract.json]   (from the repository folder)
+Errors  : SKY-LEAD-001 input missing/unreadable, SKY-LEAD-002 extract empty; log: logs/runtime/scripts-<date>.log.
+"""
 import json, csv, re, sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common")); import skylog
+skylog.install("build_sample_from_extract", "SKY-LEAD-001")
 src = sys.argv[1] if len(sys.argv) > 1 else "data/raw/overture/2026-10-02/sample100_extract.json"
 out = "data/samples"; os.makedirs(out, exist_ok=True)
 BRANDS = re.compile(r"century ?21|keller williams|long & foster|cummings & co|\bat rate\b|envoy mortgage|roto-rooter|redfin|stewart title|exit on the harbor|alexcooper|sun west|highlands residential|next day gutters", re.I)
@@ -13,8 +22,11 @@ if os.path.exists(vf):
     for line in open(vf, encoding="utf-8"):
         p = line.rstrip("\n").split("|")
         if len(p) == 6: VER[p[0]] = dict(zip(["Verdict", "VerifiedWebsite", "OnlinePresence", "Evidence", "PotentialClient"], p[1:]))
+if not os.path.exists(src): skylog.fail("SKY-LEAD-001", f"Extract file not found: {src}")
+DATA = json.load(open(src, encoding="utf-8"))
+if not DATA: skylog.fail("SKY-LEAD-002", f"Extract {src} has no rows")
 rows = []
-for n, niche, cat, ad, loc, county, zp, ph, em, web, fb, conf, oid in json.load(open(src)):
+for n, niche, cat, ad, loc, county, zp, ph, em, web, fb, conf, oid in DATA:
     flags = []
     if web: flags.append("Website listed")
     if BRANDS.search(n + " " + em): flags.append("Brand/franchise — likely has a parent website")
@@ -55,4 +67,7 @@ with open(f"{out}/SkyTech_Leads_Sample100_import.sql", "w", encoding="utf-8") as
     fh.write(f"EXEC dbo.usp_ImportStagedLeads @BatchName = {q(BATCH)}, @SourceFile = {q(SRC)};\nGO\n")
     fh.write("SELECT l.Status, COUNT(*) AS Leads FROM dbo.Leads l JOIN dbo.Companies c ON c.CompanyID = l.CompanyID WHERE c.SourceRecordID IS NOT NULL GROUP BY l.Status;\n")
 from collections import Counter
+skylog.get("build_sample_from_extract").info("wrote sample", rows=len(rows), out=out)
 print(Counter(r["Verdict"] for r in rows), Counter(r["County"] for r in rows if r["PotentialClient"]=="Yes"), Counter(r["Priority"] for r in rows), Counter((r["Niche"], r["County"]) for r in rows if r["Priority"] == "A"))
+
+# Version: V1.3 (2026-10-10) — scripts/leads/build_sample_from_extract.py — V1.3

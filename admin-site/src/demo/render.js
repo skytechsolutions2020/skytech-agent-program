@@ -1,34 +1,51 @@
-// Version: V1.1 (2026-10-05) — admin-site/src/demo/render.js — V1.1 (photos, photo service cards, about section, drop-and-wrench logo)
-// SkyTech_WebsiteDeveloper page renderer. Turns one DemoSites record (design fields + company facts)
-// into a complete, self-contained one-page website. Used by:
-//   - scripts/build-demos.js  (writes demo-sites/<slug>/index.html)
-//   - the Admin site live preview and "Save to folder" (renders straight from the database)
-// Honesty rules: preview banner + noindex until the business approves; no reviews, prices or
-// licence claims; concept logo and original illustrations only (no third-party images).
+// Version: V1.2 (2026-10-10) — admin-site/src/demo/render.js — V1.2 (comments; template V2.1 unchanged)
+/**
+ * @file SkyTech_WebsiteDeveloper page renderer. Turns one DemoSites record (design fields + company facts) into a
+ *       complete, self-contained one-page website. Used by:
+ *         - scripts/build-demos.js  (writes demo-sites/<slug>/index.html)
+ *         - the Admin site live preview and "Save to folder" (renders straight from the database)
+ * Honesty rules: preview banner + noindex until the business approves; no reviews, prices or licence claims;
+ *       concept logo and original illustrations; photos only from free-licence hosts with a credit line.
+ * Security: every text value is HTML-escaped (e); colours must be #RRGGBB (hex); fonts from a fixed list (font);
+ *       photo links only https://images.pexels.com or images.unsplash.com, or a local img/ file (img) — anything else
+ *       is dropped, which prevents script or tracking injection through the design fields (see SKY-SEC-005).
+ */
 'use strict';
 
+// TEMPLATE_VERSION — page template version written into each demo and dbo.DemoSites.TemplateVersion.
 const TEMPLATE_VERSION = 'V2.1';
+// Allowed choices for the design fields (anything else falls back to the first value).
 const LAYOUTS = ['split', 'bold', 'classic'];
 const LOGO_SHAPES = ['drop', 'dropwrench', 'roof', 'arch', 'circle'];
 const ILLUSTRATIONS = ['plumbing-home', 'house-frame', 'rowhouses'];
 const FONTS = ['Plus Jakarta Sans', 'Inter', 'Barlow Condensed', 'Barlow', 'Playfair Display', 'Source Sans 3', 'DM Serif Display', 'Manrope', 'Outfit'];
 const STATUSES = ['Draft', 'ReadyForReview', 'Approved', 'Sent', 'Published', 'Removed'];
 
+// e — HTML-escape any text placed in the page.
 const e = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+// hex — accepts only #RRGGBB colours, else the default d.
 const hex = (v, d) => (/^#[0-9a-fA-F]{6}$/.test(String(v || '').trim()) ? String(v).trim() : d);
+// font — accepts only fonts from FONTS (Google Fonts with system fallbacks).
 const font = (v, d) => (FONTS.includes(String(v || '').trim()) ? String(v).trim() : d);
+// FALLBACK — system fonts used when Google Fonts cannot load (offline: SKY-DEMO-005).
 const FALLBACK = { 'Playfair Display': "Georgia,'Times New Roman',serif", 'DM Serif Display': "Georgia,'Times New Roman',serif",
   'Barlow Condensed': "'Arial Narrow','Roboto Condensed','Helvetica Neue',Arial,sans-serif" };
+// stack — CSS font-family list for a font name.
 const stack = f => `'${f}',${FALLBACK[f] || "system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif"}`;
+// pick — value if it is in the list, else default.
 const pick = (v, list, d) => (list.includes(v) ? v : d);
+// lines — multi-line field → trimmed non-empty lines (Services, Highlights, Steps).
 const lines = v => String(v || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+// tel — phone number → +1XXXXXXXXXX for tel: links.
 const tel = p => { const d = String(p || '').replace(/\D/g, ''); return d.length >= 10 ? '+1' + d.slice(-10) : ''; };
 const ini = s => String(s || '').trim();
 // photos: only free-licence image hosts (or files next to the page) are allowed
 const IMG_HOSTS = /^https:\/\/(images\.pexels\.com|images\.unsplash\.com)\/[\w\-./%?=&]+$/;
 const img = v => { v = ini(v); return IMG_HOSTS.test(v) || /^img\/[\w\-.]+\.(jpe?g|png|webp)$/i.test(v) ? v : ''; };
+// sized — asks Pexels for a compressed copy at width w (faster pages).
 const sized = (u, w) => /images\.pexels\.com/.test(u) ? u.split('?')[0] + `?auto=compress&cs=tinysrgb&w=${w}` : u;
 
+// mix — lighter tint of a colour (used for soft backgrounds).
 function mix(h, w) { // blend hex colour h with white by w (0..1)
   const n = parseInt(h.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
   const m = c => Math.round(c + (255 - c) * w).toString(16).padStart(2, '0');
@@ -68,6 +85,7 @@ const I = {
   ruler: '<path d="M3 17 17 3l4 4L7 21z"/><path d="m7 13 2 2"/><path d="m10 10 2 2"/><path d="m13 7 2 2"/>',
   chat: '<path d="M4 5h16v11H9l-5 4z"/><path d="M8 10h8"/>'
 };
+// KEYWORDS — picks an icon for a service from words in its title.
 const KEYWORDS = [[/respect|tidy|clean site|care/i, 'shield'], [/leak/i, 'leak'], [/pipe|repip/i, 'pipe'], [/drain|sewer|clog/i, 'drain'], [/heater|tankless/i, 'heater'], [/fixture|faucet|toilet|sink/i, 'faucet'],
   [/sump|pump/i, 'pump'], [/kitchen/i, 'kitchen'], [/bath/i, 'bath'], [/basement/i, 'stairs'], [/deck|outdoor|patio/i, 'deck'], [/paint|drywall/i, 'roller'],
   [/addition/i, 'addition'], [/carpent|repair/i, 'hammer'], [/tenant|resident|screen/i, 'people'], [/leas|market/i, 'doc'], [/rent|collect/i, 'rent'],
@@ -391,4 +409,5 @@ ${callBtn('btn callbar', 'Call ' + phone)}
 
 module.exports = { render, TEMPLATE_VERSION, LAYOUTS, LOGO_SHAPES, ILLUSTRATIONS, FONTS, STATUSES };
 
-// Version: V1.1 (2026-10-05) — admin-site/src/demo/render.js — V1.1
+
+// Version: V1.2 (2026-10-10) — admin-site/src/demo/render.js — V1.2

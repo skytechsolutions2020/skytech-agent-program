@@ -1,0 +1,335 @@
+<!doctype html>
+<!-- Version: V1.0 (2026-10-10) — docs/architecture/SkyTech_Code_Documentation.html — V1.0 -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SkyTech Code Documentation</title><style>:root { --bg:#f5f7fa; --panel:#fff; --ink:#1c2430; --muted:#5f6b7a; --line:#c9d1dc; --zone:#eef2f7; --acc:#1f5fbf; --accbg:#e6efff; --plan:#8a94a3; --store:#f3f0e6; --person:#e8f5ec; }
+@media (prefers-color-scheme: dark) { :root { --bg:#11151c; --panel:#1a202a; --ink:#e6e9ee; --muted:#9aa4b2; --line:#3a4454; --zone:#161c25; --acc:#6aa0ff; --accbg:#1d2a40; --plan:#7d8796; --store:#2a2619; --person:#1c2b22; } }
+body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+main { max-width:1440px; margin:0 auto; padding:20px 16px 40px; }
+h1 { font-size:22px; margin:0 0 4px; } h2 { font-size:17px; margin:28px 0 8px; }
+.meta { color:var(--muted); margin-bottom:14px; }
+.diagram { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:8px; overflow-x:auto; }
+.diagram svg { width:100%; min-width:1000px; height:auto; display:block; }
+svg text { fill:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+svg .h { font-size:19px; font-weight:700; } svg .sub { font-size:12px; fill:var(--muted); }
+.zone rect { fill:var(--zone); stroke:var(--line); } .zone text { font-size:13px; font-weight:700; fill:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+.bx rect { fill:var(--panel); stroke:var(--line); stroke-width:1.2; }
+.bx.acc rect { fill:var(--accbg); stroke:var(--acc); stroke-width:2; }
+.bx.plan rect { fill:var(--panel); stroke:var(--plan); stroke-dasharray:5 4; }
+.bx.plan text { fill:var(--muted); }
+.bx.store rect { fill:var(--store); } .bx.person rect { fill:var(--person); }
+.bx .t { font-size:13px; font-weight:600; } .bx .s { font-size:11.5px; fill:var(--muted); }
+.ar { fill:none; stroke:var(--acc); stroke-width:1.6; } .ar.plan { stroke:var(--plan); stroke-dasharray:6 5; }
+.mk { fill:var(--acc); } .mkp { fill:var(--plan); }
+.al { font-size:11.5px; fill:var(--muted); }
+.num circle { fill:var(--acc); } .num text { fill:#fff; font-size:11px; font-weight:700; }
+.legend text { font-size:12px; fill:var(--muted); }
+table { width:100%; border-collapse:collapse; background:var(--panel); border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { font-size:12px; color:var(--muted); }
+.wrap { overflow-x:auto; }
+ol,ul { padding-left:20px; } .pills span { display:inline-block; padding:3px 10px; margin:2px; border-radius:999px; background:var(--accbg); }
+.pills span+span::before { content:""; }
+footer { color:var(--muted); margin-top:28px; font-size:12px; }
+@media print { body { background:#fff; } .diagram svg { min-width:0; } }
+
+h3 { font-size:15px; margin:20px 0 6px; }
+.lead { font-size:15px; max-width:70em; }
+.code { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:10px 0; break-inside:avoid; }
+.code h3 { margin:0 0 4px; font-size:15px; } .code h3 a { color:inherit; text-decoration:none; }
+.sev { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; margin-left:6px; vertical-align:2px; border:1px solid var(--line); }
+.sev.critical { background:#fde8e6; color:#8a1c12; border-color:#f3b5ad; } .sev.error { background:#fff1e0; color:#7a4300; border-color:#f2c98f; }
+.sev.warn { background:#fff8db; color:#6b5600; border-color:#eadb8e; } .sev.info { background:var(--accbg); }
+.pred { display:inline-block; padding:1px 8px; border-radius:999px; font-size:11.5px; margin-left:6px; border:1px dashed var(--plan); color:var(--muted); }
+.kv { color:var(--muted); font-size:12.5px; } .kv b { color:var(--ink); font-weight:600; }
+code, pre { font-family:Consolas,"Cascadia Mono",Menlo,monospace; font-size:12.5px; }
+pre { background:var(--zone); border:1px solid var(--line); border-radius:8px; padding:8px 12px; white-space:pre-wrap; overflow-wrap:anywhere; }
+.idx a { display:inline-block; margin:2px 6px 2px 0; } .toc li { margin:2px 0; }
+.box { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:12px 16px; margin:10px 0; }
+.fn td:first-child { white-space:nowrap; font-family:Consolas,Menlo,monospace; font-size:12.5px; width:28%; }
+.fixed { table-layout:fixed; } .fixed td { overflow-wrap:anywhere; } .fixed th:first-child { width:22%; }
+@media (prefers-color-scheme: dark) { .sev.critical { background:#3a1714; color:#ffb4a8; } .sev.error { background:#3a2610; color:#ffcf8f; } .sev.warn { background:#3a3410; color:#f2e08f; } }
+@media print { h2, h3 { break-after:avoid; } tr, .code, .box { break-inside:avoid; } .pb { break-before:page; } .diagram svg { min-width:0; }
+  body { font-size:12.5px; } .code { padding:6px 12px; margin:6px 0; } .code ul, .code ol { margin:2px 0 4px; } .code li { margin:0; } th, td { padding:5px 8px; } }
+</style></head><body><main>
+<h1>SkyTech Code Documentation</h1>
+<div class="meta">Version V1.0 · 2026-10-10 · matches repository release R4.0 · maintained by SkyTech_Manager</div>
+<p class="lead">Every program file in the SkyTech repository with the comments written in it: what the file is for, what goes in and comes out, how to run it, which SkyTech error codes it can raise, and one line for each function, table, view and procedure. Generated from the code itself, so it stays in step with each release.</p>
+<h2>1. How the code is commented</h2><div class="wrap"><table class="fixed"><thead><tr><th>Rule</th><th>What it means</th></tr></thead><tbody><tr><td>Version line</td><td>First and last line of every file: Version: Vx.y (date) — &lt;path&gt; — Vx.y. Files are edited in place; the CHANGELOG and version register record each change.</td></tr><tr><td>File purpose block</td><td>Right after the version line: Purpose, Inputs, Outputs, Run, Errors (SkyTech codes) and, where relevant, Security. JavaScript uses /** @file … */, Python a module docstring, SQL and .bat files comment lines (-- / REM).</td></tr><tr><td>Function comments</td><td>One line directly above each function, procedure, view or table: name — what it does (and the codes it can raise). JavaScript /** … */ or //, Python docstrings, SQL -- lines above CREATE.</td></tr><tr><td>Error codes</td><td>Code never invents messages: it throws AppError(&#x27;SKY-…&#x27;) (Node) or skylog.fail(&#x27;SKY-…&#x27;) (Python); SQL THROWs numbers that errors.js maps to codes. All codes live in config/error-codes.json.</td></tr><tr><td>Logging</td><td>Node: require(&#x27;./logger&#x27;) — log.info/warn/error/security(category, message, {code, reqId, …}). Python: skylog.get(name).info(…). Never log passwords or tokens (redaction is automatic, but do not rely on it).</td></tr><tr><td>Security notes</td><td>Any input that reaches SQL, HTML or the file system is validated or escaped at that point, and the comment says how.</td></tr></tbody></table></div>
+<h2>2. Files at a glance</h2><div class="wrap"><table class=""><thead><tr><th>Group</th><th>Files</th><th>Documented functions / objects</th></tr></thead><tbody><tr><td>Admin site — server</td><td>8</td><td>90</td></tr><tr><td>Admin site — screens</td><td>3</td><td>19</td></tr><tr><td>Admin site — tools</td><td>5</td><td>11</td></tr><tr><td>Database (SQL Server 2014)</td><td>5</td><td>29</td></tr><tr><td>Scripts</td><td>12</td><td>28</td></tr><tr><td>Repository</td><td>3</td><td>0</td></tr></tbody></table></div><div class="wrap"><table class=""><thead><tr><th>File</th><th>Version</th><th>Group</th></tr></thead><tbody><tr><td><a href="#f-admin-site-server-js">admin-site/server.js</a></td><td>V2.0</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-src-security-js">admin-site/src/security.js</a></td><td>V1.0</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-src-errors-js">admin-site/src/errors.js</a></td><td>V1.1</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-src-logger-js">admin-site/src/logger.js</a></td><td>V1.1</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-src-schema-js">admin-site/src/schema.js</a></td><td>V1.5</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-src-db-mssql-js">admin-site/src/db/mssql.js</a></td><td>V2.0</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-src-db-memory-js">admin-site/src/db/memory.js</a></td><td>V2.0</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-src-demo-render-js">admin-site/src/demo/render.js</a></td><td>V1.2</td><td>Admin site — server</td></tr><tr><td><a href="#f-admin-site-public-app-js">admin-site/public/app.js</a></td><td>V2.1</td><td>Admin site — screens</td></tr><tr><td><a href="#f-admin-site-public-style-css">admin-site/public/style.css</a></td><td>V2.1</td><td>Admin site — screens</td></tr><tr><td><a href="#f-admin-site-public-index-html">admin-site/public/index.html</a></td><td>V2.0</td><td>Admin site — screens</td></tr><tr><td><a href="#f-admin-site-scripts-doctor-js">admin-site/scripts/doctor.js</a></td><td>V1.0</td><td>Admin site — tools</td></tr><tr><td><a href="#f-admin-site-scripts-create-admin-js">admin-site/scripts/create-admin.js</a></td><td>V2.0</td><td>Admin site — tools</td></tr><tr><td><a href="#f-admin-site-scripts-build-demos-js">admin-site/scripts/build-demos.js</a></td><td>V2.0</td><td>Admin site — tools</td></tr><tr><td><a href="#f-admin-site-start-admin-bat">admin-site/start-admin.bat</a></td><td>V2.0</td><td>Admin site — tools</td></tr><tr><td><a href="#f-admin-site-env-example">admin-site/.env.example</a></td><td>V2.0</td><td>Admin site — tools</td></tr><tr><td><a href="#f-sql-01-create-skytechcrm-sql">sql/01_create_skytechcrm.sql</a></td><td>V2.3</td><td>Database (SQL Server 2014)</td></tr><tr><td><a href="#f-sql-02-daily-batch-query-sql">sql/02_daily_batch_query.sql</a></td><td>V1.0</td><td>Database (SQL Server 2014)</td></tr><tr><td><a href="#f-sql-04-admin-site-sql">sql/04_admin_site.sql</a></td><td>V1.5</td><td>Database (SQL Server 2014)</td></tr><tr><td><a href="#f-sql-05-demo-sites-built-sql">sql/05_demo_sites_built.sql</a></td><td>V2.2</td><td>Database (SQL Server 2014)</td></tr><tr><td><a href="#f-sql-06-security-and-logging-sql">sql/06_security_and_logging.sql</a></td><td>V1.0</td><td>Database (SQL Server 2014)</td></tr><tr><td><a href="#f-scripts-common-skylog-py">scripts/common/skylog.py</a></td><td>V1.0</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-security-scan-secrets-js">scripts/security/scan-secrets.js</a></td><td>V1.0</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-leads-build-sample-from-extract-py">scripts/leads/build_sample_from_extract.py</a></td><td>V1.3</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-leads-make-sample-py">scripts/leads/make_sample.py</a></td><td>V1.3</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-leads-overture-browser-extract-js">scripts/leads/overture_browser_extract.js</a></td><td>V1.1</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-docs-build-infrastructure-py">scripts/docs/build_infrastructure.py</a></td><td>V1.6</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-docs-build-tech-stack-py">scripts/docs/build_tech_stack.py</a></td><td>V1.2</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-docs-build-ops-docs-py">scripts/docs/build_ops_docs.py</a></td><td>V1.0</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-prompt-book-build-prompt-book-py">scripts/prompt-book/build_prompt_book.py</a></td><td>V2.1</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-prompt-book-content-py">scripts/prompt-book/content.py</a></td><td>V2.0</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-website-content-py">scripts/website/content.py</a></td><td>V1.0</td><td>Scripts</td></tr><tr><td><a href="#f-scripts-website-build-demo-sites-py">scripts/website/build_demo_sites.py</a></td><td>V2.0</td><td>Scripts</td></tr><tr><td><a href="#f-push-to-github-bat">push-to-github.bat</a></td><td>V2.0</td><td>Repository</td></tr><tr><td><a href="#f--gitignore">.gitignore</a></td><td>V1.1</td><td>Repository</td></tr><tr><td><a href="#f-config-error-codes-json">config/error-codes.json</a></td><td>V1.1</td><td>Repository</td></tr></tbody></table></div>
+<h2 class="pb">3. File by file</h2>
+<h3>Admin site — server</h3>
+<div class="code" id="f-admin-site-server-js"><h3>admin-site/server.js <span class="sev info">V2.0</span></h3><pre>@file SkyTech Admin site web server.
+Purpose: serves the Admin screens (public/) and the JSON API used by them: sign-in, dashboard, drill-down tables,
+         create/edit/delete of SkyTechCRM records, the live duplicate check, demo-site preview/save and the
+         system log. Every change is written to dbo.AuditLog; every request gets a reference number and is logged.
+Run:     npm start (SQL Server, needs admin-site\.env)  |  npm run demo (sample data in memory, no database)
+         npm run doctor (health check)                  |  npm run create-admin (create or reset a login)
+Inputs:  admin-site\.env (see .env.example), config/error-codes.json, SkyTechCRM or the demo sample CSV.
+Outputs: http://127.0.0.1:3030 (local only by default); logs/runtime/admin-YYYY-MM-DD.log.
+Security: see src/security.js (headers, CSRF, rate limits, session timeouts, lockout) and
+         docs/architecture/SkyTech_Security_Architecture. Only whitelisted tables/columns (src/schema.js) reach SQL.
+Errors:  every failure is answered as { error, code, requestId, hint } using SkyTech codes (src/errors.js);
+         look the code up in docs/architecture/SkyTech_Troubleshooting_Guide.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>fatal</td><td>prints a start-up error with its code and fix, logs it, and stops the process.</td></tr><tr><td>wrap</td><td>lets async route handlers pass errors to the central error handler.</td></tr><tr><td>auth</td><td>the request must come from a signed-in user (SKY-AUTH-004, or SKY-AUTH-003 if the session just expired).</td></tr><tr><td>adminOnly</td><td>the user must have the admin role; viewers are read-only (SKY-AUTH-005).</td></tr><tr><td>entity</td><td>resolves :entity against the whitelist in src/schema.js (SKY-DATA-006 if unknown).</td></tr><tr><td>checkDemo</td><td>field rules for demo sites before saving: slug format, colours, free-licence photo hosts.</td></tr><tr><td>DUMMY_HASH</td><td>real bcrypt hash of a random value, compared when the username is unknown (equal timing).</td></tr><tr><td>cat</td><td>validates the duplicate category (?cat= or body.cat).</td></tr><tr><td>dupCompare</td><td>loads both sides of a suspected duplicate pair for the side-by-side screen.</td></tr><tr><td>PAGE_CSP</td><td>demo pages may load only Google Fonts and free-licence photos; no scripts at all.</td></tr><tr><td>demoPage</td><td>loads a DemoSites record and renders its HTML (SKY-DATA-004 if missing).</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-src-security-js"><h3>admin-site/src/security.js <span class="sev info">V1.0</span></h3><pre>@file Security controls for the Admin site (one place to review them all).
+Purpose: implements the controls described in docs/architecture/SkyTech_Security_Architecture:
+  1. checkConfig    — refuses to start with unsafe settings (weak SESSION_SECRET, open network without HTTPS).
+  2. headers        — browser security headers: strict Content-Security-Policy, no framing, no sniffing, HSTS on HTTPS.
+  3. requestId      — gives every request a reference (X-Request-Id) shown to the user and written to the log.
+  4. rateLimit      — limits requests per computer (IP) per minute; stricter for writes.
+  5. originCheck    — blocks state-changing requests sent from other websites.
+  6. csrf           — per-session anti-forgery token required on every POST/PUT/DELETE.
+  7. sessionTimeout — signs users out after SESSION_IDLE_MIN of inactivity and after SESSION_MAX_HOURS.
+  8. loginGuard     — locks a username or computer for 15 minutes after 5 wrong passwords.
+  9. passwordPolicy — rules for new passwords (used by scripts/create-admin.js).
+Inputs:  environment settings (see .env.example); logger; AppError.
+Errors:  SKY-CFG-002/003 at start; SKY-SEC-001/002/007 and SKY-AUTH-002/003 at run time.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>checkConfig</td><td>validates security-relevant settings before the server starts. Returns { secret, secure } or throws AppError (the server prints it and exits). Demo mode may run without a secret (a random one is generated for that run).</td></tr><tr><td>cookieName</td><td>&quot;__Host-&quot; prefix on HTTPS (browser-enforced: secure, no domain, path /).</td></tr><tr><td>APP_CSP</td><td>policy for the Admin screens: only this site&#x27;s own scripts, no inline script, no framing.</td></tr><tr><td>headers</td><td>adds security headers to every response; API responses are never cached.</td></tr><tr><td>requestId</td><td>12-character reference for each request; logged and returned in X-Request-Id and error bodies.</td></tr><tr><td>rateLimit</td><td>fixed-window limiter in memory, per IP. Defaults: 300 requests/minute overall, 60 writes/minute (RATE_LIMIT_PER_MIN, RATE_LIMIT_WRITES_PER_MIN).</td></tr><tr><td>originCheck</td><td>rejects writes whose Origin/Referer belongs to another site (defence in depth with SameSite cookies).</td></tr><tr><td>issueCsrf</td><td>creates (once per session) and returns the anti-forgery token.</td></tr><tr><td>csrf</td><td>requires header X-CSRF-Token = session token on POST/PUT/DELETE (login is exempt; it has no session yet).</td></tr><tr><td>sessionTimeout</td><td>idle timeout (SESSION_IDLE_MIN, default 30) and absolute lifetime (SESSION_MAX_HOURS, default 8). Expired sessions are destroyed and the request continues as &quot;not signed in&quot; (SKY-AUTH-003 on protected routes).</td></tr><tr><td>loginGuard</td><td>counts wrong passwords per username and per IP; 5 failures within 15 minutes lock that key. check(user, ip) → AppError | null;  fail(user, ip);  ok(user, ip).</td></tr><tr><td>passwordPolicy</td><td>returns a list of problems (empty = acceptable). Rules: 12+ characters, upper and lower case, a digit, not containing the username, not a common password.</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-src-errors-js"><h3>admin-site/src/errors.js <span class="sev info">V1.1</span></h3><pre>@file Error codes for the Admin site.
+Purpose: one place that turns any failure into a SkyTech error code (SKY-&lt;AREA&gt;-&lt;NNN&gt;) with a plain message,
+         an HTTP status and a fix hint. Codes, titles and fixes come from config/error-codes.json, the same
+         catalog that builds the Troubleshooting Guide, so screen, log and guide always agree.
+Inputs:  config/error-codes.json (falls back to a tiny built-in list if the file is missing).
+Outputs: AppError objects; fromDbError() maps SQL Server error numbers to codes.
+Used by: server.js (central error handler), src/db/mssql.js, scripts/doctor.js.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>loadCatalog</td><td>reads the error catalog once; returns a Map code → entry.</td></tr><tr><td>AppError</td><td>an error that carries a SkyTech code. code: catalog code; message: text for the user (defaults to the catalog title); details: extra facts for the log only (never shown to the user).</td></tr><tr><td>info</td><td>returns the catalog entry for a code (or undefined).</td></tr><tr><td>fromDbError</td><td>converts a SQL Server / driver error into an AppError. Looks at the SQL error number (err.number or err.originalError.info.number) and driver codes.</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-src-logger-js"><h3>admin-site/src/logger.js <span class="sev info">V1.1</span></h3><pre>@file Structured logging for the Admin site and its scripts.
+Purpose: writes one JSON line per event to logs/runtime/admin-YYYY-MM-DD.log (one file per day) and a short
+         readable line to the screen. Every line has a time, level, category, SkyTech error code (if any) and the
+         request reference shown to the user, so a problem on screen can be found in the log in seconds.
+Security: values of sensitive fields (passwords, hashes, secrets, tokens, cookies) are replaced by &quot;[redacted]&quot;
+         before writing. Logs stay on this computer (folder is git-ignored) and are deleted after LOG_RETENTION_DAYS.
+Inputs:  env LOG_DIR (default &lt;repo&gt;/logs/runtime), LOG_LEVEL (debug|info|warn|error, default info),
+         LOG_RETENTION_DAYS (default 30).
+Outputs: log files; functions debug/info/warn/error/security.
+Errors:  if the folder cannot be written the logger keeps running and only prints to the screen (SKY-SYS-003).</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>ensureDir</td><td>creates the log folder; on failure switches to screen-only logging (SKY-SYS-003).</td></tr><tr><td>redact</td><td>deep-copies a value replacing sensitive keys with &quot;[redacted]&quot; (max depth 4 to stay small).</td></tr><tr><td>fileFor</td><td>today&#x27;s log file name for a prefix (&quot;admin&quot;, &quot;doctor&quot;, &quot;scripts&quot;).</td></tr><tr><td>write</td><td>the single place that records an event. level: debug|info|warn|error; category: e.g. http, auth, security, db, demo, startup; msg: short text; fields: extra data (code, reqId, user, ip, status, details…).</td></tr><tr><td>prune</td><td>deletes log files older than LOG_RETENTION_DAYS (runs at start and once a day).</td></tr><tr><td>tail</td><td>newest n log entries (admin, doctor and scripts logs of the last 3 days, merged by time) for the System log screen.</td></tr><tr><td>security</td><td>security events (sign-in, lockout, CSRF, rate limit, permission) always at warn or info.</td></tr><tr><td>to</td><td>logger that writes to another file prefix (used by doctor and scripts).</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-src-schema-js"><h3>admin-site/src/schema.js <span class="sev info">V1.5</span></h3><pre>@file Whitelist of what the Admin site may read and change (security control: &quot;allow-list&quot;).
+Only names listed here ever reach SQL, so the site cannot touch other tables or columns, and an unknown table name
+in a request is refused (SKY-DATA-006). Each entity: table (writes), source view (reads), key, columns with type,
+label, required/readonly/options, and whether the screen is writable.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>STATUSES</td><td>lead pipeline steps, in order (also used to keep the &quot;further along&quot; status when merging).</td></tr><tr><td>ACTIVITY_TYPES</td><td>allowed values for Activities.ActivityType.</td></tr><tr><td>AGENTS</td><td>SkyTech agent names offered in drop-downs.</td></tr><tr><td>editableColumns</td><td>the columns a create/update may write (not readonly, not view-only).</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-src-db-mssql-js"><h3>admin-site/src/db/mssql.js <span class="sev info">V2.0</span></h3><pre>@file SQL Server adapter (SkyTechCRM on SQL Server 2014+). Same functions as src/db/memory.js (demo mode).
+Security: every value is sent as a typed parameter (no string-built SQL with user input → no SQL injection);
+          table and column names come only from the whitelist in src/schema.js.
+Settings: DB_SERVER, DB_DATABASE, DB_AUTH (windows|sql), DB_DRIVER, DB_USER/DB_PASSWORD, DB_ENCRYPT, DB_TRUST_CERT.
+Errors:   every driver/SQL error is converted by fromDbError() (src/errors.js) into a SKY-DB-/DUP-/DATA- code.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>connect</td><td>builds the connection pool: Windows login via msnodesqlv8/ODBC, or SQL login via tedious.</td></tr><tr><td>sqlType</td><td>maps a schema column type (int, money, date, bit, text…) to the mssql parameter type.</td></tr><tr><td>coerce</td><td>converts a form value to the column type (&quot;&quot; → NULL, &quot;1&quot;/&quot;true&quot; → bit, numbers parsed).</td></tr><tr><td>friendly</td><td>converts any SQL Server error into a SkyTech AppError (codes in config/error-codes.json).</td></tr><tr><td>q</td><td>wraps a whitelisted column/table name in [brackets].</td></tr><tr><td>init</td><td>opens the connection pool and runs a test query; failures become SKY-DB-00x codes.</td></tr><tr><td>_pool</td><td>the open connection pool (used by scripts/doctor.js for read-only checks).</td></tr><tr><td>ping</td><td>health check used by /api/health and doctor.</td></tr><tr><td>getUser</td><td>active admin user by name (for sign-in); returns hash and role.</td></tr><tr><td>touchLogin</td><td>records the time of the last successful sign-in.</td></tr><tr><td>createUser</td><td>adds or resets a login (bcrypt hash only) — used by scripts/create-admin.js.</td></tr><tr><td>audit</td><td>appends one row to dbo.AuditLog (who, what, which record, JSON details). Append-only (sql/06).</td></tr><tr><td>dashboard</td><td>KPI numbers and chart data for the Dashboard screen.</td></tr><tr><td>list</td><td>one page of rows for a drill-down table: search, column filters, sort, paging (all parameterised).</td></tr><tr><td>get</td><td>one record by its key (from the entity&#x27;s view or table).</td></tr><tr><td>create</td><td>inserts a record (only editable whitelisted columns); duplicates → SKY-DUP-001.</td></tr><tr><td>update</td><td>changes a record&#x27;s editable columns; returns the updated row.</td></tr><tr><td>duplicateSummary</td><td>counts from dbo.vw_DuplicateCheck by category and severity (live duplicate badge).</td></tr><tr><td>compareCompanies</td><td>two companies side by side for the merge screen.</td></tr><tr><td>compareLeads</td><td>two leads side by side.</td></tr><tr><td>webRows</td><td>all web-presence rows of one company (duplicate repair).</td></tr><tr><td>compareActivities</td><td>two activities side by side.</td></tr><tr><td>mergeCompanies</td><td>EXEC dbo.usp_MergeCompanies (errors 50001/50002 → SKY-DUP-005).</td></tr><tr><td>mergeLeads</td><td>EXEC dbo.usp_MergeLeads (errors 50011/50012 → SKY-DUP-002).</td></tr><tr><td>fixWebPresence</td><td>EXEC dbo.usp_FixDuplicateWebPresence (error 50021 → SKY-DUP-003).</td></tr><tr><td>removeActivity</td><td>deletes one repeated activity.</td></tr><tr><td>dismissDuplicate</td><td>records &quot;not a duplicate&quot; so the pair is hidden from the check.</td></tr><tr><td>remove</td><td>deletes a record; linked records block it (SQL 547 → SKY-DATA-003).</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-src-db-memory-js"><h3>admin-site/src/db/memory.js <span class="sev info">V2.0</span></h3><pre>@file DEMO adapter: no database needed (npm run demo). Loads the 100-lead sample CSV into memory so the site can be
+      tried and tested. Changes are lost when the server stops. Implements exactly the same functions and the same
+      duplicate rules as src/db/mssql.js, and throws the same SkyTech codes (DUP-001, DATA-002/003/004, DUP-002/003).
+Inputs: data/samples/SkyTech_Leads_Sample100.csv, demo-sites/designs/*.json.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>T</td><td>the in-memory tables (same names and columns as SkyTechCRM).</td></tr><tr><td>parseCSV</td><td>small CSV reader for the sample file (quoted cells, doubled quotes).</td></tr><tr><td>normName</td><td>same normalisation as dbo.fn_NormName (lower case, &quot;&amp;&quot; → and, no punctuation or Inc/LLC).</td></tr><tr><td>digits</td><td>phone digits only, without a leading 1 (same as dbo.fn_DigitsOnly).</td></tr><tr><td>niche</td><td>Real Estate / Utility Trades from the Industry text.</td></tr><tr><td>dupCheck</td><td>demo version of dbo.vw_DuplicateCheck: Exact / Likely / Possible pairs across all tables.</td></tr><tr><td>views</td><td>builds the joined &quot;views&quot; (vw_LeadDetail, vw_DemoSiteDetail…) from the tables on each call.</td></tr><tr><td>coerce</td><td>converts form values to the column type; bad numbers or dates → SKY-DATA-002.</td></tr><tr><td>cmp</td><td>sort helper that puts empty values first.</td></tr><tr><td>init</td><td>loads the CSV and demo designs, creates the demo users admin/viewer.</td></tr><tr><td>ping</td><td>health check; demo data is always available.</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-src-demo-render-js"><h3>admin-site/src/demo/render.js <span class="sev info">V1.2</span></h3><pre>@file SkyTech_WebsiteDeveloper page renderer. Turns one DemoSites record (design fields + company facts) into a
+      complete, self-contained one-page website. Used by:
+        - scripts/build-demos.js  (writes demo-sites/&lt;slug&gt;/index.html)
+        - the Admin site live preview and &quot;Save to folder&quot; (renders straight from the database)
+Honesty rules: preview banner + noindex until the business approves; no reviews, prices or licence claims;
+      concept logo and original illustrations; photos only from free-licence hosts with a credit line.
+Security: every text value is HTML-escaped (e); colours must be #RRGGBB (hex); fonts from a fixed list (font);
+      photo links only https://images.pexels.com or images.unsplash.com, or a local img/ file (img) — anything else
+      is dropped, which prevents script or tracking injection through the design fields (see SKY-SEC-005).</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>TEMPLATE_VERSION</td><td>page template version written into each demo and dbo.DemoSites.TemplateVersion.</td></tr><tr><td>e</td><td>HTML-escape any text placed in the page.</td></tr><tr><td>hex</td><td>accepts only #RRGGBB colours, else the default d.</td></tr><tr><td>font</td><td>accepts only fonts from FONTS (Google Fonts with system fallbacks).</td></tr><tr><td>FALLBACK</td><td>system fonts used when Google Fonts cannot load (offline: SKY-DEMO-005).</td></tr><tr><td>stack</td><td>CSS font-family list for a font name.</td></tr><tr><td>pick</td><td>value if it is in the list, else default.</td></tr><tr><td>lines</td><td>multi-line field → trimmed non-empty lines (Services, Highlights, Steps).</td></tr><tr><td>tel</td><td>phone number → +1XXXXXXXXXX for tel: links.</td></tr><tr><td>sized</td><td>asks Pexels for a compressed copy at width w (faster pages).</td></tr><tr><td>mix</td><td>lighter tint of a colour (used for soft backgrounds).</td></tr><tr><td>KEYWORDS</td><td>picks an icon for a service from words in its title.</td></tr></tbody></table></div></div>
+<h3>Admin site — screens</h3>
+<div class="code" id="f-admin-site-public-app-js"><h3>admin-site/public/app.js <span class="sev info">V2.1</span></h3><pre>@file SkyTech Admin site front end (plain JavaScript, no framework). Routes: #dashboard, #syslog, #&lt;entity&gt;?search=&amp;f_Col=val
+Security: no inline scripts (strict CSP); every value shown is escaped (esc); every change sends the CSRF token
+          (X-CSRF-Token) received at sign-in; write buttons appear only for admins (server checks again).
+Errors:   server errors arrive as { error, code, requestId, hint } and are shown as &quot;message (CODE, ref ID)&quot;;
+          the ref ID finds the matching line in logs/runtime/admin-&lt;date&gt;.log and the System log screen.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>esc</td><td>HTML-escape text before inserting it into the page (prevents script injection).</td></tr><tr><td>api</td><td>calls the Admin site API. Sends the anti-forgery token (X-CSRF-Token) on every change. On failure throws an Error whose message ends with the SkyTech code and reference, e.g. &quot;Wrong username or password. (SKY-AUTH-001, ref 3fa2…)&quot; — look the code up in the Troubleshooting Guide. If the token is stale (SKY-SEC-001) it refreshes it once and retries automatically.</td></tr><tr><td>toast</td><td>short message at the bottom of the screen.</td></tr><tr><td>cell</td><td>formats one table cell by column type (status badge, money, date, link, yes/no).</td></tr><tr><td>showLogin</td><td>shows the sign-in form (optionally with a message, e.g. session expired).</td></tr><tr><td>start</td><td>after sign-in: loads /api/me (user, role, CSRF token, version) and the screen metadata, then routes.</td></tr><tr><td>checkDuplicates</td><td>refreshes the live duplicate badge from /api/duplicates/summary.</td></tr><tr><td>watchDuplicates</td><td>re-checks duplicates every minute and after each change.</td></tr><tr><td>canWrite</td><td>true for admins on writable screens (the server enforces the same rule: SKY-AUTH-005).</td></tr><tr><td>go</td><td>navigates to a screen with filters.</td></tr><tr><td>route</td><td>draws the screen for the current #route.</td></tr><tr><td>miniTable</td><td>small clickable table used on the dashboard.</td></tr><tr><td>openRecord</td><td>opens the record drawer: view/edit/create/delete, plus related records.</td></tr><tr><td>renderRelated</td><td>lists linked records (company → lead, web presence, activities, demo site).</td></tr><tr><td>dupPanel</td><td>the Possible duplicates panel: counts by category and severity.</td></tr><tr><td>wireDupPanel</td><td>click handlers for the duplicate panel buttons.</td></tr><tr><td>openCompare</td><td>side-by-side compare with Merge / Fix / Not a duplicate actions.</td></tr><tr><td>renderSyslog</td><td>shows /api/health and /api/logs; level filter; each code opens its guide entry.</td></tr><tr><td>closeDrawer</td><td>hides the side panel (record editor / compare view).</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-public-style-css"><h3>admin-site/public/style.css <span class="sev info">V2.1</span></h3><pre>Styles for the SkyTech Admin site. Colours are variables in :root (change them once here).
+   Sections: layout (sidebar, top bar), tables and badges, record drawer and forms, duplicate panel and compare,
+   dashboard tiles/charts, System log (tr.lg-warn / tr.lg-error rows), sign-in screen, toast messages.
+   Loaded from the site itself only (Content-Security-Policy style-src &#x27;self&#x27;).</pre></div>
+<div class="code" id="f-admin-site-public-index-html"><h3>admin-site/public/index.html <span class="sev info">V2.0</span></h3><pre>Admin site page shell: sign-in form, sidebar menu (Dashboard, tables, Possible duplicates, Demo sites, System log for admins), record drawer and toast. Loads style.css, vendor Chart.js and app.js only (no inline script, CSP).</pre></div>
+<h3>Admin site — tools</h3>
+<div class="code" id="f-admin-site-scripts-doctor-js"><h3>admin-site/scripts/doctor.js <span class="sev info">V1.0</span></h3><pre>@file Health check (&quot;doctor&quot;) for the SkyTech Admin site, database and repository.
+Purpose: finds the problems listed in the Troubleshooting Guide before they bite, and prints each one with its
+         SkyTech code and the manual fix. Safe to run any time; it only reads (it never changes data or files,
+         apart from writing its own log).
+Run:     npm run doctor              full check (needs admin-site\.env and SQL Server)
+         npm run doctor -- --demo    skip the database checks
+         npm run doctor -- --new-secret   print a strong SESSION_SECRET to paste into .env
+Outputs: a ✔ / ⚠ / ✖ list on screen and logs/runtime/doctor-YYYY-MM-DD.log. Exit code 1 if any ✖.
+Checks:  Node version, packages, .env and secrets, network exposure, git hygiene (locks, remote, .env not tracked),
+         log folder, demo-sites folder, error catalog, disk space, port, and in SkyTechCRM: connection, required
+         objects, unique rules, admin logins, recent database errors, app role, last backup.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>add</td><td>records one check result: level ok|warn|fail, the SkyTech code (if any), message and fix.</td></tr><tr><td>git</td><td>runs a git command in the repository; returns trimmed output or null if git is unavailable.</td></tr><tr><td>checkLocal</td><td>everything that does not need the database.</td></tr><tr><td>REQUIRED</td><td>database objects the Admin site and scripts rely on (type U=table, V=view, P=procedure, FN=function).</td></tr><tr><td>checkDatabase</td><td>connects to SkyTechCRM and checks objects, rules, logins, errors, role and backups.</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-scripts-create-admin-js"><h3>admin-site/scripts/create-admin.js <span class="sev info">V2.0</span></h3><pre>@file Create or reset an Admin site login.
+Purpose: asks for a username, password (typed hidden) and role, checks the password policy
+         (src/security.js passwordPolicy: 12+ chars, upper/lower case, a digit, not the username, not common),
+         stores a bcrypt hash (cost 12) in SkyTechCRM.dbo.AdminUsers and writes an audit entry.
+Run:     npm run create-admin      (re-run with the same username to reset a password)
+Inputs:  admin-site\.env database settings.
+Errors:  SKY-AUTH-006 password policy; SKY-DB-00x database problems; SKY-DATA-002 bad username/role.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>ask</td><td>prompts on the console; hidden=true shows * instead of the typed characters.</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-scripts-build-demos-js"><h3>admin-site/scripts/build-demos.js <span class="sev info">V2.0</span></h3><pre>@file SkyTech_WebsiteDeveloper: builds demo websites from design files and writes the database update.
+Inputs : demo-sites/designs/&lt;slug&gt;.json          (unique design + wording for one business)
+         data/samples/SkyTech_Leads_Sample100.csv (public facts: phone, email, address)
+Outputs: demo-sites/&lt;slug&gt;/index.html             (self-contained page)
+         demo-sites/manifest.csv                  (one row per demo, never duplicated)
+         sql/05_demo_sites_built.sql              (adds each demo to dbo.DemoSites and marks the lead DemoBuilt; safe to re-run)
+         logs/runtime/scripts-YYYY-MM-DD.log      (what was built, and any error code)
+Run    : (from the admin-site folder)  npm run build-demos                      (all designs)
+                                       npm run build-demos -- c-and-a-plumbing-20723   (one or more slugs)
+Errors : SKY-DEMO-001 design file not valid JSON / missing fields; SKY-DEMO-002 design has no matching lead;
+         SKY-DEMO-003 unknown slug; SKY-LEAD-001 sample CSV missing; SKY-SYS-002 disk full.
+After the demos are in SkyTechCRM, edit them in the Admin site (Demo sites tab); edits there win.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>fail</td><td>prints the SkyTech code, message and first fix step, logs it, and stops with exit code 1.</td></tr><tr><td>REQUIRED</td><td>fields every design file must have (SKY-DEMO-001 if one is missing).</td></tr><tr><td>parseCSV</td><td>small RFC-4180 CSV reader (quoted cells, doubled quotes, CRLF); returns an array of row objects.</td></tr><tr><td>sq</td><td>SQL literal: NULL for empty, otherwise N&#x27;…&#x27; with quotes doubled (prevents SQL injection in the generated file).</td></tr><tr><td>csvCell</td><td>quotes a manifest cell when it contains a comma, quote or line break.</td></tr></tbody></table></div></div>
+<div class="code" id="f-admin-site-start-admin-bat"><h3>admin-site/start-admin.bat <span class="sev info">V2.0</span></h3><pre>Purpose : starts the SkyTech Admin site on http://127.0.0.1:3030 (this computer only).
+Steps   : 1) installs packages on first use  2) stops if .env is missing (SKY-CFG-001)
+3) runs &quot;npm run doctor&quot; - shows problems with SkyTech codes and fixes; stops on a red X
+4) opens the browser and starts the server (log: ..\logs\runtime\admin-YYYY-MM-DD.log)
+Errors  : see docs\architecture\SkyTech_Troubleshooting_Guide.html</pre></div>
+<div class="code" id="f-admin-site-env-example"><h3>admin-site/.env.example <span class="sev info">V2.0</span></h3><pre>Copy this file to &quot;.env&quot; and fill it in. Never commit .env to GitHub (it is git-ignored and the push scan blocks it).
+After any change run:  npm run doctor   (checks every setting and prints SkyTech codes with fixes)
+---- Web server ----
+32+ random characters. Create one with:  npm run doctor -- --new-secret   (SKY-CFG-002 if weak)
+---- Sessions and sign-in protection ----
+---- Logging (logs/runtime/admin-YYYY-MM-DD.log, JSON lines, passwords redacted) ----
+---- Database: SkyTechCRM on SQL Server 2014 Developer ----
+---- Demo mode (no database): run &quot;npm run demo&quot;; sign in as admin / the password below ----</pre></div>
+<h3>Database (SQL Server 2014)</h3>
+<div class="code" id="f-sql-01-create-skytechcrm-sql"><h3>sql/01_create_skytechcrm.sql <span class="sev info">V2.3</span></h3><pre>Purpose : creates the SkyTechCRM database: lead tables, duplicate protection, the lead import procedure,
+           the DemoSites table and the database error log.
+ Run     : SSMS → open this file → Execute (F5). Order: 01 → lead import → 04 → 05 → 06.
+ Errors  : PRINT &#x27;WARNING: duplicate…&#x27; = SKY-DUP-004 (fix duplicates in the Admin site, run again);
+           failures inside procedures are written to dbo.ErrorLog (SKY-DB-010) and re-raised.
+ SkyTechCRM setup + duplicate protection. SQL Server 2014 Developer (also newer versions).
+ SAFE TO RE-RUN: creates what is missing, upgrades a V1 database, never deletes data.
+
+ How duplicates are prevented
+   1. Every company is matched on its source ID (e.g. Overture ID), else on
+      normalized name + ZIP. Unique indexes enforce both rules in the database.
+   2. One WebPresence row and one Lead per company (unique on CompanyID).
+   3. Imports go through staging (dbo.StgLeads) + dbo.usp_ImportStagedLeads,
+      which UPDATES existing companies and INSERTS only new ones. Re-running
+      an import changes nothing new.
+   4. Every import run is logged in dbo.ImportBatches (rows in / inserted / updated / skipped).
+   5. dbo.vw_PossibleDuplicates lists near-duplicates (same phone, or same name
+      in another ZIP) for a person to review.
+
+ How errors are recorded (V2.3)
+   Every procedure has TRY/CATCH: on failure it rolls back, calls dbo.usp_LogError (one row in dbo.ErrorLog
+   with procedure, error number, line, message, user and time) and re-raises the error to the caller.
+   Read it with: SELECT TOP 20 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC;</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>TABLE dbo.ImportBatches</td><td>—</td></tr><tr><td>TABLE dbo.Companies</td><td>—</td></tr><tr><td>TABLE dbo.WebPresence</td><td>—</td></tr><tr><td>TABLE dbo.Leads</td><td>—</td></tr><tr><td>TABLE dbo.Activities</td><td>—</td></tr><tr><td>TABLE dbo.StgLeads</td><td>—</td></tr><tr><td>FUNCTION dbo.fn_DigitsOnly</td><td>—</td></tr><tr><td>FUNCTION dbo.fn_NormName</td><td>—</td></tr><tr><td>VIEW dbo.vw_PossibleDuplicates</td><td>—</td></tr><tr><td>TABLE dbo.ErrorLog</td><td>dbo.ErrorLog: one row per failure caught inside a SkyTech procedure (never holds passwords or lead data).</td></tr><tr><td>PROCEDURE dbo.usp_LogError</td><td>dbo.usp_LogError: call ONLY inside a CATCH block (after ROLLBACK). Records ERROR_*() details; never fails itself.</td></tr><tr><td>PROCEDURE dbo.usp_ImportStagedLeads</td><td>dbo.usp_ImportStagedLeads: moves rows from dbo.StgLeads into Companies/WebPresence/Leads. Updates companies it already has (same source ID, else same name + ZIP), inserts only new ones, records the run in dbo.ImportBatches, empties staging. All-or-nothing: any failure rolls back, is logged (SKY-IMP-002) and re-raised.</td></tr><tr><td>TABLE dbo.DemoSites</td><td>One row per company (unique), edited in the Admin site &quot;Demo sites&quot; tab.</td></tr></tbody></table></div></div>
+<div class="code" id="f-sql-02-daily-batch-query-sql"><h3>sql/02_daily_batch_query.sql <span class="sev info">V1.0</span></h3><pre>BackOffice agent: 20 unchecked companies in one industry and city</pre></div>
+<div class="code" id="f-sql-04-admin-site-sql"><h3>sql/04_admin_site.sql <span class="sev info">V1.5</span></h3><pre>Purpose : objects used by the SkyTech Admin site: sign-in users, audit log, detail views for the screens,
+           the live duplicate check and the three duplicate-repair procedures. SQL Server 2014 Developer (SSMS).
+ Run     : AFTER sql/01_create_skytechcrm.sql (V2.3+, which creates dbo.usp_LogError). SAFE TO RE-RUN; never deletes data.
+ Errors  : THROW 50001/50002 → SKY-DUP-005, 50011/50012 → SKY-DUP-002, 50021 → SKY-DUP-003 (shown in the Admin site);
+           unexpected failures are rolled back, written to dbo.ErrorLog (SKY-DB-010) and re-raised.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>TABLE dbo.AdminUsers</td><td>dbo.AdminUsers: Admin site sign-ins. Passwords are stored only as bcrypt hashes (cost 12), never in plain text. Role: admin = full access, viewer = read only. Create users with: npm run create-admin</td></tr><tr><td>TABLE dbo.AuditLog</td><td>dbo.AuditLog: who changed what and when (sign-ins, creates, edits, deletes, merges). Made read-only by sql/06 (SKY-SEC-006).</td></tr><tr><td>VIEW dbo.vw_LeadDetail</td><td>—</td></tr><tr><td>VIEW dbo.vw_WebPresenceDetail</td><td>—</td></tr><tr><td>VIEW dbo.vw_ActivityDetail</td><td>—</td></tr><tr><td>TABLE dbo.DuplicateDismissals</td><td>—</td></tr><tr><td>VIEW dbo.vw_DuplicateReview</td><td>—</td></tr><tr><td>PROCEDURE dbo.usp_MergeCompanies</td><td>—</td></tr><tr><td>VIEW dbo.vw_DuplicateCheck</td><td>—</td></tr><tr><td>PROCEDURE dbo.usp_MergeLeads</td><td>—</td></tr><tr><td>PROCEDURE dbo.usp_FixDuplicateWebPresence</td><td>—</td></tr><tr><td>VIEW dbo.vw_DemoSiteDetail</td><td>—</td></tr></tbody></table></div></div>
+<div class="code" id="f-sql-05-demo-sites-built-sql"><h3>sql/05_demo_sites_built.sql <span class="sev info">V2.2</span></h3><pre>Generated by admin-site/scripts/build-demos.js (SkyTech_WebsiteDeveloper). Safe to re-run; never creates duplicates.
+ 1) Adds each demo to dbo.DemoSites (one row per company). Rows that already exist are left alone, so edits made in the Admin site win.
+ 2) Marks the lead DemoBuilt (only if it is still New / Checked / NoSite) and logs one Note activity per demo.
+ Run in SSMS after sql/01 (V2.3) and sql/04 (V1.5); then run sql/06. All-or-nothing: a failure rolls back,
+ is written to dbo.ErrorLog (SKY-IMP-001) and shown in the Messages tab. Demos listed under NotFoundInDatabase
+ need their lead imported first (SKY-IMP-001).</pre></div>
+<div class="code" id="f-sql-06-security-and-logging-sql"><h3>sql/06_security_and_logging.sql <span class="sev info">V1.0</span></h3><pre>Purpose : database security and resilience for SkyTechCRM (SQL Server 2014 Developer, SSMS).
+   1. SkyTechApp role  — least privilege: read/write data and run procedures; no table changes, no audit edits.
+   2. Optional SQL login for the Admin site (commented out; Windows login stays the default and recommended).
+   3. Audit log protection — dbo.AuditLog can be added to but never edited or deleted (SKY-SEC-006, error 50100).
+   4. dbo.usp_BackupSkyTechCRM — full, compressed, checksummed backup + verification (SKY-BAK-001 / SKY-BAK-003).
+   5. dbo.usp_PurgeErrorLog — removes old rows from dbo.ErrorLog (keeps 90 days by default).
+   6. Optional SQL Server Audit of failed logins and permission changes (commented out).
+ Run     : AFTER 01 → lead import → 04 → 05. Execute as the owner (your Windows login). SAFE TO RE-RUN; never deletes data.
+ Errors  : every failure is written to dbo.ErrorLog and explained in docs/architecture/SkyTech_Troubleshooting_Guide.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>ROLE SkyTechApp</td><td>SkyTechApp: what the Admin site needs and nothing more. Schema-level grants cover new tables automatically. No ALTER/CREATE/DROP rights, so a bug or an attacker using the app cannot change the database design.</td></tr><tr><td>TRIGGER dbo.trg_AuditLog_Protect</td><td>CREATE USER SkyTechAdminSite FOR LOGIN SkyTechAdminSite; ALTER ROLE SkyTechApp ADD MEMBER SkyTechAdminSite; trg_AuditLog_Protect: blocks UPDATE and DELETE on dbo.AuditLog for everyone (even the owner) with error 50100. To archive very old audit rows, an owner must first run: DISABLE TRIGGER dbo.trg_AuditLog_Protect ON dbo.AuditLog; (and ENABLE it again straight after). That action itself shows in the SQL Server log.</td></tr><tr><td>PROCEDURE dbo.usp_BackupSkyTechCRM</td><td>COMPRESSION, then RESTORE VERIFYONLY (proves the file can be restored). Creates the folder if missing. Run weekly (doctor warns after 7 days, SKY-BAK-003):  EXEC dbo.usp_BackupSkyTechCRM; Restore (SKY-BAK-002), in SSMS as owner: RESTORE DATABASE SkyTechCRM FROM DISK = N&#x27;C:\SkyTechBackups\&lt;file&gt;.bak&#x27; WITH REPLACE, CHECKSUM; Copy the .bak files off this computer (USB drive or cloud folder); *.bak is git-ignored and never goes to GitHub.</td></tr><tr><td>PROCEDURE dbo.usp_PurgeErrorLog</td><td>dbo.usp_PurgeErrorLog: deletes ErrorLog rows older than @KeepDays (default 90). Owner use; returns rows removed.</td></tr></tbody></table></div></div>
+<h3>Scripts</h3>
+<div class="code" id="f-scripts-common-skylog-py"><h3>scripts/common/skylog.py <span class="sev info">V1.0</span></h3><pre>Version: V1.0 (2026-10-10) — scripts/common/skylog.py — V1.0
+Shared error codes and logging for the SkyTech Python scripts (lead builders, document builders, prompt book).
+
+Purpose : the same SKY-&lt;AREA&gt;-&lt;NNN&gt; codes and log format as the Admin site, so a failure in any script can be
+          looked up in docs/architecture/SkyTech_Troubleshooting_Guide.html.
+Use     : import skylog  (scripts add the scripts/common folder to sys.path first)
+            log = skylog.get(&quot;build_tech_stack&quot;)
+            log.info(&quot;wrote file&quot;, path=out)
+            skylog.fail(&quot;SKY-DOC-002&quot;, &quot;Cannot read the diagram source&quot;, path=p)   # prints code + fix, exits 1
+            with skylog.guard(&quot;build_tech_stack&quot;): main()   # turns any crash into a coded, logged failure
+            skylog.install(&quot;build_tech_stack&quot;, &quot;SKY-DOC-002&quot;)  # same, for scripts written as plain top-level code
+Outputs : logs/runtime/scripts-YYYY-MM-DD.log (one JSON object per line; secrets redacted).
+Errors  : if the log folder cannot be written, logging continues on screen only (SKY-SYS-003).</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>_catalog</td><td>Loads config/error-codes.json once; returns {code: entry} (empty if the file is missing).</td></tr><tr><td>_redact</td><td>Replaces values of sensitive keys (passwords, tokens…) with [redacted].</td></tr><tr><td>Logger</td><td>Writes JSON lines to logs/runtime/scripts-&lt;date&gt;.log and short lines to the screen.</td></tr><tr><td>write</td><td>Records one event. level: info | warn | error.</td></tr><tr><td>get</td><td>Returns the logger for a script name (one per name).</td></tr><tr><td>fail</td><td>Logs the failure with its SkyTech code, prints the first fix step and the guide link, and exits with code 1.</td></tr><tr><td>guard</td><td>Wraps a script&#x27;s main work: missing modules → SKY-DOC-001, missing files → SKY-DOC-002 (or the given code), disk full → SKY-SYS-002, anything else → the given code. The full traceback goes to the log only.</td></tr><tr><td>install</td><td>For scripts written as top-level code: any uncaught error becomes a coded, logged failure (see guard) and a start line is logged. Call once, right after the imports.</td></tr></tbody></table></div></div>
+<div class="code" id="f-scripts-security-scan-secrets-js"><h3>scripts/security/scan-secrets.js <span class="sev info">V1.0</span></h3><pre>@file Secret scanner run before every push (push-to-github.bat calls it).
+Purpose: stops passwords, API keys, private keys or a committed .env from reaching GitHub.
+Inputs:  the files git tracks plus files staged for the next commit (git ls-files).
+Outputs: a list of suspicious lines (value masked) and exit code 1 (SKY-SEC-004) if anything is found; 0 if clean.
+Run:     node scripts/security/scan-secrets.js      (from the repository folder)
+Allow:   a line containing &quot;scan-secrets: allow&quot; is skipped (use only for documented example values).</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>RULES</td><td>what counts as a secret. Each has a name and a regular expression.</td></tr><tr><td>listFiles</td><td>files git tracks or has staged; exits with SKY-GIT-001 if git is not available.</td></tr></tbody></table></div></div>
+<div class="code" id="f-scripts-leads-build-sample-from-extract-py"><h3>scripts/leads/build_sample_from_extract.py <span class="sev info">V1.3</span></h3><pre>Version: V1.3 (2026-10-10) — scripts/leads/build_sample_from_extract.py — V1.3 (error codes + logging)
+SkyTech_BackOffice lead builder.
+Purpose : turns data/raw/overture/&lt;date&gt;/sample100_extract.json (collected in Overture Explorer) into
+          data/samples/SkyTech_Leads_Sample100.csv (for review) and _import.sql (for SkyTechCRM). Adds review flags and
+          an A/B/C priority so the team calls the best leads first, and merges the BackOffice &quot;no website&quot; verification.
+Inputs  : extract JSON (argument 1) — rows of [name, niche, category, address, locality, county, zip, phone, email,
+          website, hasFacebook, confidence, overtureId]; optional data/verification/2026-10-02_backoffice_results.txt.
+Outputs : CSV + import SQL (loads through dbo.StgLeads → dbo.usp_ImportStagedLeads, so re-running never duplicates).
+Run     : python scripts/leads/build_sample_from_extract.py [extract.json]   (from the repository folder)
+Errors  : SKY-LEAD-001 input missing/unreadable, SKY-LEAD-002 extract empty; log: logs/runtime/scripts-&lt;date&gt;.log.</pre></div>
+<div class="code" id="f-scripts-leads-make-sample-py"><h3>scripts/leads/make_sample.py <span class="sev info">V1.3</span></h3><pre>Turn Overture Maps Explorer downloads (GeoJSON/CSV) into a 100-lead sample
+for Baltimore City + Baltimore County + Howard County: real estate and utility trades.
+Version: V1.3 (2026-10-10) - error codes + logging (V1.2: Baltimore City added). NOTE: its SQL output is superseded; for database imports use
+scripts/leads/build_sample_from_extract.py, which loads through the duplicate-safe dbo.usp_ImportStagedLeads.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>g</td><td>Safe nested lookup in Overture properties: g(p, &quot;names&quot;, &quot;primary&quot;).</td></tr><tr><td>load</td><td>Yields place properties from a GeoJSON/JSON or CSV download (JSON-in-text fields decoded).</td></tr></tbody></table></div></div>
+<div class="code" id="f-scripts-leads-overture-browser-extract-js"><h3>scripts/leads/overture_browser_extract.js <span class="sev info">V1.1</span></h3><pre>Purpose: SkyTech_BackOffice helper — reads business places (Overture Maps, free licence) shown on the public explorer map.
+Inputs : map tiles already loaded in your browser; Outputs: window.__sky rows → save as sample100_extract.json.
+Errors : empty result = SKY-LEAD-002 (zoom in until the places layer shows, keep the map visible, run grab again).
+Rules  : manual, owner-run, read-only; no automated scraping of Google Maps, Yelp or Facebook.
+Run in the browser console on https://explore.overturemaps.org (the page exposes `map`).
+For each area: grab(name, lat, lon). Results collect in window.__sky; then build the sample.
+Note: tiles load only while the map is visible on screen.</pre></div>
+<div class="code" id="f-scripts-docs-build-infrastructure-py"><h3>scripts/docs/build_infrastructure.py <span class="sev info">V1.6</span></h3><pre>Version: V1.6 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.6
+Builds docs/architecture/SkyTech_Infrastructure.html (diagram + roles + versions).
+Edit the DATA section and re-run to publish a new version.
+Also imported by build_tech_stack.py, which reuses SVG and CSS so both documents always show the same diagram.
+Run    : python scripts/docs/build_infrastructure.py   (from the repository folder)
+Errors : SKY-DOC-001 missing Python package, SKY-DOC-002 file problem; log: logs/runtime/scripts-&lt;date&gt;.log.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>box</td><td>Draws one component box (title + up to 3 lines); kind: normal | acc (SkyTech part) | plan (dashed, planned) | store | person.</td></tr><tr><td>zone</td><td>Draws a labelled background zone (Owner PC, Cloud, Internet…).</td></tr><tr><td>arrow</td><td>Draws an arrow along the points, with optional label, step number and dashed style for planned flows.</td></tr><tr><td>table</td><td>HTML table helper for the roles/components/versions sections.</td></tr></tbody></table></div></div>
+<div class="code" id="f-scripts-docs-build-tech-stack-py"><h3>scripts/docs/build_tech_stack.py <span class="sev info">V1.2</span></h3><pre>Version: V1.2 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.2
+Builds docs/architecture/SkyTech_Technology_Stack_Use.html (and a .md copy for the Claude project and GitHub): the &quot;Technology Stack Use&quot; document.
+It explains, for a non-technical reader, every tool and technology the SkyTech program uses, and merges
+them with the architecture diagram (taken from build_infrastructure.py, so both documents always match).
+Edit the DATA section, bump DOC_VERSION and add a CHANGELOG line, then run from the repository folder:
+    python scripts/docs/build_tech_stack.py
+Errors: SKY-DOC-001 missing Python package, SKY-DOC-002 file problem; log: logs/runtime/scripts-&lt;date&gt;.log.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>journey_svg</td><td>Six-step &quot;how SkyTech works&quot; picture (find → check → build → contact → win → run), with the tools used at each step.</td></tr><tr><td>stack_tables</td><td>One table per tool group (what it is, what we use it for, cost, where it runs, status).</td></tr></tbody></table></div></div>
+<div class="code" id="f-scripts-docs-build-ops-docs-py"><h3>scripts/docs/build_ops_docs.py <span class="sev info">V1.0</span></h3><pre>Version: V1.0 (2026-10-10) — scripts/docs/build_ops_docs.py — V1.0
+Builds the three R4.0 operations documents in docs/architecture (each as .html and .md):
+  1. SkyTech_Troubleshooting_Guide   — every SkyTech error code (from config/error-codes.json), predicted errors,
+                                        how logging works, first aid, database error queries. One anchor per code
+                                        (#SKY-DB-001 …) so the Admin site System log and every error message can link to it.
+  2. SkyTech_Security_Architecture   — threat model, data classification, trust boundaries, controls mapped to
+                                        OWASP ASVS / NIST CSF 2.0 / CIS Controls v8, secrets, backup, incident response.
+  3. SkyTech_Code_Documentation      — the comments written in every program file, collected into one reference:
+                                        file purpose blocks plus one line per function / procedure.
+Run     : python scripts/docs/build_ops_docs.py            (from the repository folder; no extra packages needed)
+Inputs  : config/error-codes.json, the source files listed in CODE_FILES, the DATA sections below.
+Outputs : docs/architecture/&lt;name&gt;.html and .md. PDFs are printed from the HTML (SkyTech_Manager does this with a
+          headless browser; any browser&#x27;s Print → Save as PDF gives the same layout).
+Errors  : SKY-DOC-002 when a source file cannot be read; log: logs/runtime/scripts-&lt;date&gt;.log.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>page</td><td>Wraps body HTML in the standard SkyTech document page (title, version line, footer).</td></tr><tr><td>table</td><td>HTML table; cells are escaped unless they start with &#x27;&lt;&#x27; (already HTML).</td></tr><tr><td>md_table</td><td>Markdown table (pipes in cells replaced so the table never breaks).</td></tr><tr><td>write</td><td>Writes the .html and .md versions of one document.</td></tr><tr><td>code_card</td><td>One error-code card with an anchor equal to the code.</td></tr><tr><td>boundary_svg</td><td>Trust-boundary picture: three zones and the five boundaries B1–B5 (see the table under it).</td></tr><tr><td>extract</td><td>Returns (header_text, [(name, comment)]) for one source file, following the conventions above.</td></tr></tbody></table></div></div>
+<div class="code" id="f-scripts-prompt-book-build-prompt-book-py"><h3>scripts/prompt-book/build_prompt_book.py <span class="sev info">V2.1</span></h3><pre>Version: V2.1 (2026-10-10) — scripts/prompt-book/build_prompt_book.py — V2.1
+Builds the SkyTech Prompt Book PDF from content.py.
+Run from the repository folder:  python scripts/prompt-book/build_prompt_book.py
+Needs : pip install reportlab   (free).  Errors: SKY-DOC-001 package missing, SKY-DOC-002 file problem.</pre><div class="wrap"><table class="fn fixed"><thead><tr><th>Function / object</th><th>What it does</th></tr></thead><tbody><tr><td>fmt</td><td>Escapes a prompt and puts the ROLE:/TASK:/… keywords in bold on their own lines.</td></tr><tr><td>tbl</td><td>Styled ReportLab table (header row, grid, wrapped cells).</td></tr><tr><td>footer</td><td>Page footer: version line and page number on every page.</td></tr></tbody></table></div></div>
+<div class="code" id="f-scripts-prompt-book-content-py"><h3>scripts/prompt-book/content.py <span class="sev info">V2.0</span></h3><pre>Version: V2.0 (2026-10-02) — scripts/prompt-book/content.py — V2.0
+Text of the SkyTech Prompt Book. Each entry: (title, consolidates, prompt).
+&quot;consolidates&quot; says which original messages were merged into the one professional prompt.</pre></div>
+<div class="code" id="f-scripts-website-content-py"><h3>scripts/website/content.py <span class="sev info">V1.0</span></h3><pre>Version: V1.0 (2026-10-02) — scripts/website/content.py — V1.0
+SkyTech_WebsiteDeveloper: wording and colours for each kind of business.
+
+Rules for this file (owner-approved honesty rules, see agents/SkyTech_WebsiteDeveloper.md):
+- No claims we cannot prove: no &quot;licensed&quot;, &quot;insured&quot;, &quot;24/7&quot;, &quot;years of experience&quot;,
+  &quot;free estimates&quot;, awards, prices or reviews. The owner of the business adds those.
+- Service lists are typical for the trade and are shown as sample text until the owner confirms.</pre></div>
+<div class="code" id="f-scripts-website-build-demo-sites-py"><h3>scripts/website/build_demo_sites.py <span class="sev info">V2.0</span></h3><pre>Version: V2.0 (2026-10-05) — scripts/website/build_demo_sites.py — V2.0
+Retired in R3.2. Demo websites are now built from demo-sites/designs/*.json by the Admin site tooling,
+so every page matches the DemoSites table and the Admin live preview:
+
+    cd admin-site
+    npm run build-demos
+
+This file stays only for version history; running it changes nothing.</pre></div>
+<h3>Repository</h3>
+<div class="code" id="f-push-to-github-bat"><h3>push-to-github.bat <span class="sev info">V2.0</span></h3><pre>Purpose : uploads all saved releases (commits + tags) to the private GitHub repository.
+Steps   : 1) checks for git lock files left by a crashed git (SKY-GIT-002)
+2) runs the secret scan - stops if a password, key or .env would be uploaded (SKY-SEC-004)
+3) git push of branch main, then of all release tags (R1.0, R2.0 ...)
+Errors  : SKY-GIT-005 git missing, SKY-GIT-002 lock file, SKY-GIT-001 sign-in, SKY-GIT-004 GitHub newer, SKY-SEC-004 secret found.
+Every code is explained in docs\architecture\SkyTech_Troubleshooting_Guide.html
+Run     : double-click after SkyTech_Manager reports a new release.
+--- 1. lock files -----------------------------------------------------------
+--- 2. secret scan (needs Node.js) -------------------------------------------
+--- 3. upload ---------------------------------------------------------------</pre></div>
+<div class="code" id="f--gitignore"><h3>.gitignore <span class="sev info">V1.1</span></h3><pre>Files git must never upload to GitHub.
+Python caches and system files
+Node packages (re-created by npm install)
+SQL Server backups and local database files stay off GitHub
+Secrets: real settings live only in admin-site/.env on this computer
+Runtime logs (may contain user names and IP addresses; kept 30 days on this computer only)
+Temporary transfer files</pre></div>
+<div class="code" id="f-config-error-codes-json"><h3>config/error-codes.json <span class="sev info">V1.1</span></h3><pre>Error catalog V1.1: 65 codes, format SKY-&lt;AREA&gt;-&lt;NNN&gt;. Fields per code: code, area, severity, title, where, causes, fix, log, predicted, http, user.</pre></div>
+<footer class="meta" style="margin-top:28px">Version: V1.0 (2026-10-10) — docs/architecture/SkyTech_Code_Documentation.html — V1.0. Rebuild with: python scripts/docs/build_ops_docs.py</footer>
+</main></body></html>

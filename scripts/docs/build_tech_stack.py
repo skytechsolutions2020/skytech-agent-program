@@ -1,11 +1,14 @@
-"""Version: V1.1 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.1
+"""Version: V1.2 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.2
 Builds docs/architecture/SkyTech_Technology_Stack_Use.html (and a .md copy for the Claude project and GitHub): the "Technology Stack Use" document.
 It explains, for a non-technical reader, every tool and technology the SkyTech program uses, and merges
 them with the architecture diagram (taken from build_infrastructure.py, so both documents always match).
 Edit the DATA section, bump DOC_VERSION and add a CHANGELOG line, then run from the repository folder:
     python scripts/docs/build_tech_stack.py
+Errors: SKY-DOC-001 missing Python package, SKY-DOC-002 file problem; log: logs/runtime/scripts-<date>.log.
 """
 import html, os, runpy, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common")); import skylog
+skylog.install("build_tech_stack", "SKY-DOC-002")
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 INFRA = runpy.run_path(os.path.join(HERE, "build_infrastructure.py"), run_name="skytech_lib")
@@ -13,7 +16,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "docs/architecture/SkyTech_Technolog
 E = html.escape
 
 # ============================ DATA (edit here) ============================
-DOC_VERSION = "V1.0"; DOC_DATE = "2026-10-10"; RELEASE = INFRA["RELEASE"]
+DOC_VERSION = "V1.1"; DOC_DATE = "2026-10-10"; RELEASE = INFRA["RELEASE"]
 
 # The journey a lead takes, in plain words, with the tools used at each step (one-minute picture).
 JOURNEY = [
@@ -31,7 +34,7 @@ JOURNEY = [
      ["Netlify (free)", "Hostinger", "Monthly plan"]),
 ]
 BACKGROUND = ["SkyTech_Manager (Claude) coordinates and reports", "Git + GitHub keep a backed-up history of every file",
-              "Version register, INDEX and CHANGELOG record every change", "Claude desktop app links Claude to your SkyTechClaude folder"]
+              "Version register and CHANGELOG record every change; logs and SKY error codes record every problem", "Claude desktop app links Claude to your SkyTechClaude folder"]
 
 # Technology stack: (group, tool, what it is in plain words, what we use it for, cost, where it runs, status)
 STACK = [
@@ -55,6 +58,9 @@ STACK = [
  ("4 · Your Admin website", "Express, express-session, dotenv", "Building blocks for a small web server.", "Admin pages, sign-in sessions and settings.", "Free", "Your laptop", "Ready"),
  ("4 · Your Admin website", "bcryptjs", "A password scrambler.", "Stores admin passwords so they cannot be read.", "Free", "Your laptop", "Ready"),
  ("4 · Your Admin website", "mssql, msnodesqlv8, ODBC driver", "Connectors between Node.js and SQL Server.", "Lets the Admin site read and save database records.", "Free", "Your laptop", "Ready"),
+ ("4 · Your Admin website", "Security layer (security.js)", "The site's locks and alarms, written by us.", "Blocks password guessing, forged requests from other websites and request floods; signs you out when idle; strict browser rules (CSP).", "Free (ours)", "Your laptop", "Ready"),
+ ("4 · Your Admin website", "Logging + error codes (logger.js, errors.js)", "A diary of everything the site does, and a numbered list of every possible problem.", "Each problem shows a code like SKY-DB-001 that the Troubleshooting Guide explains; logs are kept 30 days with passwords hidden.", "Free (ours)", "Your laptop", "Ready"),
+ ("4 · Your Admin website", "Doctor (npm run doctor)", "A one-command health check.", "Checks settings, packages, database, backups and GitHub safety, and tells you exactly how to fix anything wrong.", "Free (ours)", "Your laptop", "Ready"),
  ("4 · Your Admin website", "Chart.js", "A library for drawing charts.", "Dashboard charts you can click to drill down.", "Free", "Inside the Admin site", "Ready"),
  ("4 · Your Admin website", "HTML, CSS, JavaScript", "The basic building blocks of every web page.", "The Admin screens and every demo site.", "Free", "Browser", "In use"),
  ("5 · Demo websites", "Demo-site builder (render.js, build-demos.js)", "Our own template program.", "Turns each business's design file or database record into a finished one-page website.", "Free (ours)", "admin-site folder", "In use"),
@@ -71,6 +77,8 @@ STACK = [
  ("7 · Safety net: files & backup", "Git", "A change-tracker that keeps every version of every file.", "Each change is saved as a numbered release (R1.0, R2.0 ...).", "Free", "Your laptop", "In use"),
  ("7 · Safety net: files & backup", "GitHub (private repository)", "An online, private backup of the Git history.", "Off-site copy of all work: skytech-agent-program.", "Free", "Internet", "In use"),
  ("7 · Safety net: files & backup", "GitHub Desktop + push-to-github.bat", "One-click upload tools.", "Sending new releases to GitHub.", "Free", "Your laptop", "In use"),
+ ("7 · Safety net: files & backup", "Secret scan (scan-secrets.js)", "A check that runs before every upload to GitHub.", "Stops passwords, keys or the .env settings file from ever being uploaded.", "Free (ours)", "Your laptop", "Ready"),
+ ("7 · Safety net: files & backup", "SQL Server backup (usp_BackupSkyTechCRM)", "A verified copy of the whole database.", "Weekly backup to C:\\SkyTechBackups, checked so it can really be restored.", "Free", "Your laptop", "Ready"),
  ("7 · Safety net: files & backup", "Version register, INDEX, CHANGELOG", "Our record books.", "Which version of every file is current and what changed.", "Free (ours)", "config/ and repository root", "In use"),
  ("8 · Behind-the-scenes helpers", "Python 3", "A popular programming language.", "Lead scripts, prompt book, the diagram and this document.", "Free", "Your laptop (Claude runs it)", "In use"),
  ("8 · Behind-the-scenes helpers", "ReportLab", "A PDF maker for Python.", "The Prompt Book PDF.", "Free", "Your laptop", "In use"),
@@ -89,11 +97,16 @@ GLOSSARY = [
  ("API", "A doorway that lets one program ask another for data."),
  ("Open licence / free licence", "Permission to use data or photos without paying, under stated rules."),
  ("noindex", "A tag that keeps a page out of Google until we are ready to publish it."),
+ ("Error code", "A short label such as SKY-DB-001 that points to one problem and its fix in the Troubleshooting Guide."),
+ ("Log", "A file where the program writes down what it did and any problem, with the time."),
+ ("CSRF / CSP", "Protections that stop other websites from making your browser change your data or run unwanted code."),
 ]
-CHANGELOG = [("V1.0", "2026-10-10", "First version: one-minute journey picture, architecture diagram, technology stack in plain words, costs, glossary.")]
+CHANGELOG = [("V1.0", "2026-10-10", "First version: one-minute journey picture, architecture diagram, technology stack in plain words, costs, glossary."),
+             ("V1.1", "2026-10-10", "R4.0: security layer, logging and error codes, doctor, secret scan and verified database backups added; diagram V1.6.")]
 # ==========================================================================
 
 def journey_svg():
+    """Six-step "how SkyTech works" picture (find → check → build → contact → win → run), with the tools used at each step."""
     W, n, gap, top = 1400, len(JOURNEY), 22, 70
     cw = (W - 40 - gap * (n - 1)) / n
     out = [f'<svg viewBox="0 0 {W} 484" role="img" aria-label="How SkyTech works in six steps" xmlns="http://www.w3.org/2000/svg">',
@@ -128,6 +141,7 @@ def journey_svg():
     return "".join(out)
 
 def stack_tables():
+    """One table per tool group (what it is, what we use it for, cost, where it runs, status)."""
     groups, order = {}, []
     for row in STACK:
         if row[0] not in groups: groups[row[0]] = []; order.append(row[0])
@@ -219,4 +233,4 @@ md += ["", "---", f"Version: {DOC_VERSION} ({DOC_DATE}) — SkyTech_Technology_S
 open(md_path, "w", encoding="utf-8").write("\n".join(md))
 print("wrote", md_path)
 
-# Version: V1.1 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.1
+# Version: V1.2 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.2

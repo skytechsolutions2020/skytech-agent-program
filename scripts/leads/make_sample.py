@@ -1,8 +1,14 @@
 """Turn Overture Maps Explorer downloads (GeoJSON/CSV) into a 100-lead sample
 for Baltimore City + Baltimore County + Howard County: real estate and utility trades.
-Version: V1.2 (2026-10-02) - Baltimore City added. NOTE: its SQL output is superseded; for database imports use
+Version: V1.3 (2026-10-10) - error codes + logging (V1.2: Baltimore City added). NOTE: its SQL output is superseded; for database imports use
 scripts/leads/build_sample_from_extract.py, which loads through the duplicate-safe dbo.usp_ImportStagedLeads."""
-import sys, json, csv, glob, re, random
+# Purpose : older Overture → 100-lead sample builder (kept for history; the SQL it writes is NOT duplicate-safe —
+#           use build_sample_from_extract.py for database imports).
+# Run     : python scripts/leads/make_sample.py <download.geojson|csv> [...]
+# Errors  : SKY-LEAD-001 input missing; SKY-LEAD-002 nothing matched. Log: logs/runtime/scripts-<date>.log.
+import sys, json, csv, glob, re, random, os
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common")); import skylog
+skylog.install("make_sample", "SKY-LEAD-001")
 HOWARD = "20701 20723 20759 20763 20777 20794 21029 21036 21041 21042 21043 21044 21045 21046 21075 21104 21150 21723 21737 21738 21765 21794 21797".split()
 BALTCO = ("21013 21020 21022 21023 21027 21030 21031 21051 21052 21053 21057 21065 21071 21082 21087 21092 21093 21094 "
           "21111 21117 21120 21128 21131 21133 21136 21139 21152 21153 21155 21156 21162 21163 21204 21207 21208 21209 "
@@ -13,12 +19,14 @@ RE_CAT = re.compile(r"real_estate|realtor|property_management|real_estate_agent|
 UT_CAT = re.compile(r"plumb|electric(ian|al_service)|hvac|heating|air_condition|roofing|handyman|contractor|water_heater|septic|well_drilling|solar|generator|gutter|sewer|drain", re.I)
 
 def g(d, *path):
+    """Safe nested lookup in Overture properties: g(p, "names", "primary")."""
     for p in path:
         if d is None: return None
         d = d.get(p) if isinstance(d, dict) else (d[p] if isinstance(d, list) and len(d) > p else None)
     return d
 
 def load(f):
+    """Yields place properties from a GeoJSON/JSON or CSV download (JSON-in-text fields decoded)."""
     if f.lower().endswith((".geojson", ".json")):
         data = json.load(open(f))
         feats = data["features"] if "features" in data else data
@@ -34,6 +42,7 @@ def load(f):
 
 rows, seen = [], set()
 for f in sys.argv[1:]:
+    if not os.path.exists(f): skylog.fail("SKY-LEAD-001", f"Input file not found: {f}")
     for p in load(f):
         name = g(p, "names", "primary") or p.get("name") or ""
         cat = (g(p, "categories", "primary") or p.get("basic_category") or g(p, "taxonomy", "primary") or p.get("category") or "")
@@ -69,6 +78,7 @@ for r in rows: buckets.setdefault((r["Niche"], r["County"]), []).append(r)
 while len(sample) < 100 and any(buckets.values()):
     for k in sorted(buckets):
         if buckets[k] and len(sample) < 100: sample.append(buckets[k].pop(0))
+if not sample: skylog.fail("SKY-LEAD-002", "No matching businesses in the input files")
 print(f"matched {len(rows)} businesses; sample {len(sample)}; no-website in sample: {sum(1 for r in sample if not r['HasWebsite'])}")
 with open("SkyTech_Leads_Sample100.csv", "w", newline="") as fh:
     w = csv.DictWriter(fh, fieldnames=list(sample[0].keys())); w.writeheader(); w.writerows(sample)
@@ -81,3 +91,5 @@ with open("SkyTech_Leads_Sample100_import.sql", "w") as fh:
                  f"INSERT INTO WebPresence (CompanyID, HasWebsite, WebsiteURL, HasFacebook, Notes) VALUES (SCOPE_IDENTITY(), {r['HasWebsite']}, {q(r['WebsiteURL'])}, {r['HasFacebook']}, {q('Overture listing; confirm before demo. County: ' + r['County'])});\n"
                  f"INSERT INTO Leads (CompanyID, BatchName, Status) SELECT MAX(CompanyID), N'Sample100 Oct-2026 RE+Utility BaltCity-BaltCo-Howard', '{'NoSite' if not r['HasWebsite'] else 'Checked'}' FROM Companies;\n")
     fh.write("GO\n")
+
+# Version: V1.3 (2026-10-10) — scripts/leads/make_sample.py — V1.3

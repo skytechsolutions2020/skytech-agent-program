@@ -1,11 +1,22 @@
-// Version: V1.0 (2026-10-02) — admin-site/scripts/create-admin.js — V1.0
-// Creates (or resets) an Admin site login in SkyTechCRM.dbo.AdminUsers.
-// Usage: npm run create-admin     (asks for username, password, role)
+// Version: V2.0 (2026-10-10) — admin-site/scripts/create-admin.js — V2.0
+/**
+ * @file Create or reset an Admin site login.
+ * Purpose: asks for a username, password (typed hidden) and role, checks the password policy
+ *          (src/security.js passwordPolicy: 12+ chars, upper/lower case, a digit, not the username, not common),
+ *          stores a bcrypt hash (cost 12) in SkyTechCRM.dbo.AdminUsers and writes an audit entry.
+ * Run:     npm run create-admin      (re-run with the same username to reset a password)
+ * Inputs:  admin-site\.env database settings.
+ * Errors:  SKY-AUTH-006 password policy; SKY-DB-00x database problems; SKY-DATA-002 bad username/role.
+ */
+'use strict';
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const readline = require('readline');
 const bcrypt = require('bcryptjs');
-const db = require('../src/db/mssql');
+const { AppError, fromDbError } = require('../src/errors');
+const { passwordPolicy } = require('../src/security');
+const log = require('../src/logger');
 
+/** ask — prompts on the console; hidden=true shows * instead of the typed characters. */
 function ask(question, hidden) {
   return new Promise(resolve => {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true });
@@ -16,18 +27,28 @@ function ask(question, hidden) {
 
 (async () => {
   try {
+    const db = require('../src/db/mssql');
     await db.init();
     const username = await ask('Username: ');
-    if (!/^[A-Za-z0-9_.-]{3,50}$/.test(username)) throw new Error('Username: 3-50 letters, digits, _ . -');
-    const p1 = await ask('Password (min 10 characters): ', true);
-    if (p1.length < 10) throw new Error('Password must be at least 10 characters.');
+    if (!/^[A-Za-z0-9_.-]{3,50}$/.test(username)) throw new AppError('SKY-DATA-002', 'Username: 3-50 letters, digits, _ . -');
+    const p1 = await ask('Password (12+ characters, upper and lower case, a number): ', true);
+    const problems = passwordPolicy(p1, username);
+    if (problems.length) throw new AppError('SKY-AUTH-006', 'Password needs: ' + problems.join(', ') + '.');
     const p2 = await ask('Repeat password: ', true);
-    if (p1 !== p2) throw new Error('Passwords do not match.');
+    if (p1 !== p2) throw new AppError('SKY-AUTH-006', 'Passwords do not match.');
     const role = ((await ask('Role (admin/viewer) [admin]: ')) || 'admin').toLowerCase();
-    if (!['admin', 'viewer'].includes(role)) throw new Error('Role must be admin or viewer.');
+    if (!['admin', 'viewer'].includes(role)) throw new AppError('SKY-DATA-002', 'Role must be admin or viewer.');
     await db.createUser(username, await bcrypt.hash(p1, 12), role);
     await db.audit(username, 'session', 'CREATE', username, { role, by: 'create-admin script' });
+    log.security('Login created or reset', { user: username, role }, 'info');
     console.log(`Login "${username}" (${role}) is ready. Start the site with: npm start`);
     process.exit(0);
-  } catch (e) { console.error('Error: ' + e.message); process.exit(1); }
+  } catch (e) {
+    const err = e instanceof AppError ? e : fromDbError(e);
+    log.error('create-admin', err.message, { code: err.code, details: err.details });
+    console.error(`${err.code}: ${err.message}\nFix: ${err.hint}`);
+    process.exit(1);
+  }
 })();
+
+// Version: V2.0 (2026-10-10) — admin-site/scripts/create-admin.js — V2.0

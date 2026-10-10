@@ -1,10 +1,13 @@
-"""Version: V2.0 (2026-10-02) — scripts/prompt-book/build_prompt_book.py — V2.0
+"""Version: V2.1 (2026-10-10) — scripts/prompt-book/build_prompt_book.py — V2.1
 Builds the SkyTech Prompt Book PDF from content.py.
 Run from the repository folder:  python scripts/prompt-book/build_prompt_book.py
+Needs : pip install reportlab   (free).  Errors: SKY-DOC-001 package missing, SKY-DOC-002 file problem.
 """
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.join(HERE, "..", "common")); import skylog
+skylog.install("build_prompt_book", "SKY-DOC-001")  # reportlab missing → SKY-DOC-001 with the pip command
 from content import DAYS, LIBRARY, STANDING_RULES, VERSIONS
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
@@ -30,6 +33,7 @@ KEYS = ["ROLE:", "CONTEXT:", "GOAL:", "TASK:", "CONSTRAINTS (standing):", "CONST
         "IF BLOCKED:", "APPROVAL:", "INSTRUCTIONS (standing):", "INSTRUCTION (standing):", "REQUIREMENT (standing):", "QUESTION:"]
 
 def fmt(t):
+    """Escapes a prompt and puts the ROLE:/TASK:/… keywords in bold on their own lines."""
     out = []
     for ln in escape(t).split("\n"):
         for k in KEYS:
@@ -38,6 +42,7 @@ def fmt(t):
     return "<br/>".join(out)
 
 def tbl(rows, widths, header=True):
+    """Styled ReportLab table (header row, grid, wrapped cells)."""
     rows = [[Paragraph(escape(str(c)), cell) if not hasattr(c, "wrap") else c for c in r] for r in rows]
     t = Table(rows, colWidths=widths, repeatRows=1)
     st = [("GRID", (0, 0), (-1, -1), 0.5, line), ("VALIGN", (0, 0), (-1, -1), "TOP"),
@@ -46,6 +51,7 @@ def tbl(rows, widths, header=True):
     t.setStyle(TableStyle(st)); return t
 
 def footer(c, d):
+    """Page footer: version line and page number on every page."""
     c.saveState(); c.setFont("Helvetica", 8); c.setFillColor(colors.HexColor("#777777"))
     c.drawString(0.75 * inch, 0.5 * inch, f"SkyTech Solutions LLC  |  Prompt Book V{VERSION}  |  {DATE}")
     c.drawRightString(letter[0] - 0.75 * inch, 0.5 * inch, f"Page {d.page}"); c.restoreState()
@@ -91,4 +97,4 @@ s.append(Paragraph(f"Version: V{VERSION} ({DATE_ISO}) — prompts/SkyTech_Prompt
 doc.build(s, onFirstPage=footer, onLaterPages=footer)
 print("wrote", os.path.normpath(OUT))
 
-# Version: V2.0 (2026-10-02) — scripts/prompt-book/build_prompt_book.py — V2.0
+# Version: V2.1 (2026-10-10) — scripts/prompt-book/build_prompt_book.py — V2.1

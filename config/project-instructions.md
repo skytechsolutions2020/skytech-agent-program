@@ -37,5 +37,12 @@ ClientBase/Revenue Generation in 3 months for SkyTechSolutions:
 - Local working folder: `C:\Users\AV\Documents\SkyTechClaude\skytech-agent-program` (linked to the desktop app; GitHub Desktop pushes from here). All project files are saved here going forward.
 - First niche and area: real estate and utility trades in Baltimore City, Baltimore County and Howard County; 100-lead test sample first.
 
+## Code, errors, logging and security (V1.9)
+- Comments: every program file (code, SQL, scripts, .bat) starts with a purpose block (Purpose, Inputs, Outputs, Run, Errors, Security where relevant) and has a one-line comment above each function, table, view and procedure. The Code Documentation (`docs/architecture/SkyTech_Code_Documentation`) is rebuilt from these comments and re-versioned with every release that changes code.
+- Error codes: every error the owner can see carries a code `SKY-<AREA>-<NNN>` from `config/error-codes.json` (causes, fixes, where logged; predicted errors flagged). New failure modes get a new code, and the Troubleshooting Guide (`docs/architecture/SkyTech_Troubleshooting_Guide`) is rebuilt with `python scripts/docs/build_ops_docs.py`.
+- Logging: the Admin site, doctor and scripts write JSON lines to `logs/runtime/` (passwords and tokens redacted, 30-day retention, never uploaded); database procedures log failures to `dbo.ErrorLog` before re-raising; changes are recorded in the append-only `dbo.AuditLog`.
+- Security: follow `docs/architecture/SkyTech_Security_Architecture` (OWASP ASVS, NIST CSF 2.0, CIS v8 practices scaled to $0). The Admin site stays on 127.0.0.1 unless HTTPS is in place; secrets live only in `admin-site\.env`; `push-to-github.bat` runs the secret scan; least-privilege database role (`sql/06`); weekly verified backups. Any change to a security control updates that document and its version.
+- First aid: `npm run doctor` in `admin-site` checks the whole setup and prints codes with fixes.
+
 ---
-Version: V1.8 (2026-10-10) — config/project-instructions.md — V1.8
+Version: V1.9 (2026-10-10) — config/project-instructions.md — V1.9

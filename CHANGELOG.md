@@ -1,5 +1,20 @@
 # Changelog
 
+## R4.0 — 2026-10-10
+- **Security architecture applied to the whole project** (OWASP ASVS / NIST CSF 2.0 / CIS v8 practices, $0):
+  - Admin site V2.0: strict Content-Security-Policy (no inline script), CSRF token on every change, Origin check, rate limits, 30-min idle / 8-h session timeouts, login lockout (5 tries / 15 min), timing-safe sign-in, security headers; it refuses to start with a weak secret or an exposed host.
+  - Password policy in `npm run create-admin`; least-privilege `SkyTechApp` role, append-only `dbo.AuditLog` and verified backups (`usp_BackupSkyTechCRM`) in the new `sql/06_security_and_logging.sql`.
+  - `push-to-github.bat` V2.0 runs a secret scan (`scripts/security/scan-secrets.js`) and a lock-file check before uploading; `.gitignore` V1.1.
+- **Error codes and logging**:
+  - `config/error-codes.json`: 65 `SKY-<AREA>-<NNN>` codes with causes, fixes and where each is logged; predicted errors flagged.
+  - Every screen error shows its code and a reference; JSON logs in `logs/runtime/` (passwords redacted, 30-day retention); new System log screen for admins.
+  - `dbo.ErrorLog` + `usp_LogError`: every procedure logs failures before re-raising (`sql/01` V2.3, `04` V1.5, `05` V2.2).
+  - `npm run doctor`: one-command health check of settings, packages, git, disk, port and database (objects, unique rules, logins, errors, role, backups). `start-admin.bat` V2.0 runs it first.
+  - Python scripts use `scripts/common/skylog.py` (same codes, `scripts-*.log`); `build-demos.js` V2.0 validates design files.
+- **Comments in every file**: purpose block (Purpose, Inputs, Outputs, Run, Errors, Security) and one line per function, table, view and procedure.
+- **New documents** (HTML, PDF, Markdown) built by `scripts/docs/build_ops_docs.py`: Security Architecture V1.0, Troubleshooting Guide V1.0, Code Documentation V1.0. Infrastructure diagram V1.6 and Technology Stack Use V1.1 updated.
+- Project instructions V1.9, register V3.8, README V2.7, Day-10 prompts V1.3, log V1.2.
+
 ## R3.5 — 2026-10-10
 - Technology Stack Use is now a listed, versioned artifact:
   - README V2.6 adds a "Key documents (artifacts, versioned)" table showing current versions (Technology Stack Use V1.0, infrastructure V1.5, plan V2.2, instructions V1.8, register V3.7 and others), and refreshes the folder table.
@@ -106,4 +121,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.5 (2026-10-10) — CHANGELOG.md — V2.5
+Version: V2.6 (2026-10-10) — CHANGELOG.md — V2.6

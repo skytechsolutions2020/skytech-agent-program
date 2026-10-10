@@ -1,14 +1,21 @@
-// Version: V1.3 (2026-10-05) — admin-site/src/db/memory.js — V1.3
-// DEMO adapter: no database needed. Loads the 100-lead sample CSV into memory so
-// the site can be tried and tested. Changes are lost when the server stops.
+// Version: V2.0 (2026-10-10) — admin-site/src/db/memory.js — V2.0 (SkyTech error codes, ping)
+/**
+ * @file DEMO adapter: no database needed (npm run demo). Loads the 100-lead sample CSV into memory so the site can be
+ *       tried and tested. Changes are lost when the server stops. Implements exactly the same functions and the same
+ *       duplicate rules as src/db/mssql.js, and throws the same SkyTech codes (DUP-001, DATA-002/003/004, DUP-002/003).
+ * Inputs: data/samples/SkyTech_Leads_Sample100.csv, demo-sites/designs/*.json.
+ */
 const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const { ENTITIES, editableColumns } = require('../schema');
+const { AppError } = require('../errors');
 
+// T — the in-memory tables (same names and columns as SkyTechCRM).
 const T = { companies: [], webpresence: [], leads: [], activities: [], demosites: [], imports: [], audit: [], users: [], dismissed: new Set() };
 let seq = { companies: 0, leads: 0, activities: 0, demosites: 0, audit: 0 };
 
+// parseCSV — small CSV reader for the sample file (quoted cells, doubled quotes).
 function parseCSV(text) {
   const rows = []; let row = [], cell = '', q = false;
   text = text.replace(/^﻿/, '');
@@ -24,13 +31,17 @@ function parseCSV(text) {
   const [h, ...data] = rows;
   return data.filter(r => r.length === h.length).map(r => Object.fromEntries(h.map((k, i) => [k, r[i]])));
 }
+// normName — same normalisation as dbo.fn_NormName (lower case, "&" → and, no punctuation or Inc/LLC).
 const normName = s => (' ' + String(s || '').toLowerCase().replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ') + ' ')
   .replace(/ (llc|inc|corp|ltd|co) /g, ' ').replace(/^ the /, ' ').trim() || null;
+// digits — phone digits only, without a leading 1 (same as dbo.fn_DigitsOnly).
 const digits = s => { let d = String(s || '').replace(/\D/g, ''); if (d.length === 11 && d[0] === '1') d = d.slice(1); return d || null; };
+// niche — Real Estate / Utility Trades from the Industry text.
 const niche = ind => /^Real Estate/i.test(ind || '') ? 'Real Estate' : /^Utility/i.test(ind || '') ? 'Utility Trades' : (ind || 'Other');
 
 // Same rules as dbo.vw_DuplicateCheck (sql/04 V1.2): one row per suspected pair, strongest reason only.
 const site = u => String(u || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\//g, '') || null;
+// dupCheck — demo version of dbo.vw_DuplicateCheck: Exact / Likely / Possible pairs across all tables.
 function dupCheck(co) {
   const out = [], seen = new Set();
   const add = (Category, Severity, Reason, IdA, LabelA, IdB, LabelB, MatchValue) => {
@@ -88,6 +99,7 @@ function plantDuplicates(now) {
     Outcome: 'Left voicemail about free demo site', ActivityDate: now }));                              // Likely: activity logged twice
 }
 
+// views — builds the joined "views" (vw_LeadDetail, vw_DemoSiteDetail…) from the tables on each call.
 function views() {
   const co = Object.fromEntries(T.companies.map(c => [c.CompanyID, c]));
   const wp = Object.fromEntries(T.webpresence.map(w => [w.CompanyID, w]));
@@ -110,6 +122,7 @@ function views() {
   };
 }
 const tableOf = { companies: 'companies', leads: 'leads', webpresence: 'webpresence', activities: 'activities', demosites: 'demosites' };
+// coerce — converts form values to the column type; bad numbers or dates → SKY-DATA-002.
 function coerce(def, v) {
   if (v === '' || v === undefined || v === null) return null;
   if (def.type === 'int') return parseInt(v, 10);
@@ -119,10 +132,12 @@ function coerce(def, v) {
   if (def.type === 'datetime') return new Date(v).toISOString();
   return String(v);
 }
+// cmp — sort helper that puts empty values first.
 function cmp(a, b) { if (a == null) return b == null ? 0 : -1; if (b == null) return 1; return a < b ? -1 : a > b ? 1 : 0; }
 
 module.exports = {
   name: 'DEMO (in memory)',
+  // init — loads the CSV and demo designs, creates the demo users admin/viewer.
   async init() {
     const csv = path.join(__dirname, '..', '..', '..', 'data', 'samples', 'SkyTech_Leads_Sample100.csv');
     const now = new Date().toISOString();
@@ -156,6 +171,8 @@ module.exports = {
     T.users.push({ UserID: 1, Username: 'admin', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'admin', IsActive: 1 });
     T.users.push({ UserID: 2, Username: 'viewer', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'viewer', IsActive: 1 });
   },
+  /** ping — health check; demo data is always available. */
+  async ping() { return true; },
   async getUser(u) { return T.users.find(x => x.Username.toLowerCase() === String(u).toLowerCase()); },
   async touchLogin() {},
   async createUser(username, hash, role) { T.users.push({ UserID: T.users.length + 1, Username: username, PasswordHash: hash, Role: role, IsActive: 1 }); },
@@ -200,13 +217,13 @@ module.exports = {
     editableColumns(entity).forEach(c => { if (c in values) rec[c] = coerce(e.columns[c], values[c]); });
     if (entity === 'companies') {
       rec.NormName = normName(rec.CompanyName); rec.PhoneDigits = digits(rec.Phone); rec.UpdatedOn = rec.ImportedOn = new Date().toISOString();
-      if (T.companies.some(c => c.NormName === rec.NormName && c.Zip === rec.Zip)) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).');
+      if (T.companies.some(c => c.NormName === rec.NormName && c.Zip === rec.Zip)) throw new AppError('SKY-DUP-001', 'Duplicate: this record already exists (same source ID, same company name and ZIP, or a second row for the same company).');
     }
-    if (entity === 'webpresence' && T.webpresence.some(w => w.CompanyID === rec.CompanyID)) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).');
-    if (entity === 'leads') { if (T.leads.some(l => l.CompanyID === rec.CompanyID)) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).'); rec.UpdatedOn = new Date().toISOString(); }
+    if (entity === 'webpresence' && T.webpresence.some(w => w.CompanyID === rec.CompanyID)) throw new AppError('SKY-DUP-001', 'Duplicate: this record already exists (same source ID, same company name and ZIP, or a second row for the same company).');
+    if (entity === 'leads') { if (T.leads.some(l => l.CompanyID === rec.CompanyID)) throw new AppError('SKY-DUP-001', 'Duplicate: this record already exists (same source ID, same company name and ZIP, or a second row for the same company).'); rec.UpdatedOn = new Date().toISOString(); }
     if (entity === 'activities' && !rec.ActivityDate) rec.ActivityDate = new Date().toISOString();
     if (entity === 'demosites') {
-      if (T.demosites.some(d => d.CompanyID === rec.CompanyID || d.Slug === rec.Slug)) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).');
+      if (T.demosites.some(d => d.CompanyID === rec.CompanyID || d.Slug === rec.Slug)) throw new AppError('SKY-DUP-001', 'Duplicate: this record already exists (same source ID, same company name and ZIP, or a second row for the same company).');
       rec.BuiltOn = rec.UpdatedOn = new Date().toISOString(); rec.BuiltBy = 'Owner'; rec.TemplateVersion = 'V2.0';
     }
     if (!e.keyIsInput) rec[e.key] = ++seq[tableOf[entity]];
@@ -217,7 +234,7 @@ module.exports = {
     if (!rec) return 0;
     editableColumns(entity).forEach(c => { if (c in values && c !== e.key) rec[c] = coerce(e.columns[c], values[c]); });
     if (entity === 'companies') { rec.NormName = normName(rec.CompanyName); rec.PhoneDigits = digits(rec.Phone); }
-    if (entity === 'demosites' && T.demosites.some(d => d !== rec && (d.Slug === rec.Slug || d.CompanyID === rec.CompanyID))) throw new Error('Duplicate: this record already exists (same source ID, or same company name and ZIP, or a second row for the same company).');
+    if (entity === 'demosites' && T.demosites.some(d => d !== rec && (d.Slug === rec.Slug || d.CompanyID === rec.CompanyID))) throw new AppError('SKY-DUP-001', 'Duplicate: this record already exists (same source ID, same company name and ZIP, or a second row for the same company).');
     if ('UpdatedOn' in rec) rec.UpdatedOn = new Date().toISOString();
     return 1;
   },
@@ -249,9 +266,9 @@ module.exports = {
   },
   async mergeCompanies(keepId, removeId) {
     const K = parseInt(keepId, 10), R = parseInt(removeId, 10);
-    if (K === R) throw new Error('Choose two different companies.');
+    if (K === R) throw new AppError('SKY-DUP-005', 'Choose two different companies.');
     const k = T.companies.find(c => c.CompanyID === K), r = T.companies.find(c => c.CompanyID === R);
-    if (!k || !r) throw new Error('One of the companies no longer exists.');
+    if (!k || !r) throw new AppError('SKY-DUP-005', 'One of the companies no longer exists.');
     ['Industry', 'Address', 'City', 'County', 'State', 'Phone', 'PhoneDigits', 'Email', 'ContactName', 'ContactTitle', 'EmployeeCount', 'SourceRecordID']
       .forEach(f => { if (k[f] == null || k[f] === '') k[f] = r[f]; });
     if (k.SourceRecordID === r.SourceRecordID) r.SourceRecordID = null;
@@ -269,9 +286,9 @@ module.exports = {
   },
   async mergeLeads(keepId, removeId, anyCompany) {
     const K = parseInt(keepId, 10), R = parseInt(removeId, 10);
-    if (K === R) throw new Error('Choose two different leads.');
+    if (K === R) throw new AppError('SKY-DUP-002', 'Choose two different leads.');
     const kl = T.leads.find(l => l.LeadID === K), rl = T.leads.find(l => l.LeadID === R);
-    if (!kl || !rl || (!anyCompany && kl.CompanyID !== rl.CompanyID)) throw new Error('These leads do not belong to the same company (or no longer exist).');
+    if (!kl || !rl || (!anyCompany && kl.CompanyID !== rl.CompanyID)) throw new AppError('SKY-DUP-002', 'These leads do not belong to the same company (or no longer exist).');
     const order = ['New', 'Checked', 'NoSite', 'DemoBuilt', 'Contacted', 'Interested', 'Proposal', 'Won'];
     if (order.indexOf(rl.Status) > order.indexOf(kl.Status) && !['Lost', 'DoNotContact'].includes(kl.Status)) kl.Status = rl.Status;
     ['DemoURL', 'AssignedAgent', 'NextFollowUp', 'DealValue', 'MonthlyPlan'].forEach(f => { if (kl[f] == null) kl[f] = rl[f]; });
@@ -281,7 +298,7 @@ module.exports = {
   },
   async fixWebPresence(companyId) {
     const id = parseInt(companyId, 10), rows = await this.webRows(id);
-    if (rows.length < 2) throw new Error('This company has only one web-presence row now.');
+    if (rows.length < 2) throw new AppError('SKY-DUP-003', 'This company has only one web-presence row now.');
     const keep = T.webpresence.find(w => w.CompanyID === id && w.CheckedOn === rows[0].CheckedOn);
     rows.slice(1).forEach(r => ['HasWebsite', 'WebsiteURL', 'HasGoogleProfile', 'HasFacebook'].forEach(f => { if (keep[f] == null) keep[f] = r[f]; }));
     rows.slice(1).forEach(r => { if (r.Notes && r.Notes !== keep.Notes) keep.Notes = ((keep.Notes || '') + ' | merged: ' + r.Notes).slice(0, 500); });
@@ -289,7 +306,7 @@ module.exports = {
   },
   async removeActivity(id) {
     const i = T.activities.findIndex(a => a.ActivityID === parseInt(id, 10));
-    if (i < 0) throw new Error('This activity no longer exists.');
+    if (i < 0) throw new AppError('SKY-DATA-004', 'This activity no longer exists.');
     T.activities.splice(i, 1);
   },
   async dismissDuplicate(category, a, b) { const [x, y] = [parseInt(a, 10), parseInt(b, 10)].sort((m, n) => m - n); T.dismissed.add(`${category}:${x}-${y}`); },
@@ -297,9 +314,11 @@ module.exports = {
   async remove(entity, key) {
     const e = ENTITIES[entity], t = T[tableOf[entity]];
     if (entity === 'companies' && (T.leads.some(l => String(l.CompanyID) === String(key)) || T.webpresence.some(w => String(w.CompanyID) === String(key)) || T.demosites.some(d => String(d.CompanyID) === String(key))))
-      throw new Error('This record is linked to other records (leads, web presence or activities). Change or delete those first.');
+      throw new AppError('SKY-DATA-003', 'This record is linked to other records (leads, web presence, demo sites or activities). Change or delete those first.');
     if (entity === 'leads' && T.activities.some(a => String(a.LeadID) === String(key)))
-      throw new Error('This record is linked to other records (leads, web presence or activities). Change or delete those first.');
+      throw new AppError('SKY-DATA-003', 'This record is linked to other records (leads, web presence, demo sites or activities). Change or delete those first.');
     const i = t.findIndex(r => String(r[e.key]) === String(key)); if (i < 0) return 0; t.splice(i, 1); return 1;
   }
 };
+
+// Version: V2.0 (2026-10-10) — admin-site/src/db/memory.js — V2.0

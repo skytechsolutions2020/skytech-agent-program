@@ -25,8 +25,20 @@ Engineered:
 INSTRUCTION (standing): Treat the Technology Stack Use document as a project artifact. List it, with its current version, alongside the other key documents. Keep a copy in the Claude project. Re-version and release it whenever a tool or component changes.
 RESULT: README V2.6 gains a "Key documents (artifacts, versioned)" table; the generator V1.1 also writes a Markdown copy, kept in the repo and in the Claude project (`claude/SkyTech-Technology-Stack-Use.md`); version-register rule 9; project instructions V1.8; release R3.5.
 
+### 10.04 Comments, enterprise security, error codes and logging — V1.0
+As written: "Add comments in all the architecture, code and scripts generated in this project with functionality what it does for future understanding, also document these comments in detail in Architecture and Code documentation with versioning. Implement Enterprise industry level security Architecture and apply whole as a project. I want you to implement troubleshoot error code and logging mechanism and documentation where you predict future error to project architecture code and scripts can resolve the issues easily/manually if possible with this document."
+Engineered:
+ROLE: SkyTech_Manager.
+TASK:
+1. Comment every program file (Admin site, SQL scripts, Python and Node scripts, .bat files): a purpose block per file and a one-line description of each function, table, view and procedure. Collect the comments into a versioned Code Documentation.
+2. Design and apply an industry-standard security architecture across the project (OWASP ASVS, NIST CSF 2.0, CIS Controls v8, scaled to $0 and one PC): threat model, controls in code and database, secrets handling, backups, incident response; document it as a versioned Security Architecture.
+3. Add an error-code and logging mechanism: one catalog of codes with causes and fixes (including predicted future errors), codes on every message, structured logs, a database error log and a one-command health check. Document it as a versioned Troubleshooting Guide so the owner can fix issues manually.
+RULES (standing): Keep the three documents, the error catalog, the architecture diagram and the Technology Stack Use document in step with the code and re-version them with each release. Never log or commit secrets.
+OUTPUT: Release R4.0 with HTML, PDF and Markdown documents in `docs/architecture/`.
+RESULT: Admin site V2.0 (CSP, CSRF, rate limits, lockout, session timeouts, System log), error catalog V1.1 (65 codes), JSON logs, `npm run doctor`, secret scan before push, `sql/06` (least-privilege role, append-only audit, verified backups), `dbo.ErrorLog` in every procedure, comments in every file; Security Architecture, Troubleshooting Guide and Code Documentation V1.0; diagram V1.6; Technology Stack Use V1.1; project instructions V1.9.
+
 ### Carry-over from Day 5 (still pending)
-Owner: run `push-to-github.bat`; set up the database in SSMS (01 → sample import → 04 → 05); review the 3 demos in the Admin site; choose free hosting for demo links (Netlify recommended).
+Owner: run `push-to-github.bat`; set up the database in SSMS (01 → sample import → 04 → 05 → 06), then `npm run doctor`; review the 3 demos in the Admin site; choose free hosting for demo links (Netlify recommended).
 
 ---
-Version: V1.2 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.2
+Version: V1.3 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.3

@@ -1,10 +1,10 @@
 # SkyTech Technology Stack Use
 
-Version V1.0 · 2026-10-10 · release R3.4 · architecture diagram V1.5 · maintained by SkyTech_Manager
+Version V1.1 · 2026-10-10 · release R4.0 · architecture diagram V1.6 · maintained by SkyTech_Manager
 
 Plain-language list of every tool and technology the SkyTech program uses. The full document with the six-step picture and the architecture diagram is `docs/architecture/SkyTech_Technology_Stack_Use.pdf` (and .html).
 
-**42** tools listed · **30** in use or ready · **$0** new monthly spend (39 free or included; the rest use your existing Claude plan, Hostinger plan and phone).
+**47** tools listed · **35** in use or ready · **$0** new monthly spend (44 free or included; the rest use your existing Claude plan, Hostinger plan and phone).
 
 ## How SkyTech works, in six steps
 
@@ -15,7 +15,7 @@ Plain-language list of every tool and technology the SkyTech program uses. The f
 5. **Reach out**: You call the business owner and follow up by email or social media, using scripts SkyTech_Manager prepares for you. _Tools: Phone (you), Email (free), Facebook._
 6. **Win & host**: When a business says yes, the site goes live on free or low-cost hosting and they pay a setup fee plus a monthly plan. _Tools: Netlify (free), Hostinger, Monthly plan._
 
-Always running in the background: SkyTech_Manager (Claude) coordinates and reports; Git + GitHub keep a backed-up history of every file; Version register, INDEX and CHANGELOG record every change; Claude desktop app links Claude to your SkyTechClaude folder.
+Always running in the background: SkyTech_Manager (Claude) coordinates and reports; Git + GitHub keep a backed-up history of every file; Version register and CHANGELOG record every change; logs and SKY error codes record every problem; Claude desktop app links Claude to your SkyTechClaude folder.
 
 
 ## 1 · Finding businesses
@@ -57,6 +57,9 @@ Always running in the background: SkyTech_Manager (Claude) coordinates and repor
 | **Express, express-session, dotenv** | Building blocks for a small web server. | Admin pages, sign-in sessions and settings. | Free | Your laptop | Ready |
 | **bcryptjs** | A password scrambler. | Stores admin passwords so they cannot be read. | Free | Your laptop | Ready |
 | **mssql, msnodesqlv8, ODBC driver** | Connectors between Node.js and SQL Server. | Lets the Admin site read and save database records. | Free | Your laptop | Ready |
+| **Security layer (security.js)** | The site's locks and alarms, written by us. | Blocks password guessing, forged requests from other websites and request floods; signs you out when idle; strict browser rules (CSP). | Free (ours) | Your laptop | Ready |
+| **Logging + error codes (logger.js, errors.js)** | A diary of everything the site does, and a numbered list of every possible problem. | Each problem shows a code like SKY-DB-001 that the Troubleshooting Guide explains; logs are kept 30 days with passwords hidden. | Free (ours) | Your laptop | Ready |
+| **Doctor (npm run doctor)** | A one-command health check. | Checks settings, packages, database, backups and GitHub safety, and tells you exactly how to fix anything wrong. | Free (ours) | Your laptop | Ready |
 | **Chart.js** | A library for drawing charts. | Dashboard charts you can click to drill down. | Free | Inside the Admin site | Ready |
 | **HTML, CSS, JavaScript** | The basic building blocks of every web page. | The Admin screens and every demo site. | Free | Browser | In use |
 
@@ -88,6 +91,8 @@ Always running in the background: SkyTech_Manager (Claude) coordinates and repor
 | **Git** | A change-tracker that keeps every version of every file. | Each change is saved as a numbered release (R1.0, R2.0 ...). | Free | Your laptop | In use |
 | **GitHub (private repository)** | An online, private backup of the Git history. | Off-site copy of all work: skytech-agent-program. | Free | Internet | In use |
 | **GitHub Desktop + push-to-github.bat** | One-click upload tools. | Sending new releases to GitHub. | Free | Your laptop | In use |
+| **Secret scan (scan-secrets.js)** | A check that runs before every upload to GitHub. | Stops passwords, keys or the .env settings file from ever being uploaded. | Free (ours) | Your laptop | Ready |
+| **SQL Server backup (usp_BackupSkyTechCRM)** | A verified copy of the whole database. | Weekly backup to C:\SkyTechBackups, checked so it can really be restored. | Free | Your laptop | Ready |
 | **Version register, INDEX, CHANGELOG** | Our record books. | Which version of every file is current and what changed. | Free (ours) | config/ and repository root | In use |
 
 ## 8 · Behind-the-scenes helpers
@@ -114,12 +119,16 @@ Always running in the background: SkyTech_Manager (Claude) coordinates and repor
 | **API** | A doorway that lets one program ask another for data. |
 | **Open licence / free licence** | Permission to use data or photos without paying, under stated rules. |
 | **noindex** | A tag that keeps a page out of Google until we are ready to publish it. |
+| **Error code** | A short label such as SKY-DB-001 that points to one problem and its fix in the Troubleshooting Guide. |
+| **Log** | A file where the program writes down what it did and any problem, with the time. |
+| **CSRF / CSP** | Protections that stop other websites from making your browser change your data or run unwanted code. |
 
 ## Change log
 
 | Version | Date | Change |
 | --- | --- | --- |
 | V1.0 | 2026-10-10 | First version: one-minute journey picture, architecture diagram, technology stack in plain words, costs, glossary. |
+| V1.1 | 2026-10-10 | R4.0: security layer, logging and error codes, doctor, secret scan and verified database backups added; diagram V1.6. |
 
 ---
-Version: V1.0 (2026-10-10) — SkyTech_Technology_Stack_Use.md — V1.0
+Version: V1.1 (2026-10-10) — SkyTech_Technology_Stack_Use.md — V1.1

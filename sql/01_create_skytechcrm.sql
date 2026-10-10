@@ -1,4 +1,9 @@
--- Version: V2.2 (2026-10-05) — sql/01_create_skytechcrm.sql — V2.2 (DemoSites photo columns)
+-- Version: V2.3 (2026-10-10) — sql/01_create_skytechcrm.sql — V2.3 (dbo.ErrorLog + dbo.usp_LogError; procedures log errors)
+-- Purpose : creates the SkyTechCRM database: lead tables, duplicate protection, the lead import procedure,
+--           the DemoSites table and the database error log.
+-- Run     : SSMS → open this file → Execute (F5). Order: 01 → lead import → 04 → 05 → 06.
+-- Errors  : PRINT 'WARNING: duplicate…' = SKY-DUP-004 (fix duplicates in the Admin site, run again);
+--           failures inside procedures are written to dbo.ErrorLog (SKY-DB-010) and re-raised.
 -- SkyTechCRM setup + duplicate protection. SQL Server 2014 Developer (also newer versions).
 -- SAFE TO RE-RUN: creates what is missing, upgrades a V1 database, never deletes data.
 --
@@ -12,6 +17,11 @@
 --   4. Every import run is logged in dbo.ImportBatches (rows in / inserted / updated / skipped).
 --   5. dbo.vw_PossibleDuplicates lists near-duplicates (same phone, or same name
 --      in another ZIP) for a person to review.
+--
+-- How errors are recorded (V2.3)
+--   Every procedure has TRY/CATCH: on failure it rolls back, calls dbo.usp_LogError (one row in dbo.ErrorLog
+--   with procedure, error number, line, message, user and time) and re-raises the error to the caller.
+--   Read it with: SELECT TOP 20 * FROM dbo.ErrorLog ORDER BY ErrorLogID DESC;
 
 IF DB_ID(N'SkyTechCRM') IS NULL CREATE DATABASE SkyTechCRM;
 GO
@@ -169,25 +179,25 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Companies_SourceRecor
 BEGIN
   IF NOT EXISTS (SELECT SourceRecordID FROM dbo.Companies WHERE SourceRecordID IS NOT NULL GROUP BY SourceRecordID HAVING COUNT(*) > 1)
     CREATE UNIQUE INDEX UX_Companies_SourceRecordID ON dbo.Companies(SourceRecordID) WHERE SourceRecordID IS NOT NULL;
-  ELSE PRINT N'WARNING: duplicate SourceRecordID values exist - see the duplicate report at the end.';
+  ELSE PRINT N'WARNING [SKY-DUP-004]: duplicate SourceRecordID values exist - see the duplicate report at the end.';
 END
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Companies_NormName_Zip')
 BEGIN
   IF NOT EXISTS (SELECT NormName, LEFT(Zip, 5) FROM dbo.Companies WHERE NormName IS NOT NULL AND Zip IS NOT NULL GROUP BY NormName, LEFT(Zip, 5) HAVING COUNT(*) > 1)
     CREATE UNIQUE INDEX UX_Companies_NormName_Zip ON dbo.Companies(NormName, Zip) WHERE NormName IS NOT NULL AND Zip IS NOT NULL;
-  ELSE PRINT N'WARNING: duplicate company name + ZIP rows exist - see the duplicate report at the end.';
+  ELSE PRINT N'WARNING [SKY-DUP-004]: duplicate company name + ZIP rows exist - see the duplicate report at the end.';
 END
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_WebPresence_CompanyID')
 BEGIN
   IF NOT EXISTS (SELECT CompanyID FROM dbo.WebPresence GROUP BY CompanyID HAVING COUNT(*) > 1)
     CREATE UNIQUE INDEX UX_WebPresence_CompanyID ON dbo.WebPresence(CompanyID) WHERE CompanyID IS NOT NULL;
-  ELSE PRINT N'WARNING: some companies have more than one WebPresence row.';
+  ELSE PRINT N'WARNING [SKY-DUP-004]: some companies have more than one WebPresence row.';
 END
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Leads_CompanyID')
 BEGIN
   IF NOT EXISTS (SELECT CompanyID FROM dbo.Leads GROUP BY CompanyID HAVING COUNT(*) > 1)
     CREATE UNIQUE INDEX UX_Leads_CompanyID ON dbo.Leads(CompanyID) WHERE CompanyID IS NOT NULL;
-  ELSE PRINT N'WARNING: some companies have more than one Lead row.';
+  ELSE PRINT N'WARNING [SKY-DUP-004]: some companies have more than one Lead row.';
 END
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Companies_PhoneDigits')
   CREATE INDEX IX_Companies_PhoneDigits ON dbo.Companies(PhoneDigits);
@@ -206,7 +216,51 @@ SELECT N'Same name, other ZIP', a.CompanyID, a.CompanyName, a.Zip, b.CompanyID, 
   FROM dbo.Companies a JOIN dbo.Companies b ON a.NormName = b.NormName AND a.CompanyID < b.CompanyID
  WHERE a.NormName IS NOT NULL AND ISNULL(a.Zip, '') <> ISNULL(b.Zip, '');
 GO
+---------------------------------------------------------------- database error log (V2.3)
+-- dbo.ErrorLog: one row per failure caught inside a SkyTech procedure (never holds passwords or lead data).
+IF OBJECT_ID(N'dbo.ErrorLog', N'U') IS NULL
+CREATE TABLE dbo.ErrorLog (
+  ErrorLogID     INT IDENTITY CONSTRAINT PK_ErrorLog PRIMARY KEY,
+  LoggedOn       DATETIME       NOT NULL CONSTRAINT DF_ErrorLog_LoggedOn DEFAULT GETDATE(),
+  ProcedureName  NVARCHAR(128)  NULL,     -- e.g. usp_ImportStagedLeads
+  ErrorNumber    INT            NULL,     -- SQL Server error number (see Troubleshooting Guide)
+  ErrorSeverity  INT            NULL,
+  ErrorState     INT            NULL,
+  ErrorLine      INT            NULL,
+  ErrorMessage   NVARCHAR(4000) NULL,
+  SkyCode        VARCHAR(20)    NULL,     -- SkyTech code when known (e.g. SKY-IMP-002)
+  Context        NVARCHAR(400)  NULL,     -- short facts such as the batch name
+  LoginName      NVARCHAR(128)  NOT NULL CONSTRAINT DF_ErrorLog_Login DEFAULT SUSER_SNAME(),
+  HostName       NVARCHAR(128)  NULL CONSTRAINT DF_ErrorLog_Host DEFAULT HOST_NAME()
+);
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_ErrorLog_LoggedOn')
+  CREATE INDEX IX_ErrorLog_LoggedOn ON dbo.ErrorLog(LoggedOn);
+GO
+-- dbo.usp_LogError: call ONLY inside a CATCH block (after ROLLBACK). Records ERROR_*() details; never fails itself.
+IF OBJECT_ID(N'dbo.usp_LogError', N'P') IS NOT NULL DROP PROCEDURE dbo.usp_LogError;
+GO
+CREATE PROCEDURE dbo.usp_LogError
+  @ProcedureName NVARCHAR(128) = NULL,
+  @SkyCode       VARCHAR(20)   = NULL,
+  @Context       NVARCHAR(400) = NULL
+AS
+BEGIN
+  SET NOCOUNT ON;
+  BEGIN TRY
+    INSERT INTO dbo.ErrorLog (ProcedureName, ErrorNumber, ErrorSeverity, ErrorState, ErrorLine, ErrorMessage, SkyCode, Context)
+    VALUES (ISNULL(@ProcedureName, ERROR_PROCEDURE()), ERROR_NUMBER(), ERROR_SEVERITY(), ERROR_STATE(), ERROR_LINE(),
+            ERROR_MESSAGE(), @SkyCode, @Context);
+  END TRY
+  BEGIN CATCH
+    -- logging must never hide the original error; give up quietly
+  END CATCH
+END
+GO
 ---------------------------------------------------------------- import procedure (upsert, no duplicates)
+-- dbo.usp_ImportStagedLeads: moves rows from dbo.StgLeads into Companies/WebPresence/Leads. Updates companies it
+-- already has (same source ID, else same name + ZIP), inserts only new ones, records the run in dbo.ImportBatches,
+-- empties staging. All-or-nothing: any failure rolls back, is logged (SKY-IMP-002) and re-raised.
 IF OBJECT_ID(N'dbo.usp_ImportStagedLeads', N'P') IS NOT NULL DROP PROCEDURE dbo.usp_ImportStagedLeads;
 GO
 CREATE PROCEDURE dbo.usp_ImportStagedLeads
@@ -312,6 +366,7 @@ BEGIN
   END TRY
   BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    EXEC dbo.usp_LogError @ProcedureName = N'usp_ImportStagedLeads', @SkyCode = 'SKY-IMP-002', @Context = @BatchName;
     THROW;
   END CATCH
 END
@@ -365,9 +420,10 @@ IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_DemoSites_CompanyID')
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_DemoSites_Slug')
   CREATE UNIQUE INDEX UX_DemoSites_Slug ON dbo.DemoSites(Slug);
 GO
----------------------------------------------------------------- report
+---------------------------------------------------------------- report (row counts; check the Messages tab for WARNING lines)
 SELECT N'Companies' AS TableName, COUNT(*) AS Rows FROM dbo.Companies
 UNION ALL SELECT N'Leads', COUNT(*) FROM dbo.Leads
 UNION ALL SELECT N'Demo sites', COUNT(*) FROM dbo.DemoSites
 UNION ALL SELECT N'Possible duplicates to review', COUNT(*) FROM dbo.vw_PossibleDuplicates;
 GO
+-- Version: V2.3 (2026-10-10) — sql/01_create_skytechcrm.sql — V2.3

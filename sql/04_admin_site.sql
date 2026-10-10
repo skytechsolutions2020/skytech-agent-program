@@ -1,10 +1,15 @@
--- Version: V1.4 (2026-10-05) — sql/04_admin_site.sql — V1.4 (vw_DemoSiteDetail adds photo columns)
--- Objects used by the SkyTech Admin site. SQL Server 2014 Developer (SSMS).
--- Run AFTER sql/01_create_skytechcrm.sql (V2.2+). SAFE TO RE-RUN; never deletes data.
+-- Version: V1.5 (2026-10-10) — sql/04_admin_site.sql — V1.5 (procedures write failures to dbo.ErrorLog)
+-- Purpose : objects used by the SkyTech Admin site: sign-in users, audit log, detail views for the screens,
+--           the live duplicate check and the three duplicate-repair procedures. SQL Server 2014 Developer (SSMS).
+-- Run     : AFTER sql/01_create_skytechcrm.sql (V2.3+, which creates dbo.usp_LogError). SAFE TO RE-RUN; never deletes data.
+-- Errors  : THROW 50001/50002 → SKY-DUP-005, 50011/50012 → SKY-DUP-002, 50021 → SKY-DUP-003 (shown in the Admin site);
+--           unexpected failures are rolled back, written to dbo.ErrorLog (SKY-DB-010) and re-raised.
 USE SkyTechCRM;
 GO
 SET ANSI_NULLS ON; SET QUOTED_IDENTIFIER ON;
 GO
+-- dbo.AdminUsers: Admin site sign-ins. Passwords are stored only as bcrypt hashes (cost 12), never in plain text.
+-- Role: admin = full access, viewer = read only. Create users with: npm run create-admin
 IF OBJECT_ID(N'dbo.AdminUsers', N'U') IS NULL
 CREATE TABLE dbo.AdminUsers (
   UserID       INT IDENTITY PRIMARY KEY,
@@ -15,6 +20,7 @@ CREATE TABLE dbo.AdminUsers (
   CreatedOn    DATETIME      NOT NULL DEFAULT GETDATE(),
   LastLoginOn  DATETIME      NULL
 );
+-- dbo.AuditLog: who changed what and when (sign-ins, creates, edits, deletes, merges). Made read-only by sql/06 (SKY-SEC-006).
 IF OBJECT_ID(N'dbo.AuditLog', N'U') IS NULL
 CREATE TABLE dbo.AuditLog (
   AuditID   INT IDENTITY PRIMARY KEY,
@@ -147,6 +153,8 @@ BEGIN
   END TRY
   BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    DECLARE @ctx NVARCHAR(400) = CONCAT(N'keep ', @KeepID, N' remove ', @RemoveID);
+    EXEC dbo.usp_LogError @ProcedureName = N'usp_MergeCompanies', @Context = @ctx;
     THROW;
   END CATCH
 END
@@ -249,12 +257,23 @@ BEGIN
   END TRY
   BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    DECLARE @ctx NVARCHAR(400) = CONCAT(N'keep lead ', @KeepLeadID, N' remove lead ', @RemoveLeadID);
+    EXEC dbo.usp_LogError @ProcedureName = N'usp_MergeLeads', @Context = @ctx;
     THROW;
   END CATCH
   -- with duplicates gone, add the one-lead-per-company rule if it is still missing
   IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_Leads_CompanyID')
      AND NOT EXISTS (SELECT CompanyID FROM dbo.Leads WHERE CompanyID IS NOT NULL GROUP BY CompanyID HAVING COUNT(*) > 1)
+  BEGIN
+  BEGIN TRY
+    -- needs ALTER permission: works for the owner; under the least-privilege SkyTechApp role (sql/06) it is skipped
+    -- quietly and the rule is added the next time sql/01 or sql/04 is run in SSMS.
     CREATE UNIQUE INDEX UX_Leads_CompanyID ON dbo.Leads(CompanyID) WHERE CompanyID IS NOT NULL;
+  END TRY
+  BEGIN CATCH
+    EXEC dbo.usp_LogError @SkyCode = 'SKY-DUP-004', @Context = N'UX_Leads_CompanyID not created by the merge (permission); run sql/04 in SSMS';
+  END CATCH
+  END
 END
 GO
 IF OBJECT_ID(N'dbo.usp_FixDuplicateWebPresence', N'P') IS NOT NULL DROP PROCEDURE dbo.usp_FixDuplicateWebPresence;
@@ -288,12 +307,23 @@ BEGIN
   END TRY
   BEGIN CATCH
     IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
+    DECLARE @ctx NVARCHAR(400) = CONCAT(N'company ', @CompanyID);
+    EXEC dbo.usp_LogError @ProcedureName = N'usp_FixDuplicateWebPresence', @Context = @ctx;
     THROW;
   END CATCH
   -- with duplicates gone, add the one-row-per-company rule if it is still missing
   IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'UX_WebPresence_CompanyID')
      AND NOT EXISTS (SELECT CompanyID FROM dbo.WebPresence WHERE CompanyID IS NOT NULL GROUP BY CompanyID HAVING COUNT(*) > 1)
+  BEGIN
+  BEGIN TRY
+    -- needs ALTER permission: works for the owner; under the least-privilege SkyTechApp role (sql/06) it is skipped
+    -- quietly and the rule is added the next time sql/01 or sql/04 is run in SSMS.
     CREATE UNIQUE INDEX UX_WebPresence_CompanyID ON dbo.WebPresence(CompanyID) WHERE CompanyID IS NOT NULL;
+  END TRY
+  BEGIN CATCH
+    EXEC dbo.usp_LogError @SkyCode = 'SKY-DUP-004', @Context = N'UX_WebPresence_CompanyID not created by the merge (permission); run sql/04 in SSMS';
+  END CATCH
+  END
 END
 GO
 ---------------------------------------------------------------- demo websites view (V1.3)
@@ -314,3 +344,4 @@ GO
 SELECT N'Admin site objects ready' AS Result,
        (SELECT COUNT(*) FROM dbo.AdminUsers) AS AdminUsers;
 GO
+-- Version: V1.5 (2026-10-10) — sql/04_admin_site.sql — V1.5

@@ -1,12 +1,24 @@
-# Version: V1.0 (2026-10-02) — .gitignore — V1.0
+# Version: V1.1 (2026-10-10) — .gitignore — V1.1
+# Files git must never upload to GitHub.
+# Python caches and system files
 __pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
+# Node packages (re-created by npm install)
+node_modules/
 # SQL Server backups and local database files stay off GitHub
 *.bak
 *.mdf
 *.ldf
-# secrets
+# Secrets: real settings live only in admin-site/.env on this computer
 .env
+.env.*
+!.env.example
 *.key
+*.pem
+*.pfx
+# Runtime logs (may contain user names and IP addresses; kept 30 days on this computer only)
+logs/runtime/
+# Temporary transfer files
+*.tar.gz

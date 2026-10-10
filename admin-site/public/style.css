@@ -1,4 +1,8 @@
-/* Version: V1.3 (2026-10-05) — admin-site/public/style.css — V1.3 */
+/* Version: V2.1 (2026-10-10) — admin-site/public/style.css — V2.1 (comments)
+   Styles for the SkyTech Admin site. Colours are variables in :root (change them once here).
+   Sections: layout (sidebar, top bar), tables and badges, record drawer and forms, duplicate panel and compare,
+   dashboard tiles/charts, System log (tr.lg-warn / tr.lg-error rows), sign-in screen, toast messages.
+   Loaded from the site itself only (Content-Security-Policy style-src 'self'). */
 :root {
   --bg: #f4f6f9; --panel: #ffffff; --ink: #1c2430; --muted: #66707e; --line: #e2e6ec;
   --brand: #1f5fbf; --brand-ink: #ffffff; --accent: #e8f0fc; --good: #1d8a4e; --warn: #b7791f; --bad: #c0392b;
@@ -124,3 +128,9 @@ tbody tr:hover { background: var(--accent); }
 .related-top{border:1px solid var(--line);border-radius:var(--radius);padding:4px 14px 12px;margin-top:10px;background:var(--accent)}
 .related-top .section-title:first-child{margin-top:10px}
 .form{align-items:start}
+
+/* V2.0 System log: colour rows by level */
+tr.lg-warn td{background:#fff8e6}tr.lg-error td{background:#fdecea}
+@media (prefers-color-scheme: dark){tr.lg-warn td{background:#3a3220}tr.lg-error td{background:#3d2222}}
+code{font-size:12px;background:var(--accent);padding:1px 5px;border-radius:4px}
+/* Version: V2.1 (2026-10-10) — admin-site/public/style.css — V2.1 */

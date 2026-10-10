@@ -40,15 +40,16 @@ Each pair shows only its strongest reason. After the last extra lead or web row 
 
 1. **Install Node.js** (free): download the **LTS** version from https://nodejs.org and install with default options.
 2. **Database objects:** in SSMS, connected to your SQL Server, run these files in order (all are safe to re-run):
-   1. `sql\01_create_skytechcrm.sql` (V2.2: `DemoSites` table with photo columns)
+   1. `sql\01_create_skytechcrm.sql` (V2.3: adds `ErrorLog` and `usp_LogError`)
    2. `data\samples\SkyTech_Leads_Sample100_import.sql` (the 100-lead sample)
-   3. `sql\04_admin_site.sql` (V1.4: duplicate check + demo sites view)
+   3. `sql\04_admin_site.sql` (V1.5: duplicate check, demo sites view, error logging)
    4. `sql\05_demo_sites_built.sql` (loads the demo websites into `DemoSites`; edits you make in the Admin site are never overwritten)
+   5. `sql\06_security_and_logging.sql` (V1.0: least-privilege role, append-only audit log, backup procedure)
 3. **Settings:** in this `admin-site` folder, copy `.env.example` to a new file named `.env` and edit:
    - `DB_SERVER` = the server name you use in SSMS (e.g. `localhost` or `localhost\SQL2014`)
    - `DB_AUTH=windows` (uses your Windows login, no password)
    - `DB_DRIVER` = an installed ODBC driver. To check: press Windows key → type **ODBC Data Sources (64-bit)** → **Drivers** tab. Use `SQL Server Native Client 11.0` (comes with SQL Server 2014) or `ODBC Driver 17 for SQL Server` if you see it.
-   - `SESSION_SECRET` = any long random phrase.
+   - `SESSION_SECRET` = 32+ random characters. Run `npm run doctor -- --new-secret` (after step 4) and paste the result. The site will not start with a weak secret (SKY-CFG-002).
 4. **Install the site:** open a Command Prompt in this folder (in File Explorer, click the address bar, type `cmd`, press Enter) and run:
    ```
    npm install
@@ -57,11 +58,16 @@ Each pair shows only its strongest reason. After the last extra lead or web row 
    ```
    npm run create-admin
    ```
-   Enter a username, a password of at least 10 characters, and the role `admin`.
+   Enter a username, a password that meets the policy (12+ characters, upper and lower case, a number, not your username, not a common password), and the role `admin`.
+6. **Check everything:** `npm run doctor` — every line should show ✔ (a ⚠ for "no backup yet" is expected until you run the first backup).
 
 ## Daily use
 
-Double-click **`start-admin.bat`** (or run `npm start`), then open **http://127.0.0.1:3030** and sign in. Close the black window to stop the site.
+Double-click **`start-admin.bat`**: it runs the doctor, stops with a code and a fix if something is wrong, then opens **http://127.0.0.1:3030**. Close the black window to stop the site.
+
+**Security you will notice:** you are signed out after 30 minutes without activity (and after 8 hours in any case); 5 wrong passwords lock that username for 15 minutes; viewers cannot change anything; admins see a **System log** screen with every warning and error.
+
+**Weekly backup:** in SSMS run `EXEC SkyTechCRM.dbo.usp_BackupSkyTechCRM;` and copy `C:\SkyTechBackups` to a USB drive or cloud folder.
 
 **Try it without the database:** `npm run demo` loads the 100-lead sample into memory (login `admin` / `demo1234`, or `viewer` / `demo1234` for read-only). Demo changes are discarded when it stops.
 
@@ -71,12 +77,20 @@ Double-click **`start-admin.bat`** (or run `npm start`), then open **http://127.
 
 ## Troubleshooting
 
-| Message | Fix |
-| --- | --- |
-| Could not connect to the database | Check `DB_SERVER` matches SSMS, the SQL Server service is **Running**, and `DB_DRIVER` is an installed driver |
-| Windows login needs the "msnodesqlv8" package | Run `npm install` again on this Windows PC (it installs the Windows driver bridge) |
-| Invalid object name 'dbo.vw_LeadDetail' / 'dbo.AdminUsers' / 'dbo.vw_DuplicateCheck' | Run `sql\04_admin_site.sql` (V1.2) in SSMS |
-| Wrong username or password | Run `npm run create-admin` again with the same username to reset the password |
+Every problem shows a **SkyTech code** (for example `SKY-DB-001`) and a reference (`ref 3f9c2a1b7d04`).
+
+1. Run `npm run doctor` — it finds most problems and prints the fix.
+2. Look up the code in **`docs/architecture/SkyTech_Troubleshooting_Guide.html`** (also linked from the System log screen; open `/docs/SkyTech_Troubleshooting_Guide.html` while signed in).
+3. Search the reference in **System log** or in `logs\runtime\admin-YYYY-MM-DD.log`.
+
+| Code | Message | Fix |
+| --- | --- | --- |
+| SKY-CFG-001 / 002 | `.env` missing / weak `SESSION_SECRET` | Copy `.env.example` to `.env`; `npm run doctor -- --new-secret` |
+| SKY-DB-001 | Could not connect to the database | `DB_SERVER` matches SSMS, the SQL Server service is **Running**, `DB_DRIVER` is installed |
+| SKY-DB-002 | Windows login needs the "msnodesqlv8" package | Run `npm install` again on this Windows PC |
+| SKY-DB-005 | A table, view or procedure is missing | Run the SQL scripts again in order (01 → import → 04 → 05 → 06) |
+| SKY-AUTH-001 / 002 | Wrong password / locked for 15 minutes | Wait, or restart the site; reset with `npm run create-admin` |
+| SKY-SEC-001 | Security token missing | Reload the page (F5) |
 
 ## Moving to skytechsolutions.us (Hostinger) later
 
@@ -84,7 +98,7 @@ The site is a standard Node.js app, the same type as your current Hostinger webs
 
 1. Hostinger cannot reach the SQL Server on your laptop, and Hostinger hosting provides **MySQL**, not SQL Server.
 2. The recommended path is to move SkyTechCRM to a Hostinger MySQL database and add a MySQL adapter next to `src/db/mssql.js`. The screens, login and audit stay the same, because all database access lives in `src/db/`.
-3. Before going online: run it as a separate subdomain (e.g. `admin.skytechsolutions.us`) with HTTPS, set `HOST=0.0.0.0`, `COOKIE_SECURE=1` and a new `SESSION_SECRET`, create strong passwords, and keep `.env` off GitHub.
+3. Before going online: run it as a separate subdomain (e.g. `admin.skytechsolutions.us`) with HTTPS, set `HOST=0.0.0.0`, `COOKIE_SECURE=1`, `TRUST_PROXY=1` and a new `SESSION_SECRET` (the site refuses an exposed host without secure cookies, SKY-CFG-003), add multi-factor sign-in and a shared session store (see the Security Architecture, section 11), create strong passwords, and keep `.env` off GitHub.
 
 SkyTech_Manager will prepare the migration when you decide to move.
 
@@ -92,7 +106,11 @@ SkyTech_Manager will prepare the migration when you decide to move.
 
 | Path | Purpose |
 | --- | --- |
-| `server.js` | Web server: login, permissions, API, audit |
+| `server.js` | Web server: login, permissions, API, audit, central error handler |
+| `src/security.js` | Security controls: config check, headers/CSP, CSRF, Origin check, rate limit, session timeout, login lockout, password policy |
+| `src/logger.js` | JSON logs in `logs/runtime/` (redacted, 30-day retention) |
+| `src/errors.js` | SkyTech error codes from `config/error-codes.json`; SQL error → code mapping |
+| `scripts/doctor.js` | `npm run doctor` health check (`--demo`, `--new-secret`) |
 | `src/schema.js` | Whitelist of tables and columns the site may use |
 | `src/db/mssql.js` | SQL Server connection (all values sent as parameters) |
 | `src/db/memory.js` | Demo mode (no database) |
@@ -104,4 +122,4 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | `.env.example` | Settings template (copy to `.env`) |
 
 ---
-Version: V1.4 (2026-10-05) — admin-site/README.md — V1.4
+Version: V2.0 (2026-10-10) — admin-site/README.md — V2.0
