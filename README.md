@@ -25,7 +25,7 @@ Client acquisition program for **SkyTech Solutions LLC** (Maryland): free one-pa
 | Version register | V3.8 | `config/version-register.md` (copy in the Claude project) |
 | Prompt Book | V2.0 | `prompts/SkyTech_Prompts_V2.0_2026-10-02.pdf` + daily prompt files |
 | Admin site | V2.0 | `admin-site/` (health check: `npm run doctor`) |
-| SkyTechCRM database scripts | 01 V2.3 · 04 V1.5 · 05 V2.2 · 06 V1.0 | `sql/` |
+| SkyTechCRM database scripts | 01 V2.3 · 04 V1.5 · 05 V2.2 · 06 V1.1 | `sql/` |
 | Demo websites | template V2.1 | `demo-sites/` |
 | Agent role files | BackOffice V1.1 · WebsiteDeveloper V1.2 | `agents/` |
 
@@ -82,4 +82,4 @@ git push -u origin main --tags
 - Keep this repository private: it holds business contact data.
 
 ---
-Version: V2.7 (2026-10-10) — README.md — V2.7
+Version: V2.8 (2026-10-10) — README.md — V2.8

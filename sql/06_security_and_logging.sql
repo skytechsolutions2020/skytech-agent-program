@@ -1,4 +1,5 @@
--- Version: V1.0 (2026-10-10) — sql/06_security_and_logging.sql — V1.0
+-- Version: V1.1 (2026-10-10) — sql/06_security_and_logging.sql — V1.1
+-- Change  : V1.1 — DENY on usp_BackupSkyTechCRM moved below its CREATE (V1.0 gave Msg 15151 on first run).
 -- Purpose : database security and resilience for SkyTechCRM (SQL Server 2014 Developer, SSMS).
 --   1. SkyTechApp role  — least privilege: read/write data and run procedures; no table changes, no audit edits.
 --   2. Optional SQL login for the Admin site (commented out; Windows login stays the default and recommended).
@@ -25,8 +26,6 @@ GRANT EXECUTE ON SCHEMA::dbo TO SkyTechApp;
 -- audit and error history are append-only for the application
 DENY UPDATE, DELETE ON dbo.AuditLog TO SkyTechApp;
 DENY UPDATE, DELETE ON dbo.ErrorLog TO SkyTechApp;
--- backups are run by the owner in SSMS, not by the website
-DENY EXECUTE ON dbo.usp_BackupSkyTechCRM TO SkyTechApp;
 GO
 ---------------------------------------------------------------- 2. optional dedicated SQL login (DB_AUTH=sql)
 -- Use only if Windows login cannot be used. Pick your own strong password (16+ characters) in SSMS - never store it
@@ -80,6 +79,9 @@ BEGIN
   END CATCH
 END
 GO
+-- backups are run by the owner in SSMS, not by the website (placed after CREATE so it also survives re-runs)
+DENY EXECUTE ON dbo.usp_BackupSkyTechCRM TO SkyTechApp;
+GO
 ---------------------------------------------------------------- 5. error log housekeeping
 -- dbo.usp_PurgeErrorLog: deletes ErrorLog rows older than @KeepDays (default 90). Owner use; returns rows removed.
 IF OBJECT_ID(N'dbo.usp_PurgeErrorLog', N'P') IS NOT NULL DROP PROCEDURE dbo.usp_PurgeErrorLog;
@@ -112,4 +114,4 @@ SELECT N'Security and logging ready' AS Result,
        (SELECT COUNT(*) FROM dbo.ErrorLog) AS ErrorLogRows,
        (SELECT MAX(backup_finish_date) FROM msdb.dbo.backupset WHERE database_name = N'SkyTechCRM' AND type = 'D') AS LastFullBackup;
 GO
--- Version: V1.0 (2026-10-10) — sql/06_security_and_logging.sql — V1.0
+-- Version: V1.1 (2026-10-10) — sql/06_security_and_logging.sql — V1.1

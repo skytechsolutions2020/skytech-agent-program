@@ -37,8 +37,15 @@ RULES (standing): Keep the three documents, the error catalog, the architecture 
 OUTPUT: Release R4.0 with HTML, PDF and Markdown documents in `docs/architecture/`.
 RESULT: Admin site V2.0 (CSP, CSRF, rate limits, lockout, session timeouts, System log), error catalog V1.1 (65 codes), JSON logs, `npm run doctor`, secret scan before push, `sql/06` (least-privilege role, append-only audit, verified backups), `dbo.ErrorLog` in every procedure, comments in every file; Security Architecture, Troubleshooting Guide and Code Documentation V1.0; diagram V1.6; Technology Stack Use V1.1; project instructions V1.9.
 
+### 10.05 Fix the sql/06 error — V1.0
+As written: "getting following error when run 06_security_and_logging.sql — Msg 15151 … Cannot find the object 'usp_BackupSkyTechCRM'" … then "yes" (approve the fix).
+Engineered:
+ROLE: SkyTech_Manager.
+TASK: Find why sql/06 fails on the first run, give the owner a one-line workaround, and with approval correct the script and release it.
+RESULT: Cause: the DENY on dbo.usp_BackupSkyTechCRM ran before the procedure was created (only that statement failed; the rest of the script completed). Workaround given (run the DENY once). sql/06 V1.1 moves the DENY after the CREATE; release R4.1.
+
 ### Carry-over from Day 5 (still pending)
 Owner: run `push-to-github.bat`; set up the database in SSMS (01 → sample import → 04 → 05 → 06), then `npm run doctor`; review the 3 demos in the Admin site; choose free hosting for demo links (Netlify recommended).
 
 ---
-Version: V1.3 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.3
+Version: V1.4 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.4

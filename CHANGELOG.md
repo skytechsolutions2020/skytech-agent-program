@@ -1,5 +1,9 @@
 # Changelog
 
+## R4.1 — 2026-10-10
+- Fix: `sql/06_security_and_logging.sql` V1.1. The DENY on `usp_BackupSkyTechCRM` ran before the procedure was created, giving Msg 15151 on first run. It now runs after the CREATE, so it also stays in place on re-runs.
+- Register V3.9, INDEX V2.7, README V2.8, Day-10 prompts V1.4 (10.05), log V1.3.
+
 ## R4.0 — 2026-10-10
 - **Security architecture applied to the whole project** (OWASP ASVS / NIST CSF 2.0 / CIS v8 practices, $0):
   - Admin site V2.0: strict Content-Security-Policy (no inline script), CSRF token on every change, Origin check, rate limits, 30-min idle / 8-h session timeouts, login lockout (5 tries / 15 min), timing-safe sign-in, security headers; it refuses to start with a weak secret or an exposed host.
@@ -121,4 +125,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.6 (2026-10-10) — CHANGELOG.md — V2.6
+Version: V2.7 (2026-10-10) — CHANGELOG.md — V2.7
