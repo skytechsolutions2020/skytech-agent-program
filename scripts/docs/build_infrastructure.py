@@ -1,4 +1,4 @@
-"""Version: V1.6 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.6
+"""Version: V1.7 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.7
 Builds docs/architecture/SkyTech_Infrastructure.html (diagram + roles + versions).
 Edit the DATA section and re-run to publish a new version.
 Also imported by build_tech_stack.py, which reuses SVG and CSS so both documents always show the same diagram.
@@ -11,7 +11,7 @@ if __name__ == "__main__":  # only when run directly (build_tech_stack.py import
 OUT = sys.argv[1] if len(sys.argv) > 1 and __name__ == "__main__" else "docs/architecture/SkyTech_Infrastructure.html"
 
 # ============================ DATA (edit here) ============================
-DOC_VERSION = "V1.6"; DOC_DATE = "2026-10-10"; RELEASE = "R4.0"
+DOC_VERSION = "V1.7"; DOC_DATE = "2026-10-10"; RELEASE = "R4.2"
 AGENTS = [  # name, status, role, inputs, outputs, control
  ("SkyTech_Manager", "Active", "Runs the program: assigns work, collects agent reports, summarizes to the owner, keeps files/versions/GitHub in order", "Owner requests, agent reports", "Daily summary, task assignments, project files", "Claude in this project; asks owner before actions"),
  ("SkyTech_BackOffice", "Active", "Pulls free leads, verifies \"no website\" by alternative search routes, prepares duplicate-safe SQL imports", "Overture & other free sources, web search", "Verified lead CSV, import SQL, verification report", "agents/SkyTech_BackOffice.md + saved skill (owner-editable)"),
@@ -25,13 +25,13 @@ COMPONENTS = [  # component, where, version, purpose
  ("Project instructions", "claude.ai Project + config/project-instructions.md", "V1.9", "Standing rules for every session"),
  ("Version register / INDEX", "config/version-register.md, INDEX.md", "V3.6 / V2.4", "What each file and release contains"),
  ("SkyTechCRM database", "SQL Server 2014 Developer (owner's laptop)", "setup V2.3, admin objects V1.5, demo load V2.2, security V1.0", "Companies, WebPresence, Leads, Activities, DemoSites; duplicate-safe imports; audit"),
- ("Admin site", "admin-site/ (Node.js) at http://127.0.0.1:3030", "V2.0", "Login, dashboards, drill-down, CRUD, live duplicate check, Demo sites, audit log, System log"),
+ ("Admin site", "admin-site/ (Node.js) at http://127.0.0.1:3030", "V2.1", "Login, dashboards, drill-down, CRUD, live duplicate check, Demo sites, audit log, System log, Logins management"),
  ("Security & logging layer", "admin-site/src/security.js, logger.js, errors.js; sql/06", "V1.0", "CSP, CSRF, rate limit, lockout, session timeouts, least-privilege DB role, append-only audit, JSON logs, SKY error codes"),
  ("Error catalog + doctor", "config/error-codes.json; npm run doctor", "V1.1 / V1.0", "65 SKY-<AREA>-<NNN> codes with causes and fixes; one-command health check"),
  ("Operations documents", "docs/architecture/", "V1.0", "Security Architecture, Troubleshooting Guide, Code Documentation"),
  ("Lead scripts", "scripts/leads/", "extract V1.0, build V1.2", "Overture extraction, sample + import SQL generation"),
  ("Lead sample", "data/samples/", "CSV V1.1, SQL V1.2", "100 leads, 36 verified potential clients"),
- ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R4.0", "Full history of every artifact, tagged releases"),
+ ("GitHub repository", "github.com/skytechsolutions2020/skytech-agent-program (private)", "R4.2", "Full history of every artifact, tagged releases"),
  ("Company website", "skytechsolutions.us (Hostinger, Node.js)", "live", "Needs robots.txt, sitemap, pricing page"),
 ]
 FLOWS = [  # number, text
@@ -63,7 +63,8 @@ CHANGELOG = [("V1.0", "2026-10-02", "First version: infrastructure and data-flow
              ("V1.3", "2026-10-05", "Demo sites stored in dbo.DemoSites and edited in the Admin site; unique designs per business (template V2.0)."),
              ("V1.4", "2026-10-05", "Free-licence photos (Pexels) in demo sites; DemoSites photo columns; Admin site V1.4."),
              ("V1.5", "2026-10-10", "Diagram shared with the new Technology Stack Use document; version labels refreshed."),
-             ("V1.6", "2026-10-10", "R4.0: security and logging layer, error catalog and doctor, sql/06, operations documents; Admin site V2.0.")]
+             ("V1.6", "2026-10-10", "R4.0: security and logging layer, error catalog and doctor, sql/06, operations documents; Admin site V2.0."),
+             ("V1.7", "2026-10-10", "R4.2: Admin site V2.1 — Logins screen (create, edit, disable, reset password) and Change my password.")]
 # ==========================================================================
 
 E = html.escape
@@ -127,11 +128,11 @@ box(740, 220, 374, 214, "SQL Server 2014 Developer — SkyTechCRM", [
     "AdminUsers (bcrypt) · AuditLog (append-only)",
     "DemoSites · ErrorLog · role SkyTechApp · backups",
     "setup V2.3 · admin V1.5 · security V1.0"], "accent")
-box(740, 492, 374, 70, "Admin site V2.0 (Node.js) · 127.0.0.1:3030", ["dashboards · CRUD · duplicate check · demo sites", "security layer · error codes · logs/runtime · doctor"], "normal")
+box(740, 492, 374, 70, "Admin site V2.1 (Node.js) · 127.0.0.1:3030", ["dashboards · CRUD · duplicates · demos · logins", "security layer · error codes · logs/runtime · doctor"], "normal")
 box(740, 586, 178, 54, "SSMS", ["runs SQL scripts"], "normal")
 box(936, 586, 178, 54, "GitHub Desktop + Git", ["push commits + tags"], "normal")
 # internet
-box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R4.0"], "store")
+box(1166, 92, 204, 70, "GitHub (private)", ["skytech-agent-program", "releases R1.0 → R4.2"], "store")
 box(1166, 186, 204, 70, "Hostinger", ["skytechsolutions.us (live)", "future: admin site + MySQL"], "normal")
 box(1166, 272, 204, 54, "Netlify / Google Drive", ["demo sites (planned)"], "planned")
 box(1166, 342, 204, 54, "Gmail / Brevo free", ["owner-approved email (planned)"], "planned")
@@ -236,4 +237,4 @@ if __name__ == "__main__":
     open(OUT, "w", encoding="utf-8").write(page)
     print("wrote", OUT)
 
-# Version: V1.6 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.6
+# Version: V1.7 (2026-10-10) — scripts/docs/build_infrastructure.py — V1.7

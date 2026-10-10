@@ -1,6 +1,6 @@
 # SkyTech Technology Stack Use
 
-Version V1.1 · 2026-10-10 · release R4.0 · architecture diagram V1.6 · maintained by SkyTech_Manager
+Version V1.2 · 2026-10-10 · release R4.2 · architecture diagram V1.7 · maintained by SkyTech_Manager
 
 Plain-language list of every tool and technology the SkyTech program uses. The full document with the six-step picture and the architecture diagram is `docs/architecture/SkyTech_Technology_Stack_Use.pdf` (and .html).
 
@@ -55,7 +55,7 @@ Always running in the background: SkyTech_Manager (Claude) coordinates and repor
 | --- | --- | --- | --- | --- | --- |
 | **Node.js** | The engine that runs JavaScript programs on a computer. | Runs the Admin site and the demo-site builder. | Free | Your laptop | Ready |
 | **Express, express-session, dotenv** | Building blocks for a small web server. | Admin pages, sign-in sessions and settings. | Free | Your laptop | Ready |
-| **bcryptjs** | A password scrambler. | Stores admin passwords so they cannot be read. | Free | Your laptop | Ready |
+| **bcryptjs** | A password scrambler. | Stores Admin site passwords scrambled so they cannot be read (managed on the Logins screen). | Free | Your laptop | Ready |
 | **mssql, msnodesqlv8, ODBC driver** | Connectors between Node.js and SQL Server. | Lets the Admin site read and save database records. | Free | Your laptop | Ready |
 | **Security layer (security.js)** | The site's locks and alarms, written by us. | Blocks password guessing, forged requests from other websites and request floods; signs you out when idle; strict browser rules (CSP). | Free (ours) | Your laptop | Ready |
 | **Logging + error codes (logger.js, errors.js)** | A diary of everything the site does, and a numbered list of every possible problem. | Each problem shows a code like SKY-DB-001 that the Troubleshooting Guide explains; logs are kept 30 days with passwords hidden. | Free (ours) | Your laptop | Ready |
@@ -129,6 +129,7 @@ Always running in the background: SkyTech_Manager (Claude) coordinates and repor
 | --- | --- | --- |
 | V1.0 | 2026-10-10 | First version: one-minute journey picture, architecture diagram, technology stack in plain words, costs, glossary. |
 | V1.1 | 2026-10-10 | R4.0: security layer, logging and error codes, doctor, secret scan and verified database backups added; diagram V1.6. |
+| V1.2 | 2026-10-10 | R4.2: Admin site manages its own logins (create, edit, disable, reset password); diagram V1.7. |
 
 ---
-Version: V1.1 (2026-10-10) — SkyTech_Technology_Stack_Use.md — V1.1
+Version: V1.2 (2026-10-10) — SkyTech_Technology_Stack_Use.md — V1.2

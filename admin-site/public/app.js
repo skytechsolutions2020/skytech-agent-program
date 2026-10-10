@@ -1,6 +1,6 @@
-// Version: V2.1 (2026-10-10) — admin-site/public/app.js — V2.1 (comments)
+// Version: V2.2 (2026-10-10) — admin-site/public/app.js — V2.2 (comments)
 /**
- * @file SkyTech Admin site front end (plain JavaScript, no framework). Routes: #dashboard, #syslog, #<entity>?search=&f_Col=val
+ * @file SkyTech Admin site front end (plain JavaScript, no framework). Routes: #dashboard, #syslog, #users, #<entity>?search=&f_Col=val
  * Security: no inline scripts (strict CSP); every value shown is escaped (esc); every change sends the CSRF token
  *           (X-CSRF-Token) received at sign-in; write buttons appear only for admins (server checks again).
  * Errors:   server errors arrive as { error, code, requestId, hint } and are shown as "message (CODE, ref ID)";
@@ -127,6 +127,7 @@
     charts.forEach(c => c.destroy()); charts = [];
     if (view === 'dashboard') return renderDashboard();
     if (view === 'syslog') return renderSyslog();
+    if (view === 'users') return renderUsers();
     if (META.entities[view]) return renderTable(view, params);
     go('dashboard');
   }
@@ -438,6 +439,67 @@
     }));
   }
 
+  // ---------- logins (admin): create / edit role and active / reset password; "Change my password" for everyone
+  /** POLICY — shown under every new-password box (the server enforces the same rules, SKY-AUTH-006). */
+  const POLICY = '12+ characters, upper and lower case letters, at least one number, not the username, not a common password.';
+  /** pwRow — a password input with a show/hide toggle. */
+  const pwRow = (name, label, auto) => `<label class="full">${esc(label)}<span class="pwbox"><input type="password" name="${name}" autocomplete="${auto}" required><button type="button" class="btn small ghost pwshow" data-for="${name}">Show</button></span></label>`;
+  /** openForm — shows a small form in the drawer; onSave(values) runs on submit, errors stay in the form. */
+  function openForm(title, html, saveLabel, onSave) {
+    $('#drawerTitle').textContent = title;
+    $('#drawerBody').innerHTML = `<form id="uform" class="form" autocomplete="off">${html}<p id="uerr" class="error full"></p><div class="actions full"><button type="button" class="btn" id="ucancel">Cancel</button><button class="btn primary" type="submit">${esc(saveLabel)}</button></div></form>`;
+    $('#drawer').classList.remove('hidden');
+    $('#ucancel').addEventListener('click', closeDrawer);
+    document.querySelectorAll('.pwshow').forEach(b => b.addEventListener('click', () => { const i = $(`#uform [name="${b.dataset.for}"]`); i.type = i.type === 'password' ? 'text' : 'password'; b.textContent = i.type === 'password' ? 'Show' : 'Hide'; }));
+    $('#uform').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const v = Object.fromEntries(new FormData(ev.target).entries());
+      if (v.password !== undefined && v.password2 !== undefined && v.password !== v.password2) { $('#uerr').textContent = 'The two new passwords do not match.'; return; }
+      try { await onSave(v); } catch (err) { $('#uerr').textContent = err.message; }
+    });
+    $('#uform input').focus();
+  }
+  /** renderUsers — the Logins screen: every login with role, status, created and last sign-in. */
+  async function renderUsers() {
+    $('#title').textContent = 'Logins'; $('#crumbs').textContent = '';
+    $('#view').innerHTML = '<p class="muted">Loading…</p>';
+    let d; try { d = await api('GET', '/api/users'); } catch (err) { $('#view').innerHTML = `<div class="card">${esc(err.message)}</div>`; return; }
+    $('#view').innerHTML = `
+      <div class="card note">People who can sign in to this Admin site. <b>admin</b> = full access including this screen; <b>viewer</b> = read only. Every change asks for your own password, is recorded in the Audit log, and signs the changed login out. Passwords are stored scrambled (bcrypt) and can be reset but never shown.</div>
+      <div class="toolbar"><span class="muted">${d.rows.length} login(s) · ${d.rows.filter(u => u.Role === 'admin' && u.IsActive).length} active admin(s)</span><span style="flex:1"></span><button class="btn primary" id="newUser">+ New login</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Username</th><th>Role</th><th>Status</th><th>Created</th><th>Last sign-in</th><th></th></tr></thead><tbody>
+      ${d.rows.map(u => `<tr><td><b>${esc(u.Username)}</b>${u.UserID === d.me ? ' <span class="pill">you</span>' : ''}</td><td>${esc(u.Role)}</td>
+        <td>${u.IsActive ? '<span class="pill Won">Active</span>' : '<span class="pill Lost">Disabled</span>'}</td><td>${esc(fmtDate(u.CreatedOn))}</td><td>${esc(u.LastLoginOn ? fmtDT(u.LastLoginOn) : 'never')}</td>
+        <td class="actions wrap"><button class="btn small" data-edit="${u.UserID}">Edit</button><button class="btn small" data-reset="${u.UserID}">Reset password</button></td></tr>`).join('')}
+      </tbody></table></div>`;
+    const byId = id => d.rows.find(u => u.UserID === parseInt(id, 10));
+    $('#newUser').addEventListener('click', () => openForm('New login', `
+        <label>Username<input name="username" maxlength="50" required pattern="[A-Za-z0-9._\\-]{3,50}" title="3-50 letters, numbers, dot, dash or underscore"></label>
+        <label>Role<select name="role"><option value="viewer">viewer (read only)</option><option value="admin">admin (full access)</option></select></label>
+        ${pwRow('password', 'Password', 'new-password')}${pwRow('password2', 'Repeat password', 'new-password')}<p class="fhint full">${esc(POLICY)}</p>
+        ${pwRow('myPassword', 'Your password (to confirm)', 'current-password')}`, 'Create login',
+      async v => { await api('POST', '/api/users', { username: v.username, role: v.role, password: v.password, myPassword: v.myPassword }); closeDrawer(); toast(`Login ${v.username} created`); renderUsers(); }));
+    document.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => {
+      const u = byId(b.dataset.edit), self = u.UserID === d.me;
+      openForm(`Edit login: ${u.Username}`, `
+        <label>Role<select name="role" ${self ? 'disabled' : ''}><option value="viewer" ${u.Role === 'viewer' ? 'selected' : ''}>viewer (read only)</option><option value="admin" ${u.Role === 'admin' ? 'selected' : ''}>admin (full access)</option></select></label>
+        <label>Status<select name="isActive" ${self ? 'disabled' : ''}><option value="1" ${u.IsActive ? 'selected' : ''}>Active (can sign in)</option><option value="0" ${u.IsActive ? '' : 'selected'}>Disabled (cannot sign in)</option></select></label>
+        ${self ? '<p class="fhint full">This is your own login: you cannot remove your admin role or disable yourself.</p>' : ''}
+        ${pwRow('myPassword', 'Your password (to confirm)', 'current-password')}`, 'Save changes',
+        async v => { await api('PUT', `/api/users/${u.UserID}`, { role: v.role || u.Role, isActive: v.isActive === undefined ? !!u.IsActive : v.isActive === '1', myPassword: v.myPassword }); closeDrawer(); toast('Login updated'); renderUsers(); });
+    }));
+    document.querySelectorAll('[data-reset]').forEach(b => b.addEventListener('click', () => {
+      const u = byId(b.dataset.reset);
+      openForm(`Reset password: ${u.Username}`, `${pwRow('password', 'New password', 'new-password')}${pwRow('password2', 'Repeat new password', 'new-password')}<p class="fhint full">${esc(POLICY)} Tell the person the new password in person or by phone, not by email.</p>
+        ${pwRow('myPassword', 'Your password (to confirm)', 'current-password')}`, 'Set new password',
+        async v => { await api('POST', `/api/users/${u.UserID}/password`, { password: v.password, myPassword: v.myPassword }); closeDrawer(); toast(`Password for ${u.Username} changed`); renderUsers(); });
+    }));
+  }
+  /** Change my password — available to every signed-in user (sidebar button). */
+  $('#myPassword').addEventListener('click', () => openForm('Change my password', `${pwRow('currentPassword', 'Current password', 'current-password')}
+      ${pwRow('password', 'New password', 'new-password')}${pwRow('password2', 'Repeat new password', 'new-password')}<p class="fhint full">${esc(POLICY)}</p>`, 'Change password',
+    async v => { await api('POST', '/api/me/password', { currentPassword: v.currentPassword, newPassword: v.password }); closeDrawer(); toast('Your password was changed'); }));
+
   // ---------- system log (admin): health check + newest log entries, codes link to the Troubleshooting Guide
   /** renderSyslog — shows /api/health and /api/logs; level filter; each code opens its guide entry. */
   async function renderSyslog() {
@@ -472,4 +534,4 @@
   start().catch(() => showLogin());
 })();
 
-// Version: V2.1 (2026-10-10) — admin-site/public/app.js — V2.1
+// Version: V2.2 (2026-10-10) — admin-site/public/app.js — V2.2

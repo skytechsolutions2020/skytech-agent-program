@@ -67,6 +67,8 @@ Double-click **`start-admin.bat`**: it runs the doctor, stops with a code and a 
 
 **Security you will notice:** you are signed out after 30 minutes without activity (and after 8 hours in any case); 5 wrong passwords lock that username for 15 minutes; viewers cannot change anything; admins see a **System log** screen with every warning and error.
 
+**Manage logins (admins):** menu **Logins**. Create a login (admin or viewer), change its role, disable it (that person can no longer sign in), or reset its password. Every change asks for **your own password** again, is written to the Audit log, and signs the changed login out straight away. You cannot disable or demote yourself, and there is always at least one active admin. Everyone can use **Change my password** at the bottom of the menu. If no admin can sign in at all, `npm run create-admin` still works as a fallback.
+
 **Weekly backup:** in SSMS run `EXEC SkyTechCRM.dbo.usp_BackupSkyTechCRM;` and copy `C:\SkyTechBackups` to a USB drive or cloud folder.
 
 **Try it without the database:** `npm run demo` loads the 100-lead sample into memory (login `admin` / `demo1234`, or `viewer` / `demo1234` for read-only). Demo changes are discarded when it stops.
@@ -91,6 +93,8 @@ Every problem shows a **SkyTech code** (for example `SKY-DB-001`) and a referenc
 | SKY-DB-005 | A table, view or procedure is missing | Run the SQL scripts again in order (01 → import → 04 → 05 → 06) |
 | SKY-AUTH-001 / 002 | Wrong password / locked for 15 minutes | Wait, or restart the site; reset with `npm run create-admin` |
 | SKY-SEC-001 | Security token missing | Reload the page (F5) |
+| SKY-AUTH-007 | Your password is needed to confirm | Type your own password in the "Your password" box |
+| SKY-AUTH-008 | Change would lock everyone out | Make another login an active admin first |
 
 ## Moving to skytechsolutions.us (Hostinger) later
 
@@ -122,4 +126,4 @@ SkyTech_Manager will prepare the migration when you decide to move.
 | `.env.example` | Settings template (copy to `.env`) |
 
 ---
-Version: V2.0 (2026-10-10) — admin-site/README.md — V2.0
+Version: V2.1 (2026-10-10) — admin-site/README.md — V2.1

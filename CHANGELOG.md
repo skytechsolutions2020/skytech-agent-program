@@ -1,5 +1,12 @@
 # Changelog
 
+## R4.2 — 2026-10-10
+- Admin site V2.1: **Logins** screen for admins to manage who can sign in, plus **Change my password** for every user.
+  - Create logins (admin or viewer), change role, disable/enable, reset password. Password hashes never leave the server.
+  - Safeguards: your own password is re-entered for every change (SKY-AUTH-007, wrong attempts count towards the lockout); password policy (SKY-AUTH-006); you cannot disable or demote yourself and one active admin always remains (SKY-AUTH-008); a changed login is signed out at once; every change is in the Audit log (entity `users`: CREATE, UPDATE, PASSWORD).
+  - `npm run create-admin` stays as the fallback when no admin can sign in.
+- Error catalog V1.2 (SKY-AUTH-007, SKY-AUTH-008). Security Architecture, Troubleshooting Guide and Code Documentation V1.1; infrastructure diagram V1.7; Technology Stack Use V1.2; admin-site README V2.1; register V4.0, INDEX V2.8, README V2.9, Day-10 prompts V1.5 (10.06–10.07), log V1.4.
+
 ## R4.1 — 2026-10-10
 - Fix: `sql/06_security_and_logging.sql` V1.1. The DENY on `usp_BackupSkyTechCRM` ran before the procedure was created, giving Msg 15151 on first run. It now runs after the CREATE, so it also stays in place on re-runs.
 - Register V3.9, INDEX V2.7, README V2.8, Day-10 prompts V1.4 (10.05), log V1.3.
@@ -125,4 +132,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.7 (2026-10-10) — CHANGELOG.md — V2.7
+Version: V2.8 (2026-10-10) — CHANGELOG.md — V2.8

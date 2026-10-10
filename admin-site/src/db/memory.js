@@ -1,4 +1,4 @@
-// Version: V2.0 (2026-10-10) — admin-site/src/db/memory.js — V2.0 (SkyTech error codes, ping)
+// Version: V2.1 (2026-10-10) — admin-site/src/db/memory.js — V2.1 (SkyTech error codes, ping)
 /**
  * @file DEMO adapter: no database needed (npm run demo). Loads the 100-lead sample CSV into memory so the site can be
  *       tried and tested. Changes are lost when the server stops. Implements exactly the same functions and the same
@@ -168,13 +168,24 @@ module.exports = {
       const l = T.leads.find(x => x.CompanyID === c.CompanyID);
       if (l && ['New', 'Checked', 'NoSite'].includes(l.Status)) { l.Status = 'DemoBuilt'; l.DemoURL = l.DemoURL || 'preview: ' + rec.PreviewPath; l.AssignedAgent = 'SkyTech_WebsiteDeveloper'; }
     });
-    T.users.push({ UserID: 1, Username: 'admin', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'admin', IsActive: 1 });
-    T.users.push({ UserID: 2, Username: 'viewer', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'viewer', IsActive: 1 });
+    T.users.push({ UserID: 1, Username: 'admin', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'admin', IsActive: 1, CreatedOn: new Date().toISOString(), LastLoginOn: null });
+    T.users.push({ UserID: 2, Username: 'viewer', PasswordHash: bcrypt.hashSync(process.env.DEMO_ADMIN_PASSWORD || 'demo1234', 10), Role: 'viewer', IsActive: 1, CreatedOn: new Date().toISOString(), LastLoginOn: null });
   },
   /** ping — health check; demo data is always available. */
   async ping() { return true; },
   async getUser(u) { return T.users.find(x => x.Username.toLowerCase() === String(u).toLowerCase()); },
-  async touchLogin() {},
+  async touchLogin(id) { const u = T.users.find(x => x.UserID === id); if (u) u.LastLoginOn = new Date().toISOString(); },
+  // ---- login management (same functions as mssql.js)
+  async listUsers() { return T.users.map(({ PasswordHash, ...u }) => ({ ...u })).sort((a, b) => (a.Role === b.Role ? a.Username.localeCompare(b.Username) : a.Role === 'admin' ? -1 : 1)); },
+  async getUserById(id) { return T.users.find(x => x.UserID === parseInt(id, 10)); },
+  async addUser(username, hash, role) {
+    if (T.users.some(x => x.Username.toLowerCase() === username.toLowerCase())) throw new AppError('SKY-DUP-001', 'A login with this username already exists.');
+    const UserID = Math.max(0, ...T.users.map(x => x.UserID)) + 1;
+    T.users.push({ UserID, Username: username, PasswordHash: hash, Role: role, IsActive: 1, CreatedOn: new Date().toISOString(), LastLoginOn: null });
+    return UserID;
+  },
+  async updateUser(id, role, isActive) { const u = T.users.find(x => x.UserID === parseInt(id, 10)); if (u) { u.Role = role; u.IsActive = isActive ? 1 : 0; } },
+  async setPassword(id, hash) { const u = T.users.find(x => x.UserID === parseInt(id, 10)); if (u) u.PasswordHash = hash; },
   async createUser(username, hash, role) { T.users.push({ UserID: T.users.length + 1, Username: username, PasswordHash: hash, Role: role, IsActive: 1 }); },
   async audit(user, entity, action, key, details) {
     T.audit.push({ AuditID: ++seq.audit, At: new Date().toISOString(), Username: user, Entity: entity, Action: action, RecordKey: key == null ? null : String(key), Details: details ? JSON.stringify(details) : null });
@@ -321,4 +332,4 @@ module.exports = {
   }
 };
 
-// Version: V2.0 (2026-10-10) — admin-site/src/db/memory.js — V2.0
+// Version: V2.1 (2026-10-10) — admin-site/src/db/memory.js — V2.1

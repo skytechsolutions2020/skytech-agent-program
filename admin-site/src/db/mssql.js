@@ -1,4 +1,4 @@
-// Version: V2.0 (2026-10-10) — admin-site/src/db/mssql.js — V2.0 (error codes, timeouts, ping, encryption options)
+// Version: V2.1 (2026-10-10) — admin-site/src/db/mssql.js — V2.1 (error codes, timeouts, ping, encryption options)
 /**
  * @file SQL Server adapter (SkyTechCRM on SQL Server 2014+). Same functions as src/db/memory.js (demo mode).
  * Security: every value is sent as a typed parameter (no string-built SQL with user input → no SQL injection);
@@ -97,6 +97,31 @@ module.exports = {
       .query(`IF EXISTS (SELECT 1 FROM dbo.AdminUsers WHERE Username = @u)
                 UPDATE dbo.AdminUsers SET PasswordHash = @h, Role = @r, IsActive = 1 WHERE Username = @u
               ELSE INSERT INTO dbo.AdminUsers (Username, PasswordHash, Role) VALUES (@u, @h, @r)`);
+  },
+  // ---- login management (Admin site "Logins" screen). Hashes never leave the server.
+  // listUsers — all logins without password hashes, admins first.
+  async listUsers() {
+    return (await pool.request().query('SELECT UserID, Username, Role, IsActive, CreatedOn, LastLoginOn FROM dbo.AdminUsers ORDER BY CASE Role WHEN \'admin\' THEN 0 ELSE 1 END, Username')).recordset;
+  },
+  // getUserById — one login including its hash (used for checks on the server only).
+  async getUserById(id) {
+    return (await pool.request().input('id', sql.Int, parseInt(id, 10)).query('SELECT UserID, Username, PasswordHash, Role, IsActive FROM dbo.AdminUsers WHERE UserID = @id')).recordset[0];
+  },
+  // addUser — creates a new login; an existing username → SKY-DUP-001 (unique rule UQ_AdminUsers_Username).
+  async addUser(username, hash, role) {
+    try {
+      return (await pool.request().input('u', sql.NVarChar(50), username).input('h', sql.NVarChar(100), hash).input('r', sql.VarChar(10), role)
+        .query('INSERT INTO dbo.AdminUsers (Username, PasswordHash, Role) OUTPUT inserted.UserID VALUES (@u, @h, @r)')).recordset[0].UserID;
+    } catch (e) { throw friendly(e); }
+  },
+  // updateUser — changes role and/or active flag of a login.
+  async updateUser(id, role, isActive) {
+    await pool.request().input('id', sql.Int, parseInt(id, 10)).input('r', sql.VarChar(10), role).input('a', sql.Bit, isActive ? 1 : 0)
+      .query('UPDATE dbo.AdminUsers SET Role = @r, IsActive = @a WHERE UserID = @id');
+  },
+  // setPassword — stores a new bcrypt hash for a login.
+  async setPassword(id, hash) {
+    await pool.request().input('id', sql.Int, parseInt(id, 10)).input('h', sql.NVarChar(100), hash).query('UPDATE dbo.AdminUsers SET PasswordHash = @h WHERE UserID = @id');
   },
   // audit — appends one row to dbo.AuditLog (who, what, which record, JSON details). Append-only (sql/06).
   async audit(user, entity, action, key, details) {
@@ -290,4 +315,4 @@ module.exports = {
   }
 };
 
-// Version: V2.0 (2026-10-10) — admin-site/src/db/mssql.js — V2.0
+// Version: V2.1 (2026-10-10) — admin-site/src/db/mssql.js — V2.1

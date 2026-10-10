@@ -24,7 +24,7 @@ OUT_DIR = os.path.join(ROOT, "docs", "architecture")
 INFRA = runpy.run_path(os.path.join(os.path.dirname(os.path.abspath(__file__)), "build_infrastructure.py"), run_name="skytech_lib")
 E = html.escape
 DATE, RELEASE = "2026-10-10", "R4.0"
-VERSIONS = {"guide": "V1.0", "security": "V1.0", "code": "V1.0"}
+VERSIONS = {"guide": "V1.1", "security": "V1.1", "code": "V1.1"}
 
 # ============================ shared page helpers ============================
 CSS = INFRA["DIAGRAM_CSS"] + """
@@ -200,7 +200,7 @@ def build_guide():
 
 RECIPES = [
     ("Admin site will not start", "Run start-admin.bat — it runs the doctor first and stops on the first problem with its code. Typical: .env missing (SKY-CFG-001), weak SESSION_SECRET (SKY-CFG-002: npm run doctor -- --new-secret), SQL Server service stopped (SKY-DB-001: Services → SQL Server (MSSQLSERVER) → Start)."),
-    ("Locked out of the Admin site", "Wait 15 minutes (SKY-AUTH-002), or restart the Admin site to clear the lock. Forgotten password: in admin-site run npm run create-admin with the same username to set a new one."),
+    ("Locked out of the Admin site", "Wait 15 minutes (SKY-AUTH-002), or restart the Admin site to clear the lock. Forgotten password: another admin resets it on the Logins screen; if no admin can sign in, run npm run create-admin in admin-site with the same username (this also re-enables the login)."),
     ("A table or procedure is missing", "In SSMS run the scripts in order: sql/01 → lead import → sql/04 → sql/05 → sql/06. All are safe to re-run and never delete data."),
     ("Duplicates appeared", "Admin site → Possible duplicates: merge or dismiss each Exact pair, then re-run sql/01 so the unique rules are created (SKY-DUP-004)."),
     ("Database damaged or deleted (SKY-BAK-002)", "Stop the Admin site. In SSMS: RESTORE DATABASE SkyTechCRM FROM DISK = N'C:\\SkyTechBackups\\<newest>.bak' WITH REPLACE, CHECKSUM; then run sql/04 and sql/06 and npm run doctor."),
@@ -239,7 +239,7 @@ STRIDE = [
     ("Repudiation", "A change cannot be traced to a person", "dbo.AuditLog for every sign-in and change, protected by trigger (append-only); request IDs in logs", "SKY-SEC-006"),
     ("Information disclosure", "Leads or secrets leak (logs, GitHub, error pages, other sites)", "Loopback binding; no stack traces to the browser; redaction in logs; secret scan; git-ignore; no-store cache on API; strict CSP; Referrer-Policy same-origin", "SKY-SEC-004, SKY-CFG-003"),
     ("Denial of service", "Request floods or very large requests make the site unusable", "Rate limit 300/min (60 writes/min) per computer; 200 kB request limit; DB timeouts (15 s connect / 30 s query)", "SKY-SEC-002/003, SKY-DB-007"),
-    ("Elevation of privilege", "A viewer performs admin actions; the app changes database design", "Server-side role check on every write (adminOnly); SkyTechApp role has no ALTER/CREATE; DENY on audit/error log changes and on backup/purge procedures", "SKY-AUTH-005, SKY-DB-008"),
+    ("Elevation of privilege", "A viewer performs admin actions; the app changes database design; an unattended signed-in screen is used to add a login", "Server-side role check on every write (adminOnly); login changes need the admin's own password again; SkyTechApp role has no ALTER/CREATE; DENY on audit/error log changes and on backup/purge procedures", "SKY-AUTH-005, SKY-DB-008"),
 ]
 CONTROLS = [  # control, implementation, OWASP ASVS 4.0.3, NIST CSF 2.0, CIS v8
     ("Secure configuration check at start", "security.checkConfig, server.js fatal(), npm run doctor", "V14.1", "PR.PS-01", "4.1"),
@@ -249,6 +249,7 @@ CONTROLS = [  # control, implementation, OWASP ASVS 4.0.3, NIST CSF 2.0, CIS v8
     ("No user enumeration", "Same message and timing for unknown user (dummy bcrypt hash)", "V2.2.3", "PR.AA-03", "—"),
     ("Session management", "express-session, HttpOnly + SameSite=Strict (+Secure/__Host- on HTTPS), regenerate at sign-in, 30 min idle / 8 h absolute", "V3.2, V3.3, V3.4", "PR.AA-05", "6.2"),
     ("Access control", "auth + adminOnly middleware; viewer read-only; schema allow-list", "V4.1, V4.2", "PR.AA-05", "6.8"),
+    ("Account management", "Logins screen (admins): create, change role, disable, reset password; your own password re-entered for every change; at least one active admin; changed logins signed out at once; every change audited; Change my password for all users", "V2.5, V3.3.1, V4.3.1", "PR.AA-01, PR.AA-05", "5.1, 5.3, 6.1, 6.2"),
     ("CSRF protection", "Per-session token in X-CSRF-Token + Origin check", "V4.2.2", "PR.PS-06", "16.x"),
     ("Injection prevention", "Typed SQL parameters (mssql); identifiers only from schema.js; HTML escaping in app.js and render.js", "V5.3.4, V5.3.3", "PR.PS-06", "16.x"),
     ("Input validation", "Required fields, types, lengths, slug/colour/photo-host checks", "V5.1", "PR.PS-06", "16.x"),
@@ -280,7 +281,7 @@ INCIDENT = [
 CHECKLIST = [
     ("Every day", "Start with start-admin.bat (runs the doctor). Glance at the System log for red (error) rows."),
     ("Every week", "EXEC dbo.usp_BackupSkyTechCRM; in SSMS; copy C:\\SkyTechBackups to a USB drive or cloud folder. Run npm run doctor. Push releases with push-to-github.bat (secret scan runs)."),
-    ("Every month", "Install Windows and SQL Server updates. In admin-site run npm audit (report findings to SkyTech_Manager). Review AdminUsers (remove unused logins). Review dbo.ErrorLog and purge rows older than 90 days."),
+    ("Every month", "Install Windows and SQL Server updates. In admin-site run npm audit (report findings to SkyTech_Manager). Review the Logins screen: disable logins nobody uses. Review dbo.ErrorLog and purge rows older than 90 days."),
     ("Every quarter", "Test a restore of the newest backup into a scratch database (RESTORE … WITH MOVE, under another name). Change SESSION_SECRET and admin passwords. Review this document with SkyTech_Manager."),
 ]
 LIMITS = [

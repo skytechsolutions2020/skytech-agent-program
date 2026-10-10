@@ -1,6 +1,6 @@
 # SkyTech Troubleshooting Guide
 
-Version V1.0 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
+Version V1.1 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 
 ## 1. First aid in five steps
 
@@ -265,12 +265,32 @@ Fix:
 
 #### SKY-AUTH-006 — Password does not meet the policy (warn)
 
-Where: npm run create-admin. Logged in: logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output.
+Where: npm run create-admin; Admin site → Logins (new login, reset password) and Change my password. Logged in: logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output.
 
 Causes: Fewer than 12 characters, missing upper/lower case or a digit, contains the username, or is a common password.
 
 Fix:
 1. Choose a passphrase of 12+ characters with upper and lower case letters and a number
+
+#### SKY-AUTH-007 — Your password is needed to confirm this change (warn)
+
+Where: Admin site → Logins; Change my password. Logged in: admin log (category security); dbo.AuditLog.
+
+Causes: The "Your password" box was empty or wrong when creating, changing or resetting a login; Too many wrong confirmation attempts also lock the account for 15 minutes (SKY-AUTH-002).
+
+Fix:
+1. Type your own current password in the "Your password" box and save again
+2. Forgotten it? Another admin can reset it on the Logins screen, or run npm run create-admin with your username
+
+#### SKY-AUTH-008 — Change refused: it would lock everyone out (warn)
+
+Where: Admin site → Logins (edit role or active). Logged in: admin log (category http).
+
+Causes: You tried to disable your own login or remove your own admin role; The change would leave no active admin login.
+
+Fix:
+1. Make another login an active admin first, then change this one
+2. To lock out a person, disable their login — not your own
 
 
 ### SEC — Security
@@ -779,7 +799,7 @@ EXEC SkyTechCRM.dbo.usp_PurgeErrorLog @KeepDays = 90;
 | Situation | Steps |
 | --- | --- |
 | Admin site will not start | Run start-admin.bat — it runs the doctor first and stops on the first problem with its code. Typical: .env missing (SKY-CFG-001), weak SESSION_SECRET (SKY-CFG-002: npm run doctor -- --new-secret), SQL Server service stopped (SKY-DB-001: Services → SQL Server (MSSQLSERVER) → Start). |
-| Locked out of the Admin site | Wait 15 minutes (SKY-AUTH-002), or restart the Admin site to clear the lock. Forgotten password: in admin-site run npm run create-admin with the same username to set a new one. |
+| Locked out of the Admin site | Wait 15 minutes (SKY-AUTH-002), or restart the Admin site to clear the lock. Forgotten password: another admin resets it on the Logins screen; if no admin can sign in, run npm run create-admin in admin-site with the same username (this also re-enables the login). |
 | A table or procedure is missing | In SSMS run the scripts in order: sql/01 → lead import → sql/04 → sql/05 → sql/06. All are safe to re-run and never delete data. |
 | Duplicates appeared | Admin site → Possible duplicates: merge or dismiss each Exact pair, then re-run sql/01 so the unique rules are created (SKY-DUP-004). |
 | Database damaged or deleted (SKY-BAK-002) | Stop the Admin site. In SSMS: RESTORE DATABASE SkyTechCRM FROM DISK = N'C:\SkyTechBackups\.bak' WITH REPLACE, CHECKSUM; then run sql/04 and sql/06 and npm run doctor. |
@@ -789,4 +809,4 @@ EXEC SkyTechCRM.dbo.usp_PurgeErrorLog @KeepDays = 90;
 | Moving to a second computer or to hosting | Copy the repository, run npm install, create a new .env (new SESSION_SECRET), keep HOST=127.0.0.1 unless the site is behind HTTPS with COOKIE_SECURE=1 and TRUST_PROXY=1, use the SkyTechApp least-privilege login (sql/06), run the doctor. |
 
 ---
-Version: V1.0 (2026-10-10) — SkyTech_Troubleshooting_Guide.md — V1.0
+Version: V1.1 (2026-10-10) — SkyTech_Troubleshooting_Guide.md — V1.1

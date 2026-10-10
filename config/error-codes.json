@@ -1,5 +1,5 @@
 {
- "version": "V1.1",
+ "version": "V1.2",
  "date": "2026-10-10",
  "format": "SKY-<AREA>-<NNN>",
  "severities": [
@@ -425,7 +425,7 @@
    "area": "Sign-in",
    "severity": "warn",
    "title": "Password does not meet the policy",
-   "where": "npm run create-admin",
+   "where": "npm run create-admin; Admin site → Logins (new login, reset password) and Change my password",
    "causes": [
     "Fewer than 12 characters, missing upper/lower case or a digit, contains the username, or is a common password"
    ],
@@ -434,8 +434,46 @@
    ],
    "log": "logs/runtime/scripts-YYYY-MM-DD.log and the script's screen output",
    "predicted": false,
-   "http": null,
+   "http": 400,
    "user": "Password does not meet the policy"
+  },
+  {
+   "code": "SKY-AUTH-007",
+   "area": "Sign-in",
+   "severity": "warn",
+   "title": "Your password is needed to confirm this change",
+   "where": "Admin site → Logins; Change my password",
+   "causes": [
+    "The \"Your password\" box was empty or wrong when creating, changing or resetting a login",
+    "Too many wrong confirmation attempts also lock the account for 15 minutes (SKY-AUTH-002)"
+   ],
+   "fix": [
+    "Type your own current password in the \"Your password\" box and save again",
+    "Forgotten it? Another admin can reset it on the Logins screen, or run npm run create-admin with your username"
+   ],
+   "log": "admin log (category security); dbo.AuditLog",
+   "predicted": false,
+   "http": 403,
+   "user": "Your password is needed to confirm this change (it was empty or wrong)."
+  },
+  {
+   "code": "SKY-AUTH-008",
+   "area": "Sign-in",
+   "severity": "warn",
+   "title": "Change refused: it would lock everyone out",
+   "where": "Admin site → Logins (edit role or active)",
+   "causes": [
+    "You tried to disable your own login or remove your own admin role",
+    "The change would leave no active admin login"
+   ],
+   "fix": [
+    "Make another login an active admin first, then change this one",
+    "To lock out a person, disable their login — not your own"
+   ],
+   "log": "admin log (category http)",
+   "predicted": false,
+   "http": 409,
+   "user": "Not allowed: there must always be at least one active admin, and you cannot disable or demote yourself."
   },
   {
    "code": "SKY-SEC-001",

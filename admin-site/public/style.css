@@ -1,4 +1,4 @@
-/* Version: V2.1 (2026-10-10) — admin-site/public/style.css — V2.1 (comments)
+/* Version: V2.2 (2026-10-10) — admin-site/public/style.css — V2.2 (password boxes)
    Styles for the SkyTech Admin site. Colours are variables in :root (change them once here).
    Sections: layout (sidebar, top bar), tables and badges, record drawer and forms, duplicate panel and compare,
    dashboard tiles/charts, System log (tr.lg-warn / tr.lg-error rows), sign-in screen, toast messages.
@@ -133,4 +133,5 @@ tbody tr:hover { background: var(--accent); }
 tr.lg-warn td{background:#fff8e6}tr.lg-error td{background:#fdecea}
 @media (prefers-color-scheme: dark){tr.lg-warn td{background:#3a3220}tr.lg-error td{background:#3d2222}}
 code{font-size:12px;background:var(--accent);padding:1px 5px;border-radius:4px}
-/* Version: V2.1 (2026-10-10) — admin-site/public/style.css — V2.1 */
+.pwbox { display: flex; gap: 6px; align-items: center; } .pwbox input { flex: 1; }
+/* Version: V2.2 (2026-10-10) — admin-site/public/style.css — V2.2 */

@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- Version: V2.0 (2026-10-10) — admin-site/public/index.html — V2.0 (System log menu item) -->
+<!-- Version: V2.1 (2026-10-10) — admin-site/public/index.html — V2.1 (Logins menu item, Change my password) -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -36,10 +36,12 @@
       <a data-view="duplicates">Possible duplicates <span id="dupBadge" class="nav-count hidden" title="Duplicates found right now"></span></a>
       <a data-view="audit">Audit log</a>
       <a data-view="syslog" data-admin class="hidden">System log</a>
+      <a data-view="users" data-admin class="hidden">Logins</a>
     </nav>
     <div class="sidebar-foot">
       <div id="who" class="muted"></div>
       <div id="mode" class="badge"></div>
+      <button id="myPassword" class="btn small ghost">Change my password</button>
       <button id="logout" class="btn small ghost">Sign out</button>
     </div>
   </aside>
@@ -59,3 +61,4 @@
 <script src="app.js"></script>
 </body>
 </html>
+<!-- Version: V2.1 (2026-10-10) — admin-site/public/index.html — V2.1 -->

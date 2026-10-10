@@ -1,6 +1,6 @@
 # SkyTech Security Architecture
 
-Version V1.0 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
+Version V1.1 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 
 
 ## 1. Security principles
@@ -43,7 +43,7 @@ Version V1.0 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 | Repudiation | A change cannot be traced to a person | dbo.AuditLog for every sign-in and change, protected by trigger (append-only); request IDs in logs | SKY-SEC-006 |
 | Information disclosure | Leads or secrets leak (logs, GitHub, error pages, other sites) | Loopback binding; no stack traces to the browser; redaction in logs; secret scan; git-ignore; no-store cache on API; strict CSP; Referrer-Policy same-origin | SKY-SEC-004, SKY-CFG-003 |
 | Denial of service | Request floods or very large requests make the site unusable | Rate limit 300/min (60 writes/min) per computer; 200 kB request limit; DB timeouts (15 s connect / 30 s query) | SKY-SEC-002/003, SKY-DB-007 |
-| Elevation of privilege | A viewer performs admin actions; the app changes database design | Server-side role check on every write (adminOnly); SkyTechApp role has no ALTER/CREATE; DENY on audit/error log changes and on backup/purge procedures | SKY-AUTH-005, SKY-DB-008 |
+| Elevation of privilege | A viewer performs admin actions; the app changes database design; an unattended signed-in screen is used to add a login | Server-side role check on every write (adminOnly); login changes need the admin's own password again; SkyTechApp role has no ALTER/CREATE; DENY on audit/error log changes and on backup/purge procedures | SKY-AUTH-005, SKY-DB-008 |
 
 ## 5. Controls and standards mapping
 
@@ -56,6 +56,7 @@ Version V1.0 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 | No user enumeration | Same message and timing for unknown user (dummy bcrypt hash) | V2.2.3 | PR.AA-03 | — |
 | Session management | express-session, HttpOnly + SameSite=Strict (+Secure/__Host- on HTTPS), regenerate at sign-in, 30 min idle / 8 h absolute | V3.2, V3.3, V3.4 | PR.AA-05 | 6.2 |
 | Access control | auth + adminOnly middleware; viewer read-only; schema allow-list | V4.1, V4.2 | PR.AA-05 | 6.8 |
+| Account management | Logins screen (admins): create, change role, disable, reset password; your own password re-entered for every change; at least one active admin; changed logins signed out at once; every change audited; Change my password for all users | V2.5, V3.3.1, V4.3.1 | PR.AA-01, PR.AA-05 | 5.1, 5.3, 6.1, 6.2 |
 | CSRF protection | Per-session token in X-CSRF-Token + Origin check | V4.2.2 | PR.PS-06 | 16.x |
 | Injection prevention | Typed SQL parameters (mssql); identifiers only from schema.js; HTML escaping in app.js and render.js | V5.3.4, V5.3.3 | PR.PS-06 | 16.x |
 | Input validation | Required fields, types, lengths, slug/colour/photo-host checks | V5.1 | PR.PS-06 | 16.x |
@@ -106,7 +107,7 @@ Version V1.0 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 | --- | --- |
 | Every day | Start with start-admin.bat (runs the doctor). Glance at the System log for red (error) rows. |
 | Every week | EXEC dbo.usp_BackupSkyTechCRM; in SSMS; copy C:\SkyTechBackups to a USB drive or cloud folder. Run npm run doctor. Push releases with push-to-github.bat (secret scan runs). |
-| Every month | Install Windows and SQL Server updates. In admin-site run npm audit (report findings to SkyTech_Manager). Review AdminUsers (remove unused logins). Review dbo.ErrorLog and purge rows older than 90 days. |
+| Every month | Install Windows and SQL Server updates. In admin-site run npm audit (report findings to SkyTech_Manager). Review the Logins screen: disable logins nobody uses. Review dbo.ErrorLog and purge rows older than 90 days. |
 | Every quarter | Test a restore of the newest backup into a scratch database (RESTORE … WITH MOVE, under another name). Change SESSION_SECRET and admin passwords. Review this document with SkyTech_Manager. |
 
 ## 11. Known limits and roadmap
@@ -124,4 +125,4 @@ Version V1.0 · 2026-10-10 · release R4.0 · maintained by SkyTech_Manager
 `EXEC SkyTechCRM.dbo.usp_BackupSkyTechCRM;` weekly (CHECKSUM, COMPRESSION, VERIFYONLY → C:\SkyTechBackups). Keep a copy off the PC. Restore recipe: Troubleshooting Guide, SKY-BAK-002.
 
 ---
-Version: V1.0 (2026-10-10) — SkyTech_Security_Architecture.md — V1.0
+Version: V1.1 (2026-10-10) — SkyTech_Security_Architecture.md — V1.1

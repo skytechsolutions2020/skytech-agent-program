@@ -1,4 +1,4 @@
-// Version: V2.0 (2026-10-10) — admin-site/server.js — V2.0
+// Version: V2.1 (2026-10-10) — admin-site/server.js — V2.1 (login management)
 /**
  * @file SkyTech Admin site web server.
  * Purpose: serves the Admin screens (public/) and the JSON API used by them: sign-in, dashboard, drill-down tables,
@@ -62,7 +62,18 @@ app.use(sec.csrf);                                         // anti-forgery token
 /** wrap — lets async route handlers pass errors to the central error handler. */
 const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 /** auth — the request must come from a signed-in user (SKY-AUTH-004, or SKY-AUTH-003 if the session just expired). */
-function auth(req, res, next) { if (req.session && req.session.user) return next(); next(new AppError(req.expired ? 'SKY-AUTH-003' : 'SKY-AUTH-004')); }
+function auth(req, res, next) {
+  if (req.session && req.session.user) {
+    // a login that was disabled, re-roled or given a new password by an admin is signed out everywhere (epoch changed)
+    if ((req.session.epoch || 0) === (EPOCH.get(req.session.user.id) || 0)) return next();
+    const user = req.session.user.name;
+    return req.session.destroy(() => { log.security('Session ended: login changed by an admin', { code: 'SKY-AUTH-003', user, reqId: req.id }, 'info'); next(new AppError('SKY-AUTH-003', 'Your login was changed. Please sign in again.')); });
+  }
+  next(new AppError(req.expired ? 'SKY-AUTH-003' : 'SKY-AUTH-004'));
+}
+/** EPOCH — per-login change counter; bumping it ends that login's open sessions (see auth). */
+const EPOCH = new Map();
+const bumpEpoch = id => EPOCH.set(id, (EPOCH.get(id) || 0) + 1);
 /** adminOnly — the user must have the admin role; viewers are read-only (SKY-AUTH-005). */
 function adminOnly(req, res, next) {
   if (req.session.user.role === 'admin') return next();
@@ -108,6 +119,7 @@ app.post('/api/login', wrap(async (req, res) => {
   guard.ok(name, ip);
   await new Promise((resolve, reject) => req.session.regenerate(e => (e ? reject(e) : resolve())));
   req.session.user = { id: u.UserID, name: u.Username, role: u.Role };
+  req.session.epoch = EPOCH.get(u.UserID) || 0;
   req.session.started = req.session.lastSeen = Date.now();
   const csrf = sec.issueCsrf(req);
   await db.touchLogin(u.UserID);
@@ -256,6 +268,88 @@ app.post('/api/demosites/:id/save', auth, adminOnly, wrap(async (req, res) => {
   res.json({ file: `demo-sites/${slug}/index.html` });
 }));
 
+// ------------------------------------------------------------------ logins (Admin site "Logins" screen + "Change my password")
+// Rules: admins only (except changing your own password); every change needs the acting admin's own password again
+// (re-authentication, SKY-AUTH-007); new passwords follow the policy (SKY-AUTH-006); there must always be at least one
+// active admin and you cannot disable or demote yourself (SKY-AUTH-008); every change is audited (entity "users")
+// and ends the affected login's open sessions. Password hashes never leave the server.
+const ROLES = ['admin', 'viewer'];
+/** confirmMe — re-checks the signed-in admin's own password; wrong attempts count towards the lockout. */
+async function confirmMe(req, password) {
+  const me = await db.getUserById(req.session.user.id);
+  const locked = guard.check(req.session.user.name, req.ip);
+  if (locked) throw locked;
+  if (!me || !(await bcrypt.compare(String(password || ''), me.PasswordHash))) {
+    guard.fail(req.session.user.name, req.ip);
+    log.security('Confirmation password wrong', { code: 'SKY-AUTH-007', user: req.session.user.name, ip: req.ip, reqId: req.id });
+    throw new AppError('SKY-AUTH-007');
+  }
+  return me;
+}
+/** checkNewPassword — applies the password policy (SKY-AUTH-006 lists what is missing). */
+function checkNewPassword(pw, username) {
+  const probs = sec.passwordPolicy(pw, username);
+  if (probs.length) throw new AppError('SKY-AUTH-006', 'Password needs: ' + probs.join(', ') + '.');
+}
+/** activeAdminsAfter — how many active admins remain if login id gets role/isActive. */
+async function activeAdminsAfter(id, role, isActive) {
+  return (await db.listUsers()).filter(u => (u.UserID === id ? role === 'admin' && isActive : u.Role === 'admin' && u.IsActive)).length;
+}
+/** GET /api/users — all logins (no hashes). */
+app.get('/api/users', auth, adminOnly, wrap(async (req, res) => res.json({ rows: await db.listUsers(), me: req.session.user.id })));
+/** POST /api/users — create a login {username, role, password, myPassword}. */
+app.post('/api/users', auth, adminOnly, wrap(async (req, res) => {
+  const b = req.body || {};
+  const username = String(b.username || '').trim();
+  if (!/^[A-Za-z0-9._-]{3,50}$/.test(username)) throw new AppError('SKY-DATA-002', 'Username: 3-50 letters, numbers, dot, dash or underscore.');
+  if (!ROLES.includes(b.role)) throw new AppError('SKY-DATA-002', 'Role must be admin or viewer.');
+  await confirmMe(req, b.myPassword);
+  checkNewPassword(b.password, username);
+  const id = await db.addUser(username, await bcrypt.hash(String(b.password), 12), b.role);
+  await db.audit(req.session.user.name, 'users', 'CREATE', String(id), { username, role: b.role });
+  log.security('Login created', { user: req.session.user.name, target: username, role: b.role, reqId: req.id }, 'info');
+  res.json({ ok: true, id });
+}));
+/** PUT /api/users/:id — change role and/or active flag {role, isActive, myPassword}. */
+app.put('/api/users/:id', auth, adminOnly, wrap(async (req, res) => {
+  const id = parseInt(req.params.id, 10), b = req.body || {};
+  const u = await db.getUserById(id);
+  if (!u) throw new AppError('SKY-DATA-004', 'This login no longer exists.');
+  const role = b.role === undefined ? u.Role : b.role, isActive = b.isActive === undefined ? !!u.IsActive : !!b.isActive;
+  if (!ROLES.includes(role)) throw new AppError('SKY-DATA-002', 'Role must be admin or viewer.');
+  if (id === req.session.user.id && (role !== 'admin' || !isActive)) throw new AppError('SKY-AUTH-008', 'You cannot disable your own login or remove your own admin role.');
+  if ((await activeAdminsAfter(id, role, isActive)) < 1) throw new AppError('SKY-AUTH-008');
+  await confirmMe(req, b.myPassword);
+  await db.updateUser(id, role, isActive);
+  bumpEpoch(id);
+  await db.audit(req.session.user.name, 'users', 'UPDATE', String(id), { username: u.Username, before: { role: u.Role, isActive: !!u.IsActive }, after: { role, isActive } });
+  log.security('Login changed', { user: req.session.user.name, target: u.Username, role, isActive, reqId: req.id }, 'info');
+  res.json({ ok: true });
+}));
+/** POST /api/users/:id/password — an admin sets a new password for a login {password, myPassword}. */
+app.post('/api/users/:id/password', auth, adminOnly, wrap(async (req, res) => {
+  const id = parseInt(req.params.id, 10), b = req.body || {};
+  const u = await db.getUserById(id);
+  if (!u) throw new AppError('SKY-DATA-004', 'This login no longer exists.');
+  await confirmMe(req, b.myPassword);
+  checkNewPassword(b.password, u.Username);
+  await db.setPassword(id, await bcrypt.hash(String(b.password), 12));
+  if (id !== req.session.user.id) bumpEpoch(id);
+  await db.audit(req.session.user.name, 'users', 'PASSWORD', String(id), { username: u.Username, by: 'admin reset' });
+  log.security('Password reset by admin', { user: req.session.user.name, target: u.Username, reqId: req.id }, 'info');
+  res.json({ ok: true });
+}));
+/** POST /api/me/password — any signed-in user changes their own password {currentPassword, newPassword}. */
+app.post('/api/me/password', auth, wrap(async (req, res) => {
+  const b = req.body || {};
+  await confirmMe(req, b.currentPassword);
+  checkNewPassword(b.newPassword, req.session.user.name);
+  await db.setPassword(req.session.user.id, await bcrypt.hash(String(b.newPassword), 12));
+  await db.audit(req.session.user.name, 'users', 'PASSWORD', String(req.session.user.id), { username: req.session.user.name, by: 'self' });
+  log.security('Password changed by its owner', { user: req.session.user.name, reqId: req.id }, 'info');
+  res.json({ ok: true });
+}));
+
 // ------------------------------------------------------------------ project documents (signed-in users)
 /** /docs — serves docs/architecture (Troubleshooting Guide, Security, Code docs) so log codes can link to fixes. */
 app.use('/docs', auth, express.static(path.join(__dirname, '..', 'docs', 'architecture'), { dotfiles: 'deny', index: false }));
@@ -297,4 +391,4 @@ db.init().then(() => {
   server.on('error', e => fatal(e.code === 'EADDRINUSE' ? new AppError('SKY-CFG-006', `Port ${PORT} is already in use.`) : e));
 }).catch(e => fatal(e.code === 'MODULE_NOT_FOUND' || /msnodesqlv8/.test(e.message) ? new AppError('SKY-DB-002', e.message) : fromDbError(e)));
 
-// Version: V2.0 (2026-10-10) — admin-site/server.js — V2.0
+// Version: V2.1 (2026-10-10) — admin-site/server.js — V2.1

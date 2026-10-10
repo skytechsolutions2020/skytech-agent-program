@@ -44,8 +44,22 @@ ROLE: SkyTech_Manager.
 TASK: Find why sql/06 fails on the first run, give the owner a one-line workaround, and with approval correct the script and release it.
 RESULT: Cause: the DENY on dbo.usp_BackupSkyTechCRM ran before the procedure was created (only that statement failed; the rest of the script completed). Workaround given (run the DENY once). sql/06 V1.1 moves the DENY after the CREATE; release R4.1.
 
+### 10.06 Admin password — V1.0
+As written: "what is admin password"
+Engineered:
+QUESTION: What are the sign-in details for the Admin site?
+RESULT: Demo mode uses admin / demo1234 (viewer / demo1234 read-only). With the database there is no default: the owner creates the login with `npm run create-admin`; passwords are stored scrambled and can be reset, never read.
+
+### 10.07 Manage logins in the Admin site — V1.0
+As written: "in admin site give option to manage (create/edit) logins to the application including admin login"
+Engineered:
+ROLE: SkyTech_Manager.
+TASK: Add a screen in the Admin site where an admin can create logins (admin or viewer), change role, disable or enable a login and reset its password, including admin logins, and let every user change their own password.
+RULES (standing): Apply the security architecture: re-enter your own password to confirm each change, password policy, never show or send password hashes, keep at least one active admin, sign out a changed login immediately, audit every change, give each refusal a SKY code, and update the documents and versions.
+RESULT: Admin site V2.1 with the Logins screen and Change my password; error codes SKY-AUTH-007/008; Security Architecture, Troubleshooting Guide and Code Documentation V1.1; diagram V1.7; Technology Stack Use V1.2; release R4.2.
+
 ### Carry-over from Day 5 (still pending)
 Owner: run `push-to-github.bat`; set up the database in SSMS (01 → sample import → 04 → 05 → 06), then `npm run doctor`; review the 3 demos in the Admin site; choose free hosting for demo links (Netlify recommended).
 
 ---
-Version: V1.4 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.4
+Version: V1.5 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.5

@@ -1,4 +1,4 @@
-"""Version: V1.2 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.2
+"""Version: V1.3 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.3
 Builds docs/architecture/SkyTech_Technology_Stack_Use.html (and a .md copy for the Claude project and GitHub): the "Technology Stack Use" document.
 It explains, for a non-technical reader, every tool and technology the SkyTech program uses, and merges
 them with the architecture diagram (taken from build_infrastructure.py, so both documents always match).
@@ -16,7 +16,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else "docs/architecture/SkyTech_Technolog
 E = html.escape
 
 # ============================ DATA (edit here) ============================
-DOC_VERSION = "V1.1"; DOC_DATE = "2026-10-10"; RELEASE = INFRA["RELEASE"]
+DOC_VERSION = "V1.2"; DOC_DATE = "2026-10-10"; RELEASE = INFRA["RELEASE"]
 
 # The journey a lead takes, in plain words, with the tools used at each step (one-minute picture).
 JOURNEY = [
@@ -56,7 +56,7 @@ STACK = [
  ("3 · Storing & checking data", "SQL scripts (T-SQL)", "Step-by-step instructions for the database.", "Create the tables, import leads without duplicates, load the demo sites.", "Free (ours)", "sql/ folder", "Ready"),
  ("4 · Your Admin website", "Node.js", "The engine that runs JavaScript programs on a computer.", "Runs the Admin site and the demo-site builder.", "Free", "Your laptop", "Ready"),
  ("4 · Your Admin website", "Express, express-session, dotenv", "Building blocks for a small web server.", "Admin pages, sign-in sessions and settings.", "Free", "Your laptop", "Ready"),
- ("4 · Your Admin website", "bcryptjs", "A password scrambler.", "Stores admin passwords so they cannot be read.", "Free", "Your laptop", "Ready"),
+ ("4 · Your Admin website", "bcryptjs", "A password scrambler.", "Stores Admin site passwords scrambled so they cannot be read (managed on the Logins screen).", "Free", "Your laptop", "Ready"),
  ("4 · Your Admin website", "mssql, msnodesqlv8, ODBC driver", "Connectors between Node.js and SQL Server.", "Lets the Admin site read and save database records.", "Free", "Your laptop", "Ready"),
  ("4 · Your Admin website", "Security layer (security.js)", "The site's locks and alarms, written by us.", "Blocks password guessing, forged requests from other websites and request floods; signs you out when idle; strict browser rules (CSP).", "Free (ours)", "Your laptop", "Ready"),
  ("4 · Your Admin website", "Logging + error codes (logger.js, errors.js)", "A diary of everything the site does, and a numbered list of every possible problem.", "Each problem shows a code like SKY-DB-001 that the Troubleshooting Guide explains; logs are kept 30 days with passwords hidden.", "Free (ours)", "Your laptop", "Ready"),
@@ -102,7 +102,8 @@ GLOSSARY = [
  ("CSRF / CSP", "Protections that stop other websites from making your browser change your data or run unwanted code."),
 ]
 CHANGELOG = [("V1.0", "2026-10-10", "First version: one-minute journey picture, architecture diagram, technology stack in plain words, costs, glossary."),
-             ("V1.1", "2026-10-10", "R4.0: security layer, logging and error codes, doctor, secret scan and verified database backups added; diagram V1.6.")]
+             ("V1.1", "2026-10-10", "R4.0: security layer, logging and error codes, doctor, secret scan and verified database backups added; diagram V1.6."),
+             ("V1.2", "2026-10-10", "R4.2: Admin site manages its own logins (create, edit, disable, reset password); diagram V1.7.")]
 # ==========================================================================
 
 def journey_svg():
