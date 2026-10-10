@@ -1,5 +1,12 @@
 # Changelog
 
+## R3.5 — 2026-10-10
+- Technology Stack Use is now a listed, versioned artifact:
+  - README V2.6 adds a "Key documents (artifacts, versioned)" table showing current versions (Technology Stack Use V1.0, infrastructure V1.5, plan V2.2, instructions V1.8, register V3.7 and others), and refreshes the folder table.
+  - Generator `build_tech_stack.py` V1.1 also writes `SkyTech_Technology_Stack_Use.md`, kept in the repo and in the Claude project (`claude/SkyTech-Technology-Stack-Use.md`).
+  - Version-register rule 9 and project instructions V1.8: re-version and release it, and refresh the project copy, whenever a tool changes.
+- Day-10 prompts V1.2 (10.03); log V1.1.
+
 ## R3.4 — 2026-10-10
 - New document **SkyTech Technology Stack Use** V1.0 (`docs/architecture/SkyTech_Technology_Stack_Use.html` / `.pdf` + `SkyTech_Technology_Stack_Journey.png`), written for non-technical readers:
   - one-minute picture of the six steps, with the tools used at each;
@@ -99,4 +106,4 @@
 - First release: 90-day plan, agent roles, SQL schema and daily batch query, robots.txt, Day-1 session log, prompt book v1.0.
 
 ---
-Version: V2.4 (2026-10-10) — CHANGELOG.md — V2.4
+Version: V2.5 (2026-10-10) — CHANGELOG.md — V2.5

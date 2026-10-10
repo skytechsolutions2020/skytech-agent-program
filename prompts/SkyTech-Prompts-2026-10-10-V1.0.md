@@ -1,4 +1,4 @@
-# SkyTech Prompts — 2026-10-10 — V1.1
+# SkyTech Prompts — 2026-10-10 — V1.2
 
 End-of-day prompt set. Numbering by day: Day 10 = 10.01, 10.02 … (Day 9 prompts: `SkyTech-Prompts-2026-10-09-V1.0.md`; Day 8: `SkyTech-Prompts-2026-10-08-V1.0.md`; Day 7: `SkyTech-Prompts-2026-10-07-V1.0.md`; Day 6: `SkyTech-Prompts-2026-10-06-V1.0.md`; Day 5: `SkyTech-Prompts-2026-10-05-V1.0.md`; Day 4: `SkyTech-Prompts-2026-10-04-V1.0.md`; Day 3: `SkyTech-Prompts-2026-10-03-V1.0.md`; Day 2: `SkyTech-Prompts-2026-10-02-V1.0.md`, consolidated in Prompt Book V2.0).
 
@@ -19,8 +19,14 @@ RULES (standing): Update and re-version the document whenever a tool is added, c
 OUTPUT: `docs/architecture/SkyTech_Technology_Stack_Use` (HTML + PDF + journey picture PNG), generator `scripts/docs/build_tech_stack.py`, and release R3.4.
 RESULT: V1.0 has a six-step "one-minute picture", the architecture diagram V1.5 with its data flow, 42 tools in 8 plain-language groups with cost and status, a $0 new-spend summary, a glossary and a change log. Project instructions V1.7 add the standing rule.
 
+### 10.03 Technology Stack Use as a versioned artifact — V1.0
+As written: "Add this to list of Artifacts and maintain versioning going forward"
+Engineered:
+INSTRUCTION (standing): Treat the Technology Stack Use document as a project artifact. List it, with its current version, alongside the other key documents. Keep a copy in the Claude project. Re-version and release it whenever a tool or component changes.
+RESULT: README V2.6 gains a "Key documents (artifacts, versioned)" table; the generator V1.1 also writes a Markdown copy, kept in the repo and in the Claude project (`claude/SkyTech-Technology-Stack-Use.md`); version-register rule 9; project instructions V1.8; release R3.5.
+
 ### Carry-over from Day 5 (still pending)
 Owner: run `push-to-github.bat`; set up the database in SSMS (01 → sample import → 04 → 05); review the 3 demos in the Admin site; choose free hosting for demo links (Netlify recommended).
 
 ---
-Version: V1.1 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.1
+Version: V1.2 (2026-10-10) — SkyTech-Prompts-2026-10-10-V1.0.md — V1.2

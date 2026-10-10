@@ -9,15 +9,16 @@
 6. Older versions are not overwritten silently: the change is logged below with date and reason.
 7. Existing files are edited in place; the file name stays the same and the version footer changes.
 8. GitHub releases are tagged R<major>.<minor>; `INDEX.md` lists what each release contains.
+9. Key documents (artifacts) and their current versions are listed in `README.md`; the Technology Stack Use document is one of them and is re-versioned whenever a tool changes.
 
 ## Register (as of 2026-10-10)
 | File | Version | Date | Notes |
 |---|---|---|---|
 | 90-Day Plan living doc (claude.ai artifact) + `docs/90-day-plan.md` | V2.2 | 2026-10-02 | V2.0 free lead sources; V2.1 niche and area chosen |
-| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.7 | 2026-10-10 | Free lead sources; pasted into Project Instructions by owner. Unchanged 2026-10-03 through 2026-10-09; V1.7 on 2026-10-10 adds the Technology Stack Use rule (repo copy; paste into the claude.ai field) |
-| Version register (claude.ai project + `config/version-register.md`) | V3.6 | 2026-10-10 | This register (claude.ai and repo copies kept in step) |
+| Project instructions (claude.ai field + `config/project-instructions.md`) | V1.8 | 2026-10-10 | Free lead sources; pasted into Project Instructions by owner. Unchanged 2026-10-03 through 2026-10-09; V1.7–V1.8 on 2026-10-10 add the Technology Stack Use rule (repo copy; paste into the claude.ai field) |
+| Version register (claude.ai project + `config/version-register.md`) | V3.7 | 2026-10-10 | This register (claude.ai and repo copies kept in step) |
 | SkyTech-90-Day-Plan-link.md (claude.ai project) | V1.3 | 2026-10-02 | Plan notes and next steps |
-| SkyTech-Prompts-2026-10-10-V1.0.md | V1.1 | 2026-10-10 | Day-10 prompts 10.01–10.02 |
+| SkyTech-Prompts-2026-10-10-V1.0.md | V1.2 | 2026-10-10 | Day-10 prompts 10.01–10.03 |
 | SkyTech-Prompts-2026-10-09-V1.0.md | V1.0 | 2026-10-09 | Day-9 prompts 9.01 |
 | SkyTech-Prompts-2026-10-08-V1.0.md | V1.0 | 2026-10-08 | Day-8 prompts 8.01 |
 | SkyTech-Prompts-2026-10-07-V1.0.md | V1.0 | 2026-10-07 | Day-7 prompts 7.01 |
@@ -42,9 +43,11 @@
 | `admin-site/` | V1.4 | 2026-10-05 | Admin website; live duplicate check; Demo sites tab (edit incl. photos, live preview, download, save) |
 | `sql/04_admin_site.sql` | V1.4 | 2026-10-05 | Admin site tables, views, duplicate check, vw_DemoSiteDetail |
 | `docs/architecture/SkyTech_Infrastructure` (.html/.pdf/.png) + `scripts/docs/build_infrastructure.py` | V1.5 | 2026-10-10 | Infrastructure, data flow, agents, roles, versions (diagram shared with Technology Stack Use) |
-| `docs/architecture/SkyTech_Technology_Stack_Use` (.html/.pdf + journey .png) + `scripts/docs/build_tech_stack.py` | V1.0 | 2026-10-10 | Technology Stack Use: every tool in plain words, merged with the architecture diagram |
+| `docs/architecture/SkyTech_Technology_Stack_Use` (.html/.pdf/.md + journey .png) | V1.0 | 2026-10-10 | Technology Stack Use: every tool in plain words, merged with the architecture diagram (generator `scripts/docs/build_tech_stack.py` V1.1) |
+| SkyTech-Technology-Stack-Use.md (claude.ai project) | V1.0 | 2026-10-10 | Copy of the Technology Stack Use document, refreshed with every release |
+| `README.md` | V2.6 | 2026-10-10 | Key documents list with current versions |
 | `push-to-github.bat` | V1.0 | 2026-10-02 | One-click upload of commits + tags |
-| GitHub repository `skytech-agent-program` | R3.4 | 2026-10-10 | See `INDEX.md` |
+| GitHub repository `skytech-agent-program` | R3.5 | 2026-10-10 | See `INDEX.md` |
 
 ## Change log
 - 2026-10-02 V1.0: Versioning system introduced.
@@ -74,6 +77,7 @@
 - 2026-10-09 Scheduled versioning run: Day-9 prompt file `SkyTech-Prompts-2026-10-09-V1.0.md` created (prompt 9.01); rule 5 example extended to 9.01; instructions confirmed at V1.6 (no content change). Register → V3.4.
 - 2026-10-10 Scheduled versioning run: Day-10 prompt file `SkyTech-Prompts-2026-10-10-V1.0.md` created (prompt 10.01); rule 5 example extended to 10.01; instructions confirmed at V1.6 (no content change). Register → V3.5.
 - 2026-10-10 R3.4: new document Technology Stack Use V1.0 (one-minute journey picture, architecture diagram, 42 tools in plain words with cost and status, glossary), generated with the architecture diagram V1.5 from shared source; project instructions V1.7 (keep it updated); Day 6–10 prompt files added to the repo; Day-10 prompts V1.1 (10.02); log 2026-10-10. Register → V3.6.
+- 2026-10-10 R3.5: Technology Stack Use added to the list of artifacts: README V2.6 "Key documents" table, Markdown copy (repo + claude.ai project), generator V1.1; rule 9; project instructions V1.8; Day-10 prompts V1.2 (10.03). Register → V3.7.
 
 ---
-Version: V3.6 (2026-10-10) — SkyTech-Version-Register.md — V3.6
+Version: V3.7 (2026-10-10) — SkyTech-Version-Register.md — V3.7

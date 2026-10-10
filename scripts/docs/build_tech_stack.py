@@ -1,5 +1,5 @@
-"""Version: V1.0 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.0
-Builds docs/architecture/SkyTech_Technology_Stack_Use.html: the "Technology Stack Use" document.
+"""Version: V1.1 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.1
+Builds docs/architecture/SkyTech_Technology_Stack_Use.html (and a .md copy for the Claude project and GitHub): the "Technology Stack Use" document.
 It explains, for a non-technical reader, every tool and technology the SkyTech program uses, and merges
 them with the architecture diagram (taken from build_infrastructure.py, so both documents always match).
 Edit the DATA section, bump DOC_VERSION and add a CHANGELOG line, then run from the repository folder:
@@ -199,4 +199,24 @@ os.makedirs(os.path.dirname(OUT) or ".", exist_ok=True)
 open(OUT, "w", encoding="utf-8").write(page)
 print("wrote", OUT)
 
-# Version: V1.0 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.0
+# Markdown copy: same content in plain text (the diagrams live in the HTML/PDF)
+md_path = os.path.splitext(OUT)[0] + ".md"
+cell = lambda v: str(v).replace("|", "/")
+md = [f"# SkyTech Technology Stack Use", "", f"Version {DOC_VERSION} · {DOC_DATE} · release {RELEASE} · architecture diagram {INFRA['DOC_VERSION']} · maintained by SkyTech_Manager", "",
+      "Plain-language list of every tool and technology the SkyTech program uses. The full document with the six-step picture and the architecture diagram is `docs/architecture/SkyTech_Technology_Stack_Use.pdf` (and .html).", "",
+      f"**{counts['total']}** tools listed · **{counts['inuse']}** in use or ready · **$0** new monthly spend ({counts['free']} free or included; the rest use your existing Claude plan, Hostinger plan and phone).", "",
+      "## How SkyTech works, in six steps", ""]
+md += [f"{i}. **{t}**: {d} _Tools: {', '.join(tl)}._" for i, (t, d, tl) in enumerate(JOURNEY, 1)]
+md += ["", "Always running in the background: " + "; ".join(BACKGROUND) + ".", ""]
+group = None
+for g, t, w, u, c, r, st in STACK:
+    if g != group:
+        md += ["", f"## {g}", "", "| Tool / technology | What it is | What we use it for | Cost | Where it runs | Status |", "| --- | --- | --- | --- | --- | --- |"]; group = g
+    md.append("| " + " | ".join(cell(x) for x in (f"**{t}**", w, u, c, r, st)) + " |")
+md += ["", "## Words you may see", "", "| Word | Meaning |", "| --- | --- |"] + [f"| **{a}** | {b} |" for a, b in GLOSSARY]
+md += ["", "## Change log", "", "| Version | Date | Change |", "| --- | --- | --- |"] + [f"| {a} | {b} | {c} |" for a, b, c in CHANGELOG]
+md += ["", "---", f"Version: {DOC_VERSION} ({DOC_DATE}) — SkyTech_Technology_Stack_Use.md — {DOC_VERSION}", ""]
+open(md_path, "w", encoding="utf-8").write("\n".join(md))
+print("wrote", md_path)
+
+# Version: V1.1 (2026-10-10) — scripts/docs/build_tech_stack.py — V1.1
